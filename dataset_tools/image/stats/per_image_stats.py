@@ -150,7 +150,11 @@ def project_per_image_stats(project_id: int = None, project_path: str = None, sa
         project_meta = sly.ProjectMeta.from_json(project_meta_json)
 
         class_names, class_indices_colors, _name_to_index = process_obj_classes(stats, project_meta)
-        with tqdm(total=project_info.items_count) as ds_pbar:
+
+        total_items = project_info.items_count
+        if sample_procent is not None:
+            total_items = int(max(1, total_items * sample_procent // 100))
+        with tqdm(total=total_items) as ds_pbar:
             datasets = api.dataset.get_list(project_id)
             for dataset in datasets:
                 images = api.image.get_list(dataset.id)
@@ -174,7 +178,10 @@ def project_per_image_stats(project_id: int = None, project_path: str = None, sa
         project_meta = project_fs.meta
 
         class_names, class_indices_colors, _name_to_index = process_obj_classes(stats, project_meta)
-        with tqdm(total=project_fs.total_items) as ds_pbar:
+        total_items = project_fs.total_items
+        if sample_procent is not None:
+            total_items = int(max(1, total_items * sample_procent // 100))
+        with tqdm(total=total_items) as ds_pbar:
             datasets = project_fs.datasets
             for dataset in datasets:
                 dataset: sly.Dataset
@@ -199,7 +206,7 @@ def project_per_image_stats(project_id: int = None, project_path: str = None, sa
 storage_dir = sly.app.get_data_dir()
 
 # Option 1. Get stats with given project ID
-stats = project_per_image_stats(project_id=PROJECT_ID)
+stats = project_per_image_stats(project_id=PROJECT_ID, sample_procent=16)
 
 # Option 2. Get stats with given project path
 # sly.fs.clean_dir(storage_dir)
