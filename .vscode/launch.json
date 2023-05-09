@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Local debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/dataset_tools/renders/renders.py",
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
