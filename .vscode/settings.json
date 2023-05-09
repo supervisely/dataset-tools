@@ -2,7 +2,9 @@
     "python.defaultInterpreterPath": ".venv/bin/python",
     "files.exclude": {
         "**/__pycache__": true,
-        // ".venv": true,
+        "build": true,
+        "dataset_tools.egg-info": true,
+        ".venv": true,
     },
     "black-formatter.args": [
         "--line-length",
