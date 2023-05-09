@@ -159,4 +159,4 @@ def clean_tmp_dir():
 # Debug launchers.
 # clean_tmp_dir()
 # create_renders(project_id=PROJECT_ID)
-create_renders(project_path=PROJECT_PATH)
+# create_renders(project_path=PROJECT_PATH)
