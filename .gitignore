@@ -1,3 +1,5 @@
-.venv/
-dataset_tools.egg-info/
-build/
+.venv
+supervisely
+__pycache__
+.DS_Store
+tmp/
