@@ -7,6 +7,7 @@ import supervisely as sly
 
 from collections import defaultdict
 from dotenv import load_dotenv
+from tqdm import tqdm
 from typing import List
 
 if sly.is_development():
@@ -50,6 +51,7 @@ def _calculate_stats_per_image(
     class_names: List[str],
     class_indices_colors: List[List[int]],
     _name_to_index: dict,
+    ds_pbar: tqdm,
 ):
     sum_class_area_per_image = [0] * len(class_names)
     sum_class_count_per_image = [0] * len(class_names)
@@ -106,6 +108,7 @@ def _calculate_stats_per_image(
                 raise RuntimeError("Values for some columns are missed")
 
             stats[img_info.name] = table_row
+            ds_pbar.update(1)
 
 
 def process_obj_classes(stats, project_meta):
@@ -147,33 +150,51 @@ def project_per_image_stats(project_id: int = None, project_path: str = None, sa
         project_meta = sly.ProjectMeta.from_json(project_meta_json)
 
         class_names, class_indices_colors, _name_to_index = process_obj_classes(stats, project_meta)
+        with tqdm(total=project_info.items_count) as ds_pbar:
+            datasets = api.dataset.get_list(project_id)
+            for dataset in datasets:
+                images = api.image.get_list(dataset.id)
+                images = (
+                    get_sample(images, sample_procent) if sample_procent is not None else images
+                )
 
-        datasets = api.dataset.get_list(project_id)
-        for dataset in datasets:
-            images = api.image.get_list(dataset.id)
-            images = get_sample(images, sample_procent) if sample_procent is not None else images
-
-            _calculate_stats_per_image(
-                stats, images, project_meta, class_names, class_indices_colors, _name_to_index
-            )
+                _calculate_stats_per_image(
+                    stats,
+                    images,
+                    project_meta,
+                    class_names,
+                    class_indices_colors,
+                    _name_to_index,
+                    ds_pbar,
+                )
+                ds_pbar.update(1)
 
     if project_path is not None:
         project_fs = sly.Project(project_path, sly.OpenMode.READ)
         project_meta = project_fs.meta
 
         class_names, class_indices_colors, _name_to_index = process_obj_classes(stats, project_meta)
+        with tqdm(total=project_fs.total_items) as ds_pbar:
+            datasets = project_fs.datasets
+            for dataset in datasets:
+                dataset: sly.Dataset
+                images = [dataset.get_image_info(img) for img in os.listdir(dataset.img_dir)]
+                images = (
+                    get_sample(images, sample_procent) if sample_procent is not None else images
+                )
 
-        datasets = project_fs.datasets
-        for dataset in datasets:
-            dataset: sly.Dataset
-            images = [dataset.get_image_info(img) for img in os.listdir(dataset.img_dir)]
-            images = get_sample(images, sample_procent) if sample_procent is not None else images
-
-            _calculate_stats_per_image(
-                stats, images, project_meta, class_names, class_indices_colors, _name_to_index
-            )
+                _calculate_stats_per_image(
+                    stats,
+                    images,
+                    project_meta,
+                    class_names,
+                    class_indices_colors,
+                    _name_to_index,
+                    ds_pbar,
+                )
 
     return stats
+
 
 storage_dir = sly.app.get_data_dir()
 
@@ -181,15 +202,13 @@ storage_dir = sly.app.get_data_dir()
 stats = project_per_image_stats(project_id=PROJECT_ID)
 
 # Option 2. Get stats with given project path
-sly.fs.clean_dir(storage_dir)
-sly.download_project(api, PROJECT_ID, storage_dir, save_image_info=True)
-stats = project_per_image_stats(project_path=storage_dir)
+# sly.fs.clean_dir(storage_dir)
+# sly.download_project(api, PROJECT_ID, storage_dir, save_image_info=True)
+# stats = project_per_image_stats(project_path=storage_dir)
 
 stat_json_path = os.path.join(storage_dir, "per_image_stats.json")
 with io.open(stat_json_path, "w", encoding="utf-8") as file:
-    str_ = json.dumps(
-        stats, indent=4, separators=(",", ": "), ensure_ascii=False
-    )
+    str_ = json.dumps(stats, indent=4, separators=(",", ": "), ensure_ascii=False)
     file.write(str(str_))
 
 dst_path = f"/stats/{PROJECT_ID}/per_image_stats.json"
