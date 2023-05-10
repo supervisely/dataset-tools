@@ -2,6 +2,9 @@ import os
 from dotenv import load_dotenv
 import numpy as np
 
+import itertools
+from collections import defaultdict
+
 import supervisely as sly
 
 # import dtoolz.image.stats.sly_globals as g
@@ -25,11 +28,7 @@ BG_COLOR = [0, 0, 0]
 # dtz.statistics.plot(stats)
 
 
-def get_overviewTable(tb: dict, image_info, meta):
-    # update_overview_table(image_info, meta)
-    ann_info = api.annotation.download(
-        image_info.id,
-    )
+def get_overviewTable(tb: dict, image_info, ann_info, meta):
     ann_json = ann_info.annotation
     ann_objects = [(obj["id"], obj["classTitle"]) for obj in ann_json["objects"]]
 
@@ -72,10 +71,66 @@ def get_overviewTable(tb: dict, image_info, meta):
     return tb
 
 
-def update_classes_distribution(stats: dict, image_info):
-    overviewTable = get_overviewTable(stats["overviewTable"], image_info, stats["meta"])
+def get_cooccurenceTable(tb: dict, image_info, ann_info, meta):
+    ann_json = ann_info.annotation
+
+    ann = sly.Annotation.from_json(ann_json, meta)
+
+    classes_on_image = set()
+    for label in ann.labels:
+        classes_on_image.add(label.obj_class.name)
+
+    all_pairs = set(
+        frozenset(pair) for pair in itertools.product(classes_on_image, classes_on_image)
+    )
+    for p in all_pairs:
+        tb["counters"][p].append((image_info, tb["dataset"]))
+
+    return tb
+
+
+def update_classes_distribution(stats: dict, image_info, ann_info):
+    overviewTable = get_overviewTable(stats["overviewTable"], image_info, ann_info, stats["meta"])
     stats["overviewTable"].update(overviewTable)
-    # stats["b"] += 1
+
+    cooccurenceTable = get_cooccurenceTable(
+        stats["cooccurenceTable"], image_info, ann_info, stats["meta"]
+    )
+    stats["cooccurenceTable"].update(cooccurenceTable)
+
+
+def aggregate_calculations(stats):
+    # overviewTable
+    with np.errstate(divide="ignore"):
+        avg_nonzero_area = np.divide(
+            stats["overviewTable"]["sum_class_area_per_image"],
+            stats["overviewTable"]["count_images_with_class"],
+        )
+        avg_nonzero_count = np.divide(
+            stats["overviewTable"]["sum_class_count_per_image"],
+            stats["overviewTable"]["count_images_with_class"],
+        )
+
+    avg_nonzero_area = np.where(np.isnan(avg_nonzero_area), None, avg_nonzero_area)
+    avg_nonzero_count = np.where(np.isnan(avg_nonzero_count), None, avg_nonzero_count)
+
+    stats["overviewTable"]["avg_nonzero_area"] = avg_nonzero_area
+    stats["overviewTable"]["avg_nonzero_count"] = avg_nonzero_count
+
+    # cooccurenceTable
+    pd_data = []
+    class_names = stats["cooccurenceTable"]["class_names"]
+    columns = ["name", *class_names]
+    for cls_name1 in class_names:
+        cur_row = [cls_name1]
+        for cls_name2 in class_names:
+            key = frozenset([cls_name1, cls_name2])
+            imgs_cnt = len(stats["cooccurenceTable"]["counters"][key])
+            cur_row.append(imgs_cnt)
+        pd_data.append(cur_row)
+
+    pd_data[:0] = [columns]
+    stats["cooccurenceTable"]["pd_data"] = pd_data
 
 
 def classes_distribution(project_id: int = None, project_path: str = None):
@@ -89,7 +144,12 @@ def classes_distribution(project_id: int = None, project_path: str = None):
             "object_counts_filter_by_id": [],
             "avg_nonzero_area": [],
             "avg_nonzero_count": [],
-        }
+        },
+        "cooccurenceTable": {
+            "class_names": [],
+            "counters": [],
+            "pd_data": [],
+        },
     }
 
     if project_id is not None:
@@ -97,6 +157,7 @@ def classes_distribution(project_id: int = None, project_path: str = None):
         meta = sly.ProjectMeta.from_json(meta_json)
         stats["meta"] = meta
 
+        # overviewTable
         class_names = ["unlabeled"]
         class_colors = [[0, 0, 0]]
         class_indices_colors = [[0, 0, 0]]
@@ -119,32 +180,33 @@ def classes_distribution(project_id: int = None, project_path: str = None):
         stats["overviewTable"]["image_counts_filter_by_id"] = [[] for _ in class_names]
         stats["overviewTable"]["object_counts_filter_by_id"] = [[] for _ in class_names]
 
+        # cooccurenceTable
+        class_names = [cls.name for cls in meta.obj_classes]
+        counters = defaultdict(list)
+        stats["cooccurenceTable"]["class_names"] = class_names
+        stats["cooccurenceTable"]["counters"] = counters
+
         for dataset in api.dataset.get_list(project_id):
-            for image in api.image.get_list(dataset.id):
-                update_classes_distribution(stats, image)
+            stats["cooccurenceTable"]["dataset"] = dataset
+            images = api.image.get_list(dataset.id)
 
-        # average nonzero class area per image
-        with np.errstate(divide="ignore"):
-            avg_nonzero_area = np.divide(
-                stats["overviewTable"]["sum_class_area_per_image"],
-                stats["overviewTable"]["count_images_with_class"],
-            )
-            avg_nonzero_count = np.divide(
-                stats["overviewTable"]["sum_class_count_per_image"],
-                stats["overviewTable"]["count_images_with_class"],
-            )
+            for img_batch in sly.batched(images):
+                image_ids = [image_info.id for image_info in img_batch]
+                ann_batch = api.annotation.download_batch(dataset.id, image_ids)
 
-        avg_nonzero_area = np.where(np.isnan(avg_nonzero_area), None, avg_nonzero_area)
-        avg_nonzero_count = np.where(np.isnan(avg_nonzero_count), None, avg_nonzero_count)
+                for image, ann in zip(img_batch, ann_batch):
+                    update_classes_distribution(stats, image, ann)
 
-        stats["overviewTable"]["avg_nonzero_area"] = avg_nonzero_area
-        stats["overviewTable"]["avg_nonzero_count"] = avg_nonzero_count
+        aggregate_calculations(stats)
 
     else:
         project_fs = sly.Project(project_path, sly.OpenMode.READ)
         for dataset in project_fs:
             for image in dataset:
                 update_classes_distribution(stats, image)
+
+        aggregate_calculations(stats)
+
     return stats
 
 
