@@ -1,14 +1,13 @@
-import io
-import json
-import numpy as np
-import os
-import random
-import supervisely as sly
-
+import io, json, os, random
 from collections import defaultdict
+from typing import List
+
+import numpy as np
 from dotenv import load_dotenv
 from tqdm import tqdm
-from typing import List
+
+import supervisely as sly
+
 
 if sly.is_development():
     load_dotenv(os.path.expanduser("~/supervisely.env"))
@@ -38,13 +37,14 @@ def get_col_name_count(name, color):
 
 
 def get_sample(images, sample_procent):
-    cnt = int(max(1, sample_procent * len(images) / 100))
+    cnt = int(max(1, sample_procent * len(images) // 100))
     random.shuffle(images)
     images = images[:cnt]
     return images
 
 
-def _calculate_stats_per_image(
+# collect all table rows data
+def calculate_stats_per_image(
     stats: dict,
     images: List[sly.ImageInfo],
     project_meta: sly.ProjectMeta,
@@ -57,8 +57,8 @@ def _calculate_stats_per_image(
     sum_class_count_per_image = [0] * len(class_names)
     count_images_with_class = [0] * len(class_names)
     dataset = api.dataset.get_info_by_id(images[0].dataset_id)
-    project = api.project.get_info_by_id(dataset.project_id)
 
+    all_stats = []
     for batch_images in sly.batched(images, batch_size=20):
         img_ids = [img.id for img in batch_images]
         anns = api.annotation.download_json_batch(batch_images[0].dataset_id, img_ids)
@@ -78,7 +78,9 @@ def _calculate_stats_per_image(
 
             table_row.append(
                 '<a href="{0}" rel="noopener noreferrer" target="_blank">{1}</a>'.format(
-                    api.image.url(TEAM_ID, WORKSPACE_ID, project.id, dataset.id, img_info.id),
+                    api.image.url(
+                        TEAM_ID, WORKSPACE_ID, dataset.project_id, dataset.id, img_info.id
+                    ),
                     img_info.name,
                 )
             )
@@ -107,10 +109,12 @@ def _calculate_stats_per_image(
             if len(table_row) != len(stats["columns"]):
                 raise RuntimeError("Values for some columns are missed")
 
-            stats[img_info.name] = table_row
+            all_stats.append(table_row)
             ds_pbar.update(1)
+    stats["data"] = all_stats
 
 
+# prepare table columns
 def process_obj_classes(stats, project_meta):
     class_names = ["unlabeled"]
     class_colors = [[0, 0, 0]]
@@ -153,8 +157,10 @@ def project_per_image_stats(project_id: int = None, project_path: str = None, sa
 
         total_items = project_info.items_count
         if sample_procent is not None:
-            total_items = int(max(1, total_items * sample_procent // 100))
-        with tqdm(total=total_items) as ds_pbar:
+            total_items = 0
+            for ds in api.dataset.get_list(project_id):
+                total_items += int(max(1, ds.items_count * sample_procent // 100))
+        with tqdm(desc="Calculating stats using project ID", total=total_items) as ds_pbar:
             datasets = api.dataset.get_list(project_id)
             for dataset in datasets:
                 images = api.image.get_list(dataset.id)
@@ -162,7 +168,7 @@ def project_per_image_stats(project_id: int = None, project_path: str = None, sa
                     get_sample(images, sample_procent) if sample_procent is not None else images
                 )
 
-                _calculate_stats_per_image(
+                calculate_stats_per_image(
                     stats,
                     images,
                     project_meta,
@@ -171,7 +177,6 @@ def project_per_image_stats(project_id: int = None, project_path: str = None, sa
                     _name_to_index,
                     ds_pbar,
                 )
-                ds_pbar.update(1)
 
     if project_path is not None:
         project_fs = sly.Project(project_path, sly.OpenMode.READ)
@@ -180,17 +185,23 @@ def project_per_image_stats(project_id: int = None, project_path: str = None, sa
         class_names, class_indices_colors, _name_to_index = process_obj_classes(stats, project_meta)
         total_items = project_fs.total_items
         if sample_procent is not None:
-            total_items = int(max(1, total_items * sample_procent // 100))
-        with tqdm(total=total_items) as ds_pbar:
+            total_items = 0
+            for ds in project_fs.datasets:
+                curr_cnt = len(os.listdir(ds.ann_dir))
+                total_items += int(max(1, curr_cnt * sample_procent // 100))
+        with tqdm(desc="Calculating stats for local project", total=total_items) as ds_pbar:
             datasets = project_fs.datasets
             for dataset in datasets:
                 dataset: sly.Dataset
-                images = [dataset.get_image_info(img) for img in os.listdir(dataset.img_dir)]
+                images = [
+                    dataset.get_image_info(sly.fs.get_file_name(img))
+                    for img in os.listdir(dataset.ann_dir)
+                ]
                 images = (
                     get_sample(images, sample_procent) if sample_procent is not None else images
                 )
 
-                _calculate_stats_per_image(
+                calculate_stats_per_image(
                     stats,
                     images,
                     project_meta,
@@ -205,19 +216,34 @@ def project_per_image_stats(project_id: int = None, project_path: str = None, sa
 
 storage_dir = sly.app.get_data_dir()
 
-# Option 1. Get stats with given project ID
-stats = project_per_image_stats(project_id=PROJECT_ID, sample_procent=16)
+################## Option 1. Get stats with given project ID ##################
+# stats = project_per_image_stats(project_id=PROJECT_ID, sample_procent=5)
 
-# Option 2. Get stats with given project path
-# sly.fs.clean_dir(storage_dir)
-# sly.download_project(api, PROJECT_ID, storage_dir, save_image_info=True)
-# stats = project_per_image_stats(project_path=storage_dir)
+###################################### or #####################################
 
+################# Option 2. Get stats with given project path #################
+n_count = api.project.get_info_by_id(PROJECT_ID).items_count
+p = tqdm(desc="Downloading", total=n_count)
+
+sly.download_project(
+    api,
+    PROJECT_ID,
+    storage_dir,
+    progress_cb=p.update,
+    save_image_info=True,
+    save_images=False,
+)
+stats = project_per_image_stats(project_path=storage_dir, sample_procent=5)
+
+# save stats to JSON file
 stat_json_path = os.path.join(storage_dir, "per_image_stats.json")
 with io.open(stat_json_path, "w", encoding="utf-8") as file:
     str_ = json.dumps(stats, indent=4, separators=(",", ": "), ensure_ascii=False)
     file.write(str(str_))
 
+# upload stats to Team files
 dst_path = f"/stats/{PROJECT_ID}/per_image_stats.json"
 file_info = api.file.upload(TEAM_ID, stat_json_path, dst_path)
 print(f"Per image stats uploaded to Team files path: {file_info.path}")
+
+sly.fs.remove_dir(storage_dir)
