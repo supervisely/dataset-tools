@@ -8,7 +8,7 @@
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "program": "dataset_tools/image/stats/classes_distribution.py",
+            "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
