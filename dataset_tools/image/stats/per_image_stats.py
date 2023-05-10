@@ -217,7 +217,7 @@ def project_per_image_stats(project_id: int = None, project_path: str = None, sa
 storage_dir = sly.app.get_data_dir()
 
 ################## Option 1. Get stats with given project ID ##################
-# stats = project_per_image_stats(project_id=PROJECT_ID, sample_procent=5)
+stats = project_per_image_stats(project_id=PROJECT_ID, sample_procent=5)
 
 ###################################### or #####################################
 
