@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import numpy as np
+import random
 
 import itertools
 from collections import defaultdict
@@ -20,12 +21,31 @@ api = sly.Api()
 
 PROJECT_ID = sly.env.project_id()
 BG_COLOR = [0, 0, 0]
+SAMPLE_PERCENT = 0.1
 
 # stats = dtz.statistics.classes_distribution(project_id=777)
 # stats = dtz.statistics.classes_distribution(project_path="/home/max/lemons")
 # # to team files
 # # or
 # dtz.statistics.plot(stats)
+
+
+def sample_images(api, datasets):
+    all_images = []
+    for dataset in datasets:
+        images = api.image.get_list(dataset.id)
+        all_images.extend(images)
+
+    cnt_images = len(all_images)
+    if SAMPLE_PERCENT != 100:
+        cnt_images = int(max(1, SAMPLE_PERCENT * len(all_images) / 100))
+        random.shuffle(all_images)
+        all_images = all_images[:cnt_images]
+
+    ds_images = defaultdict(list)
+    for image_info in all_images:
+        ds_images[image_info.dataset_id].append(image_info)
+    return ds_images, cnt_images
 
 
 def get_overviewTable(tb: dict, image_info, ann_info, meta):
@@ -137,6 +157,7 @@ def classes_distribution(project_id: int = None, project_path: str = None):
     # explicit structure
     stats = {
         "overviewTable": {
+            "sample": SAMPLE_PERCENT,
             "class_names": [],
             "images_count": [],
             "image_counts_filter_by_id": [],
@@ -185,6 +206,9 @@ def classes_distribution(project_id: int = None, project_path: str = None):
         counters = defaultdict(list)
         stats["cooccurenceTable"]["class_names"] = class_names
         stats["cooccurenceTable"]["counters"] = counters
+
+        datasets = api.dataset.get_list(PROJECT_ID)
+        ds_images, sample_count = sample_images(api, datasets)
 
         for dataset in api.dataset.get_list(project_id):
             stats["cooccurenceTable"]["dataset"] = dataset
