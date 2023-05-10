@@ -19,6 +19,6 @@ pip3 install -r requirements.txt && \
 echo "Requirements have been successfully installed" && \
 echo "Testing imports, please wait a minute ..." && \
 python3 -c "import supervisely as sly" && \
-python3 -c "import dtoolz as dtz" && \
+python3 -c "import dataset_tools as dtools" && \
 echo "Success!" && \
 deactivate
