@@ -11,12 +11,9 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": [
-                "--input-dir",
-                "/Users/max/input",
-                "--output-dir",
-                "/Users/max/output",
-            ]
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}:${PYTHONPATH}"
+            },
         }
     ]
 }
