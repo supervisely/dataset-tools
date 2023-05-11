@@ -143,7 +143,35 @@ def download_selected_images(selected_image_infos: List[sly.ImageInfo], project_
             h, w = IMG_HEIGHT_1, IMG_WIDTH_1
         else:
             h, w = IMG_HEIGHT_2, IMG_WIDTH_2
-        img = sly.image.resize_inter_nearest(img, (h, w))
+        img_h, img_w = img.shape[1], img.shape[0]
+        src_ratio = w / h
+        save_path = os.path.join(storage_dir, "poster.png")
+        # save image
+        cv2.imwrite(save_path, img)
+        img_ratio = img_w / img_h
+        if img_ratio != src_ratio:
+            if img_ratio > src_ratio:
+                img_h, img_w = int(w * img_ratio), w
+                img = sly.image.resize(img, (img_h, img_w))
+            else:
+                img_h, img_w = h, int(h / img_ratio)
+                img = sly.image.resize(img, (img_h, img_w))
+            save_path = os.path.join(storage_dir, "poster.png")
+            # save image
+            cv2.imwrite(save_path, img)
+            crop_rect = sly.Rectangle(
+                top=(img_h - h) // 2,
+                left=(img_w - w) // 2,
+                bottom=(img_h + h) // 2,
+                right=(img_w + w) // 2,
+            )
+            img = sly.image.crop_with_padding(img, crop_rect)
+            save_path = os.path.join(storage_dir, "poster.png")
+            # save image
+            cv2.imwrite(save_path, img)
+        else:
+            img = sly.image.resize(img, (h, w))
+
         rgba_image = np.zeros((img.shape[0], img.shape[1], 4), dtype=np.uint8)
 
         if i % 2 == 0:
@@ -211,7 +239,11 @@ def create_poster(project_id=None, project_path=None):
         if len(project.name.split(" ")) < 4
         else " ".join(project.name.split(" ")[:3])
     )
-    TEXT_2 = f"{project.items_count} IMAGES" if project_id is not None else f"{project.total_items} IMAGES"
+    TEXT_2 = (
+        f"{project.items_count} IMAGES"
+        if project_id is not None
+        else f"{project.total_items} IMAGES"
+    )
     TEXT_3 = f"{len(project_meta.obj_classes)} CLASSES"
     TEXT_4 = f"{labels_cnt} LABELS"
 
