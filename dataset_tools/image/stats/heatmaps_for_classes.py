@@ -90,7 +90,7 @@ def get_heatmap(api, class_name):
     return heatmap
 
 
-def create_heatmap_list(api: sly.Api):
+def create_heatmaps(api: sly.Api):
     heatmaps = {}
     classes = [obj_class.get("title") for obj_class in meta_json["classes"]]
 
@@ -101,15 +101,15 @@ def create_heatmap_list(api: sly.Api):
     return heatmaps
 
 
-### For visual debug of hetmap:
+### For visual debug:
 #
 # import matplotlib
-# cmap = matplotlib.colormaps.get_cmap("viridis")
-# for heatmap in heatmaps:
-#     matplotlib.pyplot.imshow(heatmap["heatmap"][:, :, 0], cmap=cmap)
-#     matplotlib.pyplot.colorbar(cmap=cmap)
-#     matplotlib.pyplot.show()
+# import matplotlib.pyplot as plt
 
-if __name__ == "__main__":
-    heatmaps = create_heatmap_list(api)
-    print("Done")
+# if __name__ == "__main__":
+#     heatmaps = create_heatmaps(api)
+#     cmap = matplotlib.colormaps.get_cmap("viridis")
+#     for heatmap in heatmaps:
+#         plt.imshow(heatmaps[heatmap][:, :, 0], cmap=cmap)
+#         plt.colorbar(cmap=cmap)
+#         plt.show()
