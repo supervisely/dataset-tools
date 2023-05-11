@@ -23,7 +23,7 @@ def sample_images(api, datasets, sample_rate):
     return ds_images, cnt_images
 
 
-def calculate(api, cfg=None, project_id=None, project_dir=None, sample_rate=1):
+def calculate(api, cfg=None, project_id=None, project_dir=None, sample_rate=0.1):
     result = {}
 
     # cfg = {
