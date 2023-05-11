@@ -1,4 +1,5 @@
 import random
+import os
 
 from collections import defaultdict
 
@@ -23,30 +24,15 @@ def sample_images(api, datasets, sample_rate):
     return ds_images, cnt_images
 
 
+def get_sample(images, sample_rate):
+    cnt = int(max(1, sample_rate * len(images)))
+    random.shuffle(images)
+    images = images[:cnt]
+    return images
+
+
 def calculate(api, cfg=None, project_id=None, project_dir=None, sample_rate=0.1):
     result = {}
-
-    # cfg = {
-    #     #    "spatial": dtools.stat.spation_distribution,
-    #     "classes": [
-    #         classes_distribution,
-    #         classes_cooccurence,
-    #     ],
-    #     #     "images": dtools.stat.classes-on-every-image,
-    #     #    "objects": dtools.stat.classes-on-every-image,
-    # }
-    # supported_callbacks = [classes_distribution, classes_cooccurence]
-    # send_callbacks = []
-
-    # decomp_cfg = {}
-    # for key, value in cfg.items():
-    # if isinstance(value, (list, tuple)):
-    #     for i, item in enumerate(value):
-    #         new_key = f"{key}_{i+1}"
-    #         decomp_cfg[new_key] = item
-    # else:
-    #     new_key = f"{key}_{1}"
-    #     decomp_cfg[new_key] = value
 
     if project_id is not None:
         meta_json = api.project.get_meta(project_id)
@@ -61,15 +47,12 @@ def calculate(api, cfg=None, project_id=None, project_dir=None, sample_rate=0.1)
 
             for dataset_id, images in ds_images.items():
                 dataset = api.dataset.get_info_by_id(dataset_id)
-                # stats["currentDataset"] = dataset
 
                 for img_batch in sly.batched(images):
                     image_ids = [image_info.id for image_info in img_batch]
                     ann_batch = api.annotation.download_batch(dataset.id, image_ids)
 
                     for image_info, ann_info in zip(img_batch, ann_batch):
-                        # update_classes_distribution(stats, image, ann)
-
                         #  maybe *args **kwargs?
                         Statistics.update(stats, image_info, ann_info, meta, dataset)
 
@@ -77,8 +60,34 @@ def calculate(api, cfg=None, project_id=None, project_dir=None, sample_rate=0.1)
 
             result[statsType] = stats
 
-    else:
-        # TODO work with local sly format data
-        pass
+    elif project_dir is not None:
+        project_fs = sly.read_single_project(project_dir)
+        meta = project_fs.meta
+
+        for statsType, Statistics in cfg.items():
+            stats = {}
+            datasets = project_fs.datasets
+
+            for dataset in datasets:
+                images = [
+                    dataset.get_image_info(sly.fs.get_file_name(img))
+                    for img in os.listdir(dataset.ann_dir)
+                ]
+                images = get_sample(images, sample_rate) if sample_rate is not None else images
+
+                Statistics.prepare_data(stats, meta)
+
+                for img_batch in sly.batched(images):
+                    image_ids = [image_info.id for image_info in img_batch]
+
+                    ann_batch = api.annotation.download_batch(img_batch[0].dataset_id, image_ids)
+
+                    for image_info, ann_info in zip(img_batch, ann_batch):
+                        #  maybe *args **kwargs?
+                        Statistics.update(stats, image_info, ann_info, meta, dataset)
+
+            Statistics.aggregate_calculations(stats)
+
+            result[statsType] = stats
 
     return result

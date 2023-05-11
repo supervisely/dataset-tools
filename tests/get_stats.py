@@ -14,6 +14,12 @@ api = sly.Api()
 PROJECT_ID = sly.env.project_id()
 
 
+import shutil
+
+shutil.rmtree(os.environ["LOCAL_DATA_DIR"])
+sly.download(api, PROJECT_ID, os.environ["LOCAL_DATA_DIR"], save_image_info=True)
+
+
 cfg = {
     #    "spatial": dtools.stat.spation_distribution,
     "classesDistribution": dtools.ImgClassesDistribution,
@@ -25,7 +31,9 @@ cfg = {
 result = dtools.image.stats.calculate(
     api,
     cfg,
-    project_id=PROJECT_ID,
+    # project_id=PROJECT_ID,
+    project_dir=os.environ["LOCAL_DATA_DIR"],
+    sample_rate=1,
 )
 
 print(result)
