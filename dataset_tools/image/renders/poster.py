@@ -33,29 +33,6 @@ BORDER_OFFSET = 4
 
 
 api = sly.api.Api()
-team_id = sly.env.team_id()
-project_id = sly.env.project_id()
-dataset_id = sly.env.dataset_id(raise_not_found=False)
-project = api.project.get_info_by_id(project_id)
-datasets = api.dataset.get_list(project.id)
-
-project_meta_json = api.project.get_meta(project_id)
-project_meta = sly.ProjectMeta.from_json(project_meta_json)
-
-TEXT = (
-    project.name.upper()
-    if len(project.name.split(" ")) < 4
-    else " ".join(project.name.split(" ")[:3])
-)
-TEXT_2 = f"{project.items_count} IMAGES"
-TEXT_3 = f"{len(project_meta.obj_classes)} CLASSES"
-
-labels_cnt = 0
-for ds in datasets:
-    image_infos = api.image.get_list(ds.id)
-    for img_inf in image_infos:
-        labels_cnt += img_inf.labels_count
-TEXT_4 = f"{labels_cnt} LABELS"
 
 
 def draw_text(image, anchor_point, text, font, is_title: bool = False):
@@ -92,7 +69,7 @@ def draw_text(image, anchor_point, text, font, is_title: bool = False):
     return image
 
 
-def draw_all_text(image):
+def draw_all_text(image, title, img_cnt_text, cls_cnt_text, masks_cnt_text):
     sly.logger.info(f"Start drawing texts on poster.")
     font_ratio_main = 4
     font_ratio_2 = 1.5
@@ -103,60 +80,45 @@ def draw_all_text(image):
 
     # main title
     font = sly_font.get_font(font_size=int(base_font_size * font_ratio_main))
-    left, top, right, bottom = font.getbbox(TEXT)
+    left, top, right, bottom = font.getbbox(title)
     text_w, text_h = right - left, bottom - top
     while text_w > IMAGE_WIDTH * 0.9:
         font_ratio_main = 0.9 * font_ratio_main
         font = font.font_variant(size=int(base_font_size * font_ratio_main))
-        left, top, right, bottom = font.getbbox(TEXT)
+        left, top, right, bottom = font.getbbox(title)
         text_w, text_h = right - left, bottom - top
     main_anchor_point = ((IMAGE_HEIGHT - text_h) // 2, (IMAGE_WIDTH - text_w) // 2)
-    image = draw_text(image, main_anchor_point, TEXT, font, is_title=True)
+    image = draw_text(image, main_anchor_point, title, font, is_title=True)
 
     # images count
     font = sly_font.get_font(font_size=int(base_font_size * font_ratio_2))
-    left, top, right, bottom = font.getbbox(TEXT_2)
+    left, top, right, bottom = font.getbbox(img_cnt_text)
     text_w_2, text_h_2 = right - left, bottom - top
     anchor_point = (main_anchor_point[0] - text_h_2 - BORDER_OFFSET * 3, main_anchor_point[1])
-    image = draw_text(image, anchor_point, TEXT_2, font)
+    image = draw_text(image, anchor_point, img_cnt_text, font)
 
     # classes count
     font = sly_font.get_font(font_size=int(base_font_size * font_ratio_3))
-    left, top, right, bottom = font.getbbox(TEXT_3)
+    left, top, right, bottom = font.getbbox(cls_cnt_text)
     text_w_3, text_h_3 = right, bottom
     anchor_point = (main_anchor_point[0] + text_h + 4 * BORDER_OFFSET, IMAGE_WIDTH // 2 - text_w_3)
-    image = draw_text(image, anchor_point, TEXT_3, font)
+    image = draw_text(image, anchor_point, cls_cnt_text, font)
 
     # masks count
     font = sly_font.get_font(font_size=int(base_font_size * font_ratio_4))
-    left, top, right, bottom = font.getbbox(TEXT_4)
+    left, top, right, bottom = font.getbbox(masks_cnt_text)
     text_w_4, text_h_4 = right - left, bottom - top
     anchor_point = (
         main_anchor_point[0] - text_h_4 - BORDER_OFFSET * 2,
         main_anchor_point[1] + text_w - text_w_4,
     )
-    image = draw_text(image, anchor_point, TEXT_4, font)
+    image = draw_text(image, anchor_point, masks_cnt_text, font)
 
     sly.logger.info(f"Drawing texts on poster successfully finished.")
     return image
 
 
-def get_images_from_project(datasets):
-    sly.logger.info(f"Get images from {len(datasets)} datasets in project.")
-    all_images_infos = []
-
-    if dataset_id is not None:
-        datasets = [api.dataset.get_info_by_id(dataset_id)]
-
-    for ds in datasets:
-        all_images_infos.extend(api.image.get_list(ds.id))
-
-    random.shuffle(all_images_infos)
-
-    return all_images_infos
-
-
-def download_selected_images(selected_image_infos: List[sly.ImageInfo]):
+def download_selected_images(selected_image_infos: List[sly.ImageInfo], project_meta):
     sly.logger.info(f"Downloading 7 sample images.")
     np_images = []
 
@@ -214,25 +176,91 @@ def create_frame(background, images: List[np.ndarray], gap):
     return background
 
 
-# empty image with white bg
-image = np.zeros((IMAGE_HEIGHT, IMAGE_WIDTH, 4), dtype=np.uint8)
-image[:, :, 0:3] = 255
-image[:, :, 3] = 255
+def create_poster(project_id=None, project_path=None):
+    images_infos = []
+    if project_id is not None:
+        project = api.project.get_info_by_id(project_id)
+        project_meta_json = api.project.get_meta(project_id)
+        project_meta = sly.ProjectMeta.from_json(project_meta_json)
+
+        datasets = api.dataset.get_list(project.id)
+        if dataset_id is not None:
+            datasets = [api.dataset.get_info_by_id(dataset_id)]
+
+        for ds in datasets:
+            images_infos.extend(api.image.get_list(ds.id))
+
+    else:
+        project = sly.Project(project_path, sly.OpenMode.READ)
+        project_meta = project.meta
+        datasets = project.datasets
+        for dataset in datasets:
+            dataset: sly.Dataset
+            images_infos.extend(
+                dataset.get_image_info(sly.fs.get_file_name(img))
+                for img in os.listdir(dataset.ann_dir)
+            )
+
+    random.shuffle(images_infos)
+    labels_cnt = 0
+    for img_inf in images_infos:
+        labels_cnt += img_inf.labels_count
+
+    TEXT = (
+        project.name.upper()
+        if len(project.name.split(" ")) < 4
+        else " ".join(project.name.split(" ")[:3])
+    )
+    TEXT_2 = f"{project.items_count} IMAGES" if project_id is not None else f"{project.total_items} IMAGES"
+    TEXT_3 = f"{len(project_meta.obj_classes)} CLASSES"
+    TEXT_4 = f"{labels_cnt} LABELS"
+
+    # empty image with white bg
+    image = np.zeros((IMAGE_HEIGHT, IMAGE_WIDTH, 4), dtype=np.uint8)
+    image[:, :, 0:3] = 255
+    image[:, :, 3] = 255
+
+    selected_image_nps = download_selected_images(images_infos, project_meta)
+    image = create_frame(image, selected_image_nps, GAP)
+
+    image = draw_all_text(image, TEXT, TEXT_2, TEXT_3, TEXT_4)
+
+    save_path = os.path.join(storage_dir, "poster.png")
+    # save image
+    cv2.imwrite(save_path, image)
+
+    # upload stats to Team files
+    dst_path = f"/renders/{project.name}/poster.png"
+    file_info = api.file.upload(team_id, save_path, dst_path)
+    sly.logger.info(f"Dataset poster uploaded to Team files path: {file_info.path}")
+
+    return file_info.path
 
 
-selected_image_infos = get_images_from_project(datasets)
-selected_image_nps = download_selected_images(selected_image_infos)
-image = create_frame(image, selected_image_nps, GAP)
+team_id = sly.env.team_id()
+project_id = sly.env.project_id(raise_not_found=False)
+dataset_id = sly.env.dataset_id(raise_not_found=False)
 
-image = draw_all_text(image)
+################## Option 1. Get poster for project with given ID ##################
+upload_path = create_poster(project_id=project_id)
 
-save_path = os.path.join(storage_dir, "poster.png")
-# save image
-cv2.imwrite(save_path, image)
 
-# upload stats to Team files
-dst_path = f"/renders/{project.id}_{project.name}/poster.png"
-file_info = api.file.upload(team_id, save_path, dst_path)
-sly.logger.info(f"Dataset poster uploaded to Team files path: {file_info.path}")
+###################################### or #####################################
+
+################# Option 2. Get poster for project with given path #################
+# n_count = api.project.get_info_by_id(project_id).items_count
+# p = tqdm(desc="Downloading project", total=n_count)
+
+# sly.download_project(
+#     api,
+#     project_id,
+#     storage_dir,
+#     progress_cb=p.update,
+#     save_image_info=True,
+#     save_images=False,
+# )
+# upload_path = create_poster(project_path=storage_dir)
+
+print(f"Poster uploaded to Team files: {upload_path}")
 
 sly.fs.remove_dir(storage_dir)
