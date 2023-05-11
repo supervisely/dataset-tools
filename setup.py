@@ -109,7 +109,7 @@ setup(
     name="dataset-tools",
     version=version,
     description="Dataset tools for dataset ninja made by Supervisely team.",
-    packages=["dataset_tools"],
+    packages=find_packages(include=["dataset_tools", "dataset_tools.*"]),
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     author="Supervisely",
