@@ -8,6 +8,7 @@ import numpy as np
 from dotenv import load_dotenv
 from PIL import Image as PILImage
 from PIL import ImageDraw
+from tqdm import tqdm
 
 import supervisely as sly
 from supervisely.imaging import font as sly_font
@@ -32,6 +33,7 @@ BORDER_OFFSET = 4
 
 
 api = sly.api.Api()
+team_id = sly.env.team_id()
 project_id = sly.env.project_id()
 dataset_id = sly.env.dataset_id(raise_not_found=False)
 project = api.project.get_info_by_id(project_id)
@@ -57,18 +59,19 @@ TEXT_4 = f"{labels_cnt} LABELS"
 
 
 def draw_text(image, anchor_point, text, font, is_title: bool = False):
-    text_w, text_h = font.getsize(text)
+    left, top, right, bottom = font.getbbox(text)
+    text_w, text_h = right - left, bottom - top
     # prepare custom text bg
     top_left = (anchor_point[1] - BORDER_OFFSET, anchor_point[0])
     bottom_right = (
         anchor_point[1] + text_w + BORDER_OFFSET,
-        anchor_point[0] + text_h + int(1.5 * BORDER_OFFSET),
+        anchor_point[0] + text_h + int(1.5 * BORDER_OFFSET + top),
     )
 
     image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0]] = 0
     image[:, :, 3] = 255
     if is_title:
-        top_left = (top_left[0] + 2, top_left[1] + 2)
+        top_left = (top_left[0] + BORDER_OFFSET, top_left[1] + BORDER_OFFSET)
         bottom_right = (bottom_right[0] - BORDER_OFFSET, bottom_right[1] - BORDER_OFFSET)
         image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0]] = 255
 
@@ -90,6 +93,7 @@ def draw_text(image, anchor_point, text, font, is_title: bool = False):
 
 
 def draw_all_text(image):
+    sly.logger.info(f"Start drawing texts on poster.")
     font_ratio_main = 4
     font_ratio_2 = 1.5
     font_ratio_3 = 1.3
@@ -133,12 +137,13 @@ def draw_all_text(image):
     )
     image = draw_text(image, anchor_point, TEXT_4, font)
 
+    sly.logger.info(f"Drawing texts on poster successfully finished.")
     return image
 
 
 def get_images_from_project(datasets):
+    sly.logger.info(f"Get images from {len(datasets)} datasets in project.")
     all_images_infos = []
-    selected_image_infos = []
 
     if dataset_id is not None:
         datasets = [api.dataset.get_info_by_id(dataset_id)]
@@ -146,52 +151,39 @@ def get_images_from_project(datasets):
     for ds in datasets:
         all_images_infos.extend(api.image.get_list(ds.id))
 
-    if len(all_images_infos) < 15:
-        return all_images_infos
+    random.shuffle(all_images_infos)
 
-    while len(selected_image_infos) < 15:
-        random.shuffle(all_images_infos)
-        selected_image_infos.append(all_images_infos[0])
-
-    return selected_image_infos
+    return all_images_infos
 
 
 def download_selected_images(selected_image_infos: List[sly.ImageInfo]):
+    sly.logger.info(f"Downloading 7 sample images.")
     np_images = []
-    anns = []
-    temp_images = []
-    temp_anns = []
-    ids2ds = defaultdict(list)
-
-    for img in selected_image_infos:
-        ids2ds[img.dataset_id].append(img.id)
-    for ds_id, img_ids in ids2ds.items():
-        temp_images.extend(api.image.download_nps(ds_id, img_ids))
-        anns_json = api.annotation.download_json_batch(ds_id, img_ids)
-        temp_anns.extend(
-            [sly.Annotation.from_json(ann_json, project_meta) for ann_json in anns_json]
-        )
 
     i = 0
-    while len(np_images) < 7:
-        temp_anns: List[sly.Annotation]
-        if len(temp_anns[i].labels) < 1:
-            continue
-        np_images.append(temp_images[i])
-        anns.append(temp_anns[i])
-        i += 1
+    with tqdm(desc="Downloading 7 sample images.", total=7) as pbar:
+        while len(np_images) < 7:
+            img_info = selected_image_infos[i]
+            ann_json = api.annotation.download_json(img_info.id)
+            ann = sly.Annotation.from_json(ann_json, project_meta)
+            if len(ann.labels) < 1:
+                i += 1
+                continue
+            np_img = api.image.download_np(img_info.id)
+            ann.draw_pretty(np_img, thickness=2, opacity=(1 - (i + 3) / 10))
+            np_images.append(cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR))
+            i += 1
+            pbar.update(1)
 
-    for img, ann in zip(np_images, anns):
-        ann: sly.Annotation
-        ann.draw_pretty(img, thickness=2, opacity=0.3)
-
-    np_images = [cv2.cvtColor(img, cv2.COLOR_RGB2BGR) for img in np_images]
-    for i, img in enumerate(np_images[:3]):
-        np_images[i] = sly.image.resize_inter_nearest(img, (IMG_HEIGHT_1, IMG_WIDTH_1))
-    for i, img in enumerate(np_images[3:]):
-        np_images[i + 3] = sly.image.resize_inter_nearest(img, (IMG_HEIGHT_2, IMG_WIDTH_2))
+    sly.logger.info(f"Resizing 7 sample images.")
     for i, img in enumerate(np_images):
+        if i < 3:
+            h, w = IMG_HEIGHT_1, IMG_WIDTH_1
+        else:
+            h, w = IMG_HEIGHT_2, IMG_WIDTH_2
+        img = sly.image.resize_inter_nearest(img, (h, w))
         rgba_image = np.zeros((img.shape[0], img.shape[1], 4), dtype=np.uint8)
+
         if i % 2 == 0:
             background = np.ones((img.shape[0], img.shape[1], 3), dtype=np.uint8)
             background[:, :, :3] = 255
@@ -200,10 +192,12 @@ def download_selected_images(selected_image_infos: List[sly.ImageInfo]):
         rgba_image[:, :, 3] = 255
         rgba_image[:, :, :3] = img
         np_images[i] = rgba_image
+    sly.logger.info(f"Successfully resized 7 sample images.")
     return np_images
 
 
 def create_frame(background, images: List[np.ndarray], gap):
+    sly.logger.info(f"Start creating frame.")
     x, y = gap, gap
     for img in images[:3]:
         x_end, y_end = x + img.shape[1], y + img.shape[0]
@@ -216,6 +210,7 @@ def create_frame(background, images: List[np.ndarray], gap):
         x_end, y_end = x + img.shape[1], y + img.shape[0]
         background[y:y_end, x:x_end] = img
         x = x_end + gap
+    sly.logger.info(f"Frame successfully created.")
     return background
 
 
@@ -231,9 +226,13 @@ image = create_frame(image, selected_image_nps, GAP)
 
 image = draw_all_text(image)
 
-save_path = os.path.join(storage_dir, "image.png")
+save_path = os.path.join(storage_dir, "poster.png")
 # save image
 cv2.imwrite(save_path, image)
 
+# upload stats to Team files
+dst_path = f"/renders/{project.id}_{project.name}/poster.png"
+file_info = api.file.upload(team_id, save_path, dst_path)
+sly.logger.info(f"Dataset poster uploaded to Team files path: {file_info.path}")
 
-# sly.fs.remove_dir(storage_dir)
+sly.fs.remove_dir(storage_dir)
