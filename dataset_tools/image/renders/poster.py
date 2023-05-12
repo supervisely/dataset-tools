@@ -45,11 +45,7 @@ def draw_text(image, anchor_point, text, font, is_title: bool = False):
         anchor_point[0] + text_h + int(1.5 * BORDER_OFFSET + top),
     )
 
-    image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0]] = 0
-    image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0], 0] = 133
-    image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0], 1] = 69
-    image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0], 2] = 253
-    image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0], 3] = 255
+    image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0], 0:4] = [133, 69, 253, 255]
     if is_title:
         top_left = (top_left[0] + BORDER_OFFSET, top_left[1] + BORDER_OFFSET)
         bottom_right = (bottom_right[0] - BORDER_OFFSET, bottom_right[1] - BORDER_OFFSET)
@@ -62,7 +58,6 @@ def draw_text(image, anchor_point, text, font, is_title: bool = False):
     rect_top, rect_left = anchor_point
 
     if is_title:
-        drawer.text((rect_left + 3, rect_top + 3), text, fill=(80, 80, 80, 255), font=font)
         drawer.text((rect_left + 1, rect_top), text, fill=(133, 69, 352, 255), font=font)
     else:
         drawer.text((rect_left + 1, rect_top), text, font=font)
@@ -138,7 +133,15 @@ def download_selected_images(selected_image_infos: List[sly.ImageInfo], project_
                 i += 1
                 continue
             np_img = api.image.download_np(img_info.id)
-            ann.draw_pretty(np_img, thickness=2, opacity=(1 - (i + 3) / 10))
+            if i % 2 == 0:
+                background = np.ones((np_img.shape[0], np_img.shape[1], 3), dtype=np.uint8)
+                background[:, :, :3] = 255
+                alpha = 0.4
+                np_img = cv2.addWeighted(background, 1 - alpha, np_img, alpha, 0)
+            thickness = 1 if i < 3 else 2
+            opacity = 0.7 if i % 2 == 0 else 0.3
+            ann.draw_pretty(np_img, thickness=thickness, opacity=opacity)
+                
             np_images.append(cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR))
             i += 1
             pbar.update(1)
@@ -155,10 +158,10 @@ def download_selected_images(selected_image_infos: List[sly.ImageInfo], project_
         if img_ratio != src_ratio:
             if img_ratio > src_ratio:
                 img_h, img_w = int(w * img_ratio), w
-                img = sly.image.resize(img, (img_h, img_w))
+                img = sly.image.resize_inter_nearest(img, (img_h, img_w))
             else:
                 img_h, img_w = h, int(h / img_ratio)
-                img = sly.image.resize(img, (img_h, img_w))
+                img = sly.image.resize_inter_nearest(img, (img_h, img_w))
             crop_rect = sly.Rectangle(
                 top=(img_h - h) // 2,
                 left=(img_w - w) // 2,
@@ -171,11 +174,11 @@ def download_selected_images(selected_image_infos: List[sly.ImageInfo], project_
 
         rgba_image = np.zeros((img.shape[0], img.shape[1], 4), dtype=np.uint8)
 
-        if i % 2 == 0:
-            background = np.ones((img.shape[0], img.shape[1], 3), dtype=np.uint8)
-            background[:, :, :3] = 255
-            alpha = 0.4
-            img = cv2.addWeighted(background, 1 - alpha, img, alpha, 0)
+        # if i % 2 == 0:
+        #     background = np.ones((img.shape[0], img.shape[1], 3), dtype=np.uint8)
+        #     background[:, :, :3] = 255
+        #     alpha = 0.4
+        #     img = cv2.addWeighted(background, 1 - alpha, img, alpha, 0)
         rgba_image[:, :, 3] = 255
         rgba_image[:, :, :3] = img
         np_images[i] = rgba_image
@@ -292,4 +295,4 @@ dataset_id = sly.env.dataset_id(raise_not_found=False)
 
 # print(f"Poster uploaded to Team files: {upload_path}")
 
-sly.fs.remove_dir(storage_dir)
+# sly.fs.remove_dir(storage_dir)
