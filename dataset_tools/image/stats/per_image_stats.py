@@ -59,7 +59,7 @@ def calculate_stats_per_image(
     dataset = api.dataset.get_info_by_id(images[0].dataset_id)
 
     all_stats = []
-    for batch_images in sly.batched(images, batch_size=20):
+    for batch_images in sly.batched(images, batch_size=50):
         img_ids = [img.id for img in batch_images]
         anns = api.annotation.download_json_batch(batch_images[0].dataset_id, img_ids)
         for img_info, ann_json in zip(batch_images, anns):
@@ -76,14 +76,7 @@ def calculate_stats_per_image(
             table_row = []
             table_row.append(img_info.id)
 
-            table_row.append(
-                '<a href="{0}" rel="noopener noreferrer" target="_blank">{1}</a>'.format(
-                    api.image.url(
-                        TEAM_ID, WORKSPACE_ID, dataset.project_id, dataset.id, img_info.id
-                    ),
-                    img_info.name,
-                )
-            )
+            table_row.append(img_info.name)
 
             table_row.append(dataset.name)
             area_unl = stat_area["unlabeled"] if not np.isnan(stat_area["unlabeled"]) else 0
@@ -111,7 +104,7 @@ def calculate_stats_per_image(
 
             all_stats.append(table_row)
             ds_pbar.update(1)
-    stats["data"] = all_stats
+    stats["data"].extend(all_stats)
 
 
 # prepare table columns
@@ -121,6 +114,7 @@ def process_obj_classes(stats, project_meta):
     class_indices_colors = [[0, 0, 0]]
     _name_to_index = {}
     table_columns = ["image id", "image", "dataset", "height", "width", "channels", "unlabeled"]
+    columns_options = ["null"] * len(table_columns)
 
     for idx, obj_class in enumerate(project_meta.obj_classes):
         class_names.append(obj_class.name)
@@ -128,14 +122,18 @@ def process_obj_classes(stats, project_meta):
         class_index = idx + 1
         class_indices_colors.append([class_index, class_index, class_index])
         _name_to_index[obj_class.name] = class_index
-        table_columns.append(get_col_name_area(obj_class.name, obj_class.color))
-        table_columns.append(get_col_name_count(obj_class.name, obj_class.color))
+        columns_options.append({"subtitle": "covered area (%)"})
+        columns_options.append({"subtitle": "objects count"})
+        table_columns.append(obj_class.name)
+        table_columns.append(obj_class.name)
     stats["columns"] = table_columns
+    stats["columnsOptions"] = columns_options
     return class_names, class_indices_colors, _name_to_index
 
 
 def project_per_image_stats(project_id: int = None, project_path: str = None, sample_procent=None):
     stats = defaultdict(dict)
+    stats["data"] = []
 
     if project_id is not None and project_path is not None:
         raise Exception(
@@ -214,36 +212,36 @@ def project_per_image_stats(project_id: int = None, project_path: str = None, sa
     return stats
 
 
-storage_dir = sly.app.get_data_dir()
+# storage_dir = sly.app.get_data_dir()
 
 ################## Option 1. Get stats with given project ID ##################
-stats = project_per_image_stats(project_id=PROJECT_ID, sample_procent=5)
+# stats = project_per_image_stats(project_id=PROJECT_ID)
 
 ###################################### or #####################################
 
 ################# Option 2. Get stats with given project path #################
-n_count = api.project.get_info_by_id(PROJECT_ID).items_count
-p = tqdm(desc="Downloading", total=n_count)
+# n_count = api.project.get_info_by_id(PROJECT_ID).items_count
+# p = tqdm(desc="Downloading", total=n_count)
 
-sly.download_project(
-    api,
-    PROJECT_ID,
-    storage_dir,
-    progress_cb=p.update,
-    save_image_info=True,
-    save_images=False,
-)
-stats = project_per_image_stats(project_path=storage_dir, sample_procent=5)
+# sly.download_project(
+#     api,
+#     PROJECT_ID,
+#     storage_dir,
+#     progress_cb=p.update,
+#     save_image_info=True,
+#     save_images=False,
+# )
+# stats = project_per_image_stats(project_path=storage_dir, sample_procent=5)
 
 # save stats to JSON file
-stat_json_path = os.path.join(storage_dir, "per_image_stats.json")
-with io.open(stat_json_path, "w", encoding="utf-8") as file:
-    str_ = json.dumps(stats, indent=4, separators=(",", ": "), ensure_ascii=False)
-    file.write(str(str_))
+# stat_json_path = os.path.join(storage_dir, "classes_per_image.json")
+# with io.open(stat_json_path, "w", encoding="utf-8") as file:
+#     str_ = json.dumps(stats, indent=4, separators=(",", ": "), ensure_ascii=False, sort_keys=True)
+#     file.write(str(str_))
 
 # upload stats to Team files
-dst_path = f"/stats/{PROJECT_ID}/per_image_stats.json"
-file_info = api.file.upload(TEAM_ID, stat_json_path, dst_path)
-print(f"Per image stats uploaded to Team files path: {file_info.path}")
+# dst_path = f"/stats/{PROJECT_ID}/per_image_stats.json"
+# file_info = api.file.upload(TEAM_ID, stat_json_path, dst_path)
+# print(f"Per image stats uploaded to Team files path: {file_info.path}")
 
-sly.fs.remove_dir(storage_dir)
+# sly.fs.remove_dir(storage_dir)
