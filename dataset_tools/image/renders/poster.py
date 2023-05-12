@@ -46,7 +46,10 @@ def draw_text(image, anchor_point, text, font, is_title: bool = False):
     )
 
     image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0]] = 0
-    image[:, :, 3] = 255
+    image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0], 0] = 133
+    image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0], 1] = 69
+    image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0], 2] = 253
+    image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0], 3] = 255
     if is_title:
         top_left = (top_left[0] + BORDER_OFFSET, top_left[1] + BORDER_OFFSET)
         bottom_right = (bottom_right[0] - BORDER_OFFSET, bottom_right[1] - BORDER_OFFSET)
@@ -54,12 +57,13 @@ def draw_text(image, anchor_point, text, font, is_title: bool = False):
 
     source_img = PILImage.fromarray(image)
 
-    canvas = PILImage.new("RGBA", source_img.size, (0, 0, 0, 0))
+    canvas = PILImage.new("RGBA", source_img.size, (133, 69, 253, 0))
     drawer = ImageDraw.Draw(canvas, "RGBA")
     rect_top, rect_left = anchor_point
 
     if is_title:
-        drawer.text((rect_left + 1, rect_top), text, fill=(0, 0, 0, 255), font=font)
+        drawer.text((rect_left + 3, rect_top + 3), text, fill=(80, 80, 80, 255), font=font)
+        drawer.text((rect_left + 1, rect_top), text, fill=(133, 69, 352, 255), font=font)
     else:
         drawer.text((rect_left + 1, rect_top), text, font=font)
 
@@ -125,6 +129,8 @@ def download_selected_images(selected_image_infos: List[sly.ImageInfo], project_
     i = 0
     with tqdm(desc="Downloading 7 sample images.", total=7) as pbar:
         while len(np_images) < 7:
+            if i == len(selected_image_infos):
+                i = 0
             img_info = selected_image_infos[i]
             ann_json = api.annotation.download_json(img_info.id)
             ann = sly.Annotation.from_json(ann_json, project_meta)
@@ -145,9 +151,6 @@ def download_selected_images(selected_image_infos: List[sly.ImageInfo], project_
             h, w = IMG_HEIGHT_2, IMG_WIDTH_2
         img_h, img_w = img.shape[1], img.shape[0]
         src_ratio = w / h
-        save_path = os.path.join(storage_dir, "poster.png")
-        # save image
-        cv2.imwrite(save_path, img)
         img_ratio = img_w / img_h
         if img_ratio != src_ratio:
             if img_ratio > src_ratio:
@@ -156,9 +159,6 @@ def download_selected_images(selected_image_infos: List[sly.ImageInfo], project_
             else:
                 img_h, img_w = h, int(h / img_ratio)
                 img = sly.image.resize(img, (img_h, img_w))
-            save_path = os.path.join(storage_dir, "poster.png")
-            # save image
-            cv2.imwrite(save_path, img)
             crop_rect = sly.Rectangle(
                 top=(img_h - h) // 2,
                 left=(img_w - w) // 2,
@@ -166,9 +166,6 @@ def download_selected_images(selected_image_infos: List[sly.ImageInfo], project_
                 right=(img_w + w) // 2,
             )
             img = sly.image.crop_with_padding(img, crop_rect)
-            save_path = os.path.join(storage_dir, "poster.png")
-            # save image
-            cv2.imwrite(save_path, img)
         else:
             img = sly.image.resize(img, (h, w))
 
@@ -274,7 +271,7 @@ project_id = sly.env.project_id(raise_not_found=False)
 dataset_id = sly.env.dataset_id(raise_not_found=False)
 
 ################## Option 1. Get poster for project with given ID ##################
-upload_path = create_poster(project_id=project_id)
+# upload_path = create_poster(project_id=project_id)
 
 
 ###################################### or #####################################
@@ -293,6 +290,6 @@ upload_path = create_poster(project_id=project_id)
 # )
 # upload_path = create_poster(project_path=storage_dir)
 
-print(f"Poster uploaded to Team files: {upload_path}")
+# print(f"Poster uploaded to Team files: {upload_path}")
 
 sly.fs.remove_dir(storage_dir)
