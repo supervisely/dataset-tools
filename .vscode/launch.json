@@ -5,7 +5,7 @@
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "program": "tests/get_stats.py",
+            "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
             "env": {
