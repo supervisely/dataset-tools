@@ -1,4 +1,4 @@
-import os
+import os, io, json
 from dotenv import load_dotenv
 
 import supervisely as sly
@@ -12,6 +12,8 @@ api = sly.Api()
 
 
 PROJECT_ID = sly.env.project_id()
+TEAM_ID = sly.env.team_id()
+storage_dir = sly.app.get_data_dir()
 
 
 import shutil
@@ -31,9 +33,23 @@ cfg = {
 result = dtools.image.stats.calculate(
     api,
     cfg,
-    # project_id=PROJECT_ID,
-    project_dir=os.environ["LOCAL_DATA_DIR"],
+    project_id=PROJECT_ID,
+    # project_dir=os.environ["LOCAL_DATA_DIR"],
     sample_rate=1,
 )
 
-print(result)
+
+for key, stats in result.items():
+    # save stats to JSON file
+    stat_json_path = os.path.join(storage_dir, f"{key}.json")
+    with io.open(stat_json_path, "w", encoding="utf-8") as file:
+        str_ = json.dumps(stats, indent=4, separators=(",", ": "), ensure_ascii=False)
+        file.write(str(str_))
+
+    # upload stats to Team files
+    dst_path = f"/stats/{PROJECT_ID}/{key}.json"
+    file_info = api.file.upload(TEAM_ID, stat_json_path, dst_path)
+
+sly.fs.remove_dir(storage_dir)
+
+print()

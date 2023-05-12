@@ -104,8 +104,8 @@ class ImgClassesDistribution:
         avg_nonzero_area = np.where(np.isnan(avg_nonzero_area), None, avg_nonzero_area)
         avg_nonzero_count = np.where(np.isnan(avg_nonzero_count), None, avg_nonzero_count)
 
-        stats["avg_nonzero_area"] = avg_nonzero_area
-        stats["avg_nonzero_count"] = avg_nonzero_count
+        stats["avg_nonzero_area"] = avg_nonzero_area.tolist()
+        stats["avg_nonzero_count"] = avg_nonzero_count.tolist()
 
 
 class ImgClassesCooccurence:
@@ -146,7 +146,7 @@ class ImgClassesCooccurence:
         for cls_name1 in class_names:
             cur_row = [cls_name1]
             for cls_name2 in class_names:
-                key = frozenset([cls_name1, cls_name2])
+                key = str(frozenset([cls_name1, cls_name2]))
                 imgs_cnt = len(stats["counters"][key])
                 cur_row.append(imgs_cnt)
             pd_data.append(cur_row)
