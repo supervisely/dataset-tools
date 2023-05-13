@@ -16,6 +16,9 @@
         "editor.formatOnSave": true,
         "editor.formatOnPaste": false,
         "editor.formatOnType": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        },
     },
     "python.formatting.provider": "none",
     "editor.formatOnSave": true,
@@ -27,4 +30,8 @@
     "[json]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
+    "isort.args": [
+        "--profile",
+        "black"
+    ],
 }

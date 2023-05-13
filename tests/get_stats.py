@@ -1,9 +1,11 @@
-import os, io, json
-from dotenv import load_dotenv
+import io
+import json
+import os
 
 import supervisely as sly
-import dataset_tools as dtools
+from dotenv import load_dotenv
 
+import dataset_tools as dtools
 
 if sly.is_development():
     load_dotenv(os.path.expanduser("~/supervisely.env"))
