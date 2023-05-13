@@ -1,1 +1,2 @@
 supervisely
+scikit-image

@@ -67,9 +67,7 @@ def create_renders(project_id: int = None, project_path: str = None):
 
         for dataset in datasets:
             image_ids = [image_info.id for image_info in api.image.get_list(dataset.id)]
-            image_names = [
-                image_info.name for image_info in api.image.get_list(dataset.id)
-            ]
+            image_names = [image_info.name for image_info in api.image.get_list(dataset.id)]
 
             anns_json = api.annotation.download_json_batch(dataset.id, image_ids)
 
@@ -129,9 +127,7 @@ def resize_and_save_image(
 
     unique_colors = np.unique(image.reshape(-1, image.shape[2]), axis=0).tolist()
 
-    print(
-        f"Debug check of unique colors: {unique_colors}. Number of colors: {len(unique_colors)}."
-    )
+    print(f"Debug check of unique colors: {unique_colors}. Number of colors: {len(unique_colors)}.")
 
     print(f"Saved annotated image in {image_save_path}.")
 
