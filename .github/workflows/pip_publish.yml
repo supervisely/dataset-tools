@@ -1,8 +1,10 @@
 name: Upload PyPI
 
-on:
-  release:
-    types: [published]
+# on:
+#   release:
+#     types: [published]
+
+on: workflow_dispatch
 
 jobs:
   deploy:
