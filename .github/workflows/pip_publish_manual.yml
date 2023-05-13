@@ -1,8 +1,4 @@
-name: Upload PyPI
-
-# on:
-#   release:
-#     types: [published]
+name: PyPI publish manual
 
 on: workflow_dispatch
 
@@ -24,11 +20,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install build
-
-      # - name: Delay for Github tag_name
-      #   uses: jakejarvis/wait-action@master
-      #   with:
-      #     time: "150s"
 
       - name: Build package
         run: python -m build
