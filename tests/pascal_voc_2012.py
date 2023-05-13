@@ -3,6 +3,7 @@ from typing import List
 
 import numpy as np
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 import dataset_tools as dtools
 import supervisely as sly
@@ -24,6 +25,8 @@ team_id = workspace_info.team_id
 
 ninja_dir = f"/{workspace_id}/{project_id}/"
 
+pbar = tqdm(total=project_info.items_count)
+
 # render annotations
 for dataset in api.dataset.get_list(project_id):
     render_dir = os.path.join(ninja_dir, "renders", f"{dataset.id}")
@@ -35,6 +38,7 @@ for dataset in api.dataset.get_list(project_id):
     for image in all_images:
         if image.id not in existing_ids:
             new_images.append(image)
+    pbar.update(existing_ids)
 
     for batch in sly.batched(new_images):
         image_ids = [image.id for image in batch]
@@ -54,3 +58,6 @@ for dataset in api.dataset.get_list(project_id):
             sly.image.write(local_path, render)
             api.file.upload(team_id, local_path, remote_path)
             sly.fs.silent_remove(local_path)
+            pbar.update(1)
+
+pbar.close()
