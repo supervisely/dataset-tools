@@ -1,12 +1,10 @@
-import os
 import json
-
-from shutil import rmtree
+import os
 from collections import namedtuple
+from shutil import rmtree
 
-import supervisely as sly
 import numpy as np
-
+import supervisely as sly
 from dotenv import load_dotenv
 
 if sly.is_development():
