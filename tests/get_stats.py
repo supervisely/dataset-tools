@@ -26,7 +26,7 @@ cfg = {
     #    "spatial": dtools.stat.spation_distribution,
     "classesDistribution": dtools.ImgClassesDistribution,
     "classesCoocccurence": dtools.ImgClassesCooccurence,
-    #     "images": dtools.stat.classes-on-every-image,
+    "classesPerImage": dtools.ClassesPerImage,
     #    "objects": dtools.stat.classes-on-every-image,
 }
 
