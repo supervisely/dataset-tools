@@ -33,48 +33,54 @@ for dataset in api.dataset.get_list(project_id):
             ann = sly.Annotation.from_json(jann, project_meta)
             cls_balance.update(image, ann)
             pbar.update(1)
+        break
+    break
 
-x = 10
-exit(0)
+cls_balance.to_json()
 
-# renders
-ninja_dir = f"/dataset/{workspace_id}/{project_id}/"
-pbar = tqdm(total=project_info.items_count)
-for dataset in api.dataset.get_list(project_id):
-    render_dir = os.path.join(ninja_dir, "renders", f"{dataset.id}")
+# x = 10
+# exit(0)
 
-    all_images = api.image.get_list(dataset.id)
-    existing_renders = api.file.list2(team_id, render_dir, recursive=False)
-    existing_ids = set(int(sly.fs.get_file_name(f.path)) for f in existing_renders)
-    new_images: List[sly.ImageInfo] = []
-    for image in all_images:
-        if image.id not in existing_ids:
-            new_images.append(image)
-    pbar.update(len(existing_ids))
+# coocurance -  в формат виджета +  убрать totals + clicks
 
-    for batch in sly.batched(new_images):
-        image_ids = [image.id for image in batch]
-        anns = api.annotation.download_json_batch(dataset.id, image_ids)
+# # renders
+# render_dir = f"/dataset/{project_id}/renders"
+# pbar = tqdm(total=project_info.items_count)
+# existing_renders = api.file.list2(team_id, render_dir, recursive=False)
+# existing_ids = set(int(sly.fs.get_file_name(f.path)) for f in existing_renders)
+# pbar.update(len(existing_ids))
+# for dataset in api.dataset.get_list(project_id):
+#     ds_images = api.image.get_list(dataset.id)
+#     new_images: List[sly.ImageInfo] = []
+#     for image in ds_images:
+#         if image.id not in existing_ids:
+#             new_images.append(image)
 
-        lpaths = []
-        rpaths = []
-        for jann, image in zip(anns, batch):
-            ann = sly.Annotation.from_json(jann, project_meta)
-            if image.width > MAX_WIDTH:
-                out_size = (int((image.height / image.width) * MAX_WIDTH), MAX_WIDTH)
-                ann = ann.resize(out_size)
+#     for batch in sly.batched(new_images):
+#         image_ids = [image.id for image in batch]
+#         anns = api.annotation.download_json_batch(dataset.id, image_ids)
 
-            render = np.zeros((ann.img_size[0], ann.img_size[1], 3), dtype=np.uint8)
-            ann.draw(render, thickness=ann._get_thickness())
+#         lpaths = []
+#         rpaths = []
+#         for jann, image in zip(anns, batch):
+#             ann = sly.Annotation.from_json(jann, project_meta)
+#             if image.width > MAX_WIDTH:
+#                 out_size = (int((image.height / image.width) * MAX_WIDTH), MAX_WIDTH)
+#                 ann = ann.resize(out_size)
 
-            local_path = os.path.join(os.getcwd(), "demo", f"{image.id}.png")
-            remote_path = os.path.join(render_dir, f"{image.id}.png")
-            lpaths.append(local_path)
-            rpaths.append(remote_path)
-            sly.image.write(local_path, render)
+#             render = np.zeros((ann.img_size[0], ann.img_size[1], 3), dtype=np.uint8)
+#             ann.draw(render, thickness=ann._get_thickness())
+#             alpha = np.all(render != [0, 0, 0], axis=-1).astype("uint8") * 255
+#             rgba = np.dstack((render, alpha))
 
-        api.file.upload_bulk(team_id, lpaths, rpaths)
-        for p in lpaths:
-            sly.fs.silent_remove(p)
-        pbar.update(len(lpaths))
-pbar.close()
+#             local_path = os.path.join(os.getcwd(), "demo", f"{image.id}.png")
+#             remote_path = os.path.join(render_dir, f"{image.id}.png")
+#             lpaths.append(local_path)
+#             rpaths.append(remote_path)
+#             sly.image.write(local_path, rgba, remove_alpha_channel=False)
+
+#         api.file.upload_bulk(team_id, lpaths, rpaths)
+#         for p in lpaths:
+#             sly.fs.silent_remove(p)
+#         pbar.update(len(lpaths))
+# pbar.close()
