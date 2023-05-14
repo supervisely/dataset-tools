@@ -87,7 +87,9 @@ class ClassBalance:
 
             if class_name == "unlabeled":
                 continue
-            if stat_count[class_name] > 0:
+                # if len(ann.labels) == 0:  # and stat_count["total"] == 0:
+                #     self._stats["image_counts_filter_by_id"][idx].append(image.id)
+            elif stat_count[class_name] > 0:
                 self._stats["image_counts_filter_by_id"][idx].append(image.id)
 
             # TODO: implement later
@@ -111,13 +113,19 @@ class ClassBalance:
 
         colomns_options = [None] * len(columns)
         colomns_options[0] = {"type": "class"}
-        colomns_options[4] = {"postfix": "%"}
+        colomns_options[1] = {"maxValue": max(self._stats["images_count"])}
+        colomns_options[2] = {"maxValue": max(self._stats["objects_count"])}
+        colomns_options[3] = {"maxValue": round(max(self._stats["avg_nonzero_count"]), 2)}
+        colomns_options[4] = {
+            "postfix": "%",
+            "maxValue": round(max(self._stats["avg_nonzero_area"]), 2),
+        }
         options = {"fixColumns": 1}
 
         res = {
             "columns": columns,
             "data": rows,
-            "references_row": [[1, 2, 3], [7], [], ...],
+            "referencesRow": self._stats["image_counts_filter_by_id"],
             "options": options,
             "colomnsOptions": colomns_options,
         }
