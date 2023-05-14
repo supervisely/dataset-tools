@@ -8,10 +8,10 @@ import numpy as np
 
 import supervisely as sly
 
-BG_COLOR = [0, 0, 0]
+UNLABELED_COLOR = [0, 0, 0]
 
 
-class ImgClassesDistribution:
+class ClassBalance:
     """
     Important fields of modified stats dict:
         "class_names": [],
@@ -23,137 +23,121 @@ class ImgClassesDistribution:
         "avg_nonzero_count": [],
     """
 
-    @staticmethod
-    def prepare_data(stats: Dict, meta):
-        class_names = ["unlabeled"]
-        class_colors = [[0, 0, 0]]
-        class_indices_colors = [[0, 0, 0]]
+    def __init__(self, project_meta: sly.ProjectMeta) -> None:
+        self._meta = project_meta
+        self._stats = {}
+
+        self._class_names = ["unlabeled"]
+        class_colors = [UNLABELED_COLOR]
+        class_indices_colors = [UNLABELED_COLOR]
         _name_to_index = {}
-        for idx, obj_class in enumerate(meta.obj_classes):
-            class_names.append(obj_class.name)
+        for idx, obj_class in enumerate(self._meta.obj_classes):
+            self._class_names.append(obj_class.name)
             class_colors.append(obj_class.color)
             class_index = idx + 1
             class_indices_colors.append([class_index, class_index, class_index])
             _name_to_index[obj_class.name] = class_index
 
-        stats["class_names"] = class_names
-        stats["class_indices_colors"] = class_indices_colors
-        stats["_name_to_index"] = _name_to_index
+        self._stats["class_names"] = self._class_names
+        self._stats["class_indices_colors"] = class_indices_colors
+        self._stats["_name_to_index"] = _name_to_index
 
-        stats["sum_class_area_per_image"] = [0] * len(class_names)
-        stats["sum_class_count_per_image"] = [0] * len(class_names)
-        stats["count_images_with_class"] = [0] * len(class_names)
+        self._stats["sum_class_area_per_image"] = [0] * len(self._class_names)
+        self._stats["sum_class_count_per_image"] = [0] * len(self._class_names)
 
-        stats["image_counts_filter_by_id"] = [[] for _ in class_names]
-        stats["object_counts_filter_by_id"] = [[] for _ in class_names]
+        self._stats["objects_count"] = [0] * len(self._class_names)
+        self._stats["images_count"] = [0] * len(self._class_names)
 
-    @staticmethod
-    def update(stats: Dict, image_info, ann_info, meta, *args, **kwargs):
-        ann_json = ann_info.annotation
-        ann_objects = [(obj["id"], obj["classTitle"]) for obj in ann_json["objects"]]
+        self._stats["image_counts_filter_by_id"] = [[] for _ in self._class_names]
+        # self._stats["object_counts_filter_by_id"] = [[] for _ in self._class_names]
 
-        ann = sly.Annotation.from_json(ann_json, meta)
+        self._stats["avg_nonzero_area"] = [None] * len(self._class_names)
+        self._stats["avg_nonzero_count"] = [None] * len(self._class_names)
 
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation):
         render_idx_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
-        render_idx_rgb[:] = BG_COLOR
+        render_idx_rgb[:] = UNLABELED_COLOR
 
-        ann.draw_class_idx_rgb(render_idx_rgb, stats["_name_to_index"])
+        ann.draw_class_idx_rgb(render_idx_rgb, self._stats["_name_to_index"])
 
         stat_area = sly.Annotation.stat_area(
-            render_idx_rgb, stats["class_names"], stats["class_indices_colors"]
+            render_idx_rgb, self._stats["class_names"], self._stats["class_indices_colors"]
         )
-        stat_count = ann.stat_class_count(stats["class_names"])
+        stat_count = ann.stat_class_count(self._stats["class_names"])
 
         if stat_area["unlabeled"] > 0:
             stat_count["unlabeled"] = 1
 
-        for idx, class_name in enumerate(stats["class_names"]):
+        for idx, class_name in enumerate(self._stats["class_names"]):
             cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
             cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
 
-            stats["sum_class_area_per_image"][idx] += cur_area
-            stats["sum_class_count_per_image"][idx] += cur_count
-            stats["count_images_with_class"][idx] += 1 if stat_count[class_name] > 0 else 0
+            self._stats["sum_class_area_per_image"][idx] += cur_area
+            self._stats["sum_class_count_per_image"][idx] += cur_count
+            self._stats["images_count"][idx] += 1 if stat_count[class_name] > 0 else 0
+
+            if self._stats["images_count"][idx] > 0:
+                self._stats["avg_nonzero_area"] = (
+                    self._stats["sum_class_area_per_image"][idx] / self._stats["images_count"][idx]
+                )
+                self._stats["avg_nonzero_count"] = (
+                    self._stats["sum_class_count_per_image"][idx] / self._stats["images_count"][idx]
+                )
 
             if class_name == "unlabeled":
                 continue
             if stat_count[class_name] > 0:
-                stats["image_counts_filter_by_id"][idx].append(image_info.id)
-            if stat_count[class_name] > 0:
-                obj_ids = [obj[0] for obj in ann_objects if obj[1] == class_name]
-                stats["object_counts_filter_by_id"][idx].extend(obj_ids)
+                self._stats["image_counts_filter_by_id"][idx].append(image.id)
 
-        ann = sly.Annotation.from_json(ann_json, meta)
-
-        stats["images_count"] = stats["count_images_with_class"]
-        stats["objects_count"] = stats["sum_class_count_per_image"]
-
-    @staticmethod
-    def aggregate_calculations(stats: Dict):
-        with np.errstate(divide="ignore"):
-            avg_nonzero_area = np.divide(
-                stats["sum_class_area_per_image"],
-                stats["count_images_with_class"],
-            )
-            avg_nonzero_count = np.divide(
-                stats["sum_class_count_per_image"],
-                stats["count_images_with_class"],
-            )
-
-        avg_nonzero_area = np.where(np.isnan(avg_nonzero_area), None, avg_nonzero_area)
-        avg_nonzero_count = np.where(np.isnan(avg_nonzero_count), None, avg_nonzero_count)
-
-        stats["avg_nonzero_area"] = avg_nonzero_area.tolist()
-        stats["avg_nonzero_count"] = avg_nonzero_count.tolist()
+            # TODO: implement later
+            # if stat_count[class_name] > 0:
+            # obj_ids = [obj[0] for obj in ann_objects if obj[1] == class_name]
+            # self._stats["object_counts_filter_by_id"][idx].extend(obj_ids)
 
 
-class ImgClassesCooccurence:
-    """
-    Important fields of modified stats dict:
-        "class_names": [],
-        "counters": [],
-        "pd_data": [],
-    """
-
-    @staticmethod
-    def prepare_data(stats: Dict, meta):
-        class_names = [cls.name for cls in meta.obj_classes]
-        counters = defaultdict(list)
-        stats["class_names"] = class_names
-        stats["counters"] = counters
-
-    @staticmethod
-    def update(stats: Dict, image_info, ann_info, meta, current_dataset):
-        ann_json = ann_info.annotation
-        ann = sly.Annotation.from_json(ann_json, meta)
-
-        classes_on_image = set()
-        for label in ann.labels:
-            classes_on_image.add(label.obj_class.name)
-
-        all_pairs = set(
-            frozenset(pair) for pair in itertools.product(classes_on_image, classes_on_image)
-        )
-        for p in all_pairs:
-            stats["counters"][p].append((image_info, current_dataset))
-
-    @staticmethod
-    def aggregate_calculations(stats: Dict):
-        pd_data = []
-        class_names = stats["class_names"]
-        columns = ["name", *class_names]
-        for cls_name1 in class_names:
-            cur_row = [cls_name1]
-            for cls_name2 in class_names:
-                key = str(frozenset([cls_name1, cls_name2]))
-                imgs_cnt = len(stats["counters"][key])
-                cur_row.append(imgs_cnt)
-            pd_data.append(cur_row)
-
-        pd_data[:0] = [columns]
-        stats["pd_data"] = pd_data
+# Max backup
+# # Classes (grouped bar chart)
+# classes_stats = {}
 
 
-class ClassesStats:
-    def __init__(self, project_meta: sly.ProjectMeta) -> None:
-        pass
+# def update_classes_stats(stats: dict, image: sly.ImageInfo, ann: sly.Annotation):
+#     for key in ["objects", "images", "_temp"]:
+#         if key not in stats:
+#             stats[key] = {}
+
+#     objects, images, temp = stats["objects"], stats["images"], stats["_temp"]
+#     if "total_images" not in temp:
+#         temp["total_images"] += 1  # total = with and without specific object on image
+
+#     # avg count per image
+#     # 5 + 7 + 8 + 12 = 32 / 4 = 8
+
+#     class_flag = {}  # increment only once
+#     for label in ann.labels:
+#         name = label.obj_class.name
+#         if name not in class_flag:
+#             class_flag[name] = True
+#             images[name] += 1
+#         if name not in objects:
+#             objects[name]["total"] = 0
+#         objects[name]["total"] += 1
+#         objects[name]["avg_num_per_image"] = objects[name]["total"] / temp["images_count"]
+
+
+# def get_basic_classes_stats(project_id):
+#     stats = {}
+#     project_info = api.project.get_info_by_id(project_id)
+#     project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
+#     pbar = tqdm(total=project_info.items_count)
+#     for dataset in api.dataset.get_list(project_id):
+#         for batch in api.image.get_list_generator(dataset.id, batch_size=100):
+#             image_ids = [image.id for image in batch]
+#             anns = api.annotation.download_json_batch(dataset.id, image_ids)
+#             # anns = [sly.Annotation.from_json(j, project_meta) for j in jann]
+#             for image, jann in zip(batch, anns):
+#                 ann = sly.Annotation.from_json(jann, project_meta)
+#                 update_classes_stats()
+#     pbar.close()
+
+
+# res = get_basic_classes_stats(project_id)

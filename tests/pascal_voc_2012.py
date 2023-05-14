@@ -22,52 +22,19 @@ team_id = sly.env.team_id()
 project_info = api.project.get_info_by_id(project_id)
 project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 
-# Classes (grouped bar chart)
-classes_stats = {}
+cls_balance = dtools.ClassBalance(project_meta)
 
+pbar = tqdm(total=project_info.items_count)
+for dataset in api.dataset.get_list(project_id):
+    for batch in api.image.get_list_generator(dataset.id, batch_size=100):
+        image_ids = [image.id for image in batch]
+        anns = api.annotation.download_json_batch(dataset.id, image_ids)
+        for image, jann in zip(batch, anns):
+            ann = sly.Annotation.from_json(jann, project_meta)
+            cls_balance.update(image, ann)
+            pbar.update(1)
 
-def update_classes_stats(stats: dict, image: sly.ImageInfo, ann: sly.Annotation):
-    for key in ["objects", "images", "_temp"]:
-        if key not in stats:
-            stats[key] = {}
-
-    objects, images, temp = stats["objects"], stats["images"], stats["_temp"]
-    if "total_images" not in temp:
-        temp["total_images"] += 1  # total = with and without specific object on image
-
-    # avg count per image
-    # 5 + 7 + 8 + 12 = 32 / 4 = 8
-
-    class_flag = {}  # increment only once
-    for label in ann.labels:
-        name = label.obj_class.name
-        if name not in class_flag:
-            class_flag[name] = True
-            images[name] += 1
-        if name not in objects:
-            objects[name]["total"] = 0
-        objects[name]["total"] += 1
-        objects[name]["avg_num_per_image"] = objects[name]["total"] / temp["images_count"]
-
-
-def get_basic_classes_stats(project_id):
-    stats = {}
-    project_info = api.project.get_info_by_id(project_id)
-    project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
-    pbar = tqdm(total=project_info.items_count)
-    for dataset in api.dataset.get_list(project_id):
-        for batch in api.image.get_list_generator(dataset.id, batch_size=100):
-            image_ids = [image.id for image in batch]
-            anns = api.annotation.download_json_batch(dataset.id, image_ids)
-            # anns = [sly.Annotation.from_json(j, project_meta) for j in jann]
-            for image, jann in zip(batch, anns):
-                ann = sly.Annotation.from_json(jann, project_meta)
-                update_classes_stats()
-    pbar.close()
-
-
-res = get_basic_classes_stats(project_id)
-
+x = 10
 exit(0)
 
 # renders
