@@ -5,7 +5,9 @@ from collections import defaultdict
 from copy import deepcopy
 from typing import Dict
 
+import dataframe_image as dfi
 import numpy as np
+import pandas as pd
 
 import supervisely as sly
 
@@ -31,17 +33,17 @@ class ClassBalance:
         self._class_names = ["unlabeled"]
         class_colors = [UNLABELED_COLOR]
         class_indices_colors = [UNLABELED_COLOR]
-        _name_to_index = {}
+        self._name_to_index = {}
         for idx, obj_class in enumerate(self._meta.obj_classes):
             self._class_names.append(obj_class.name)
             class_colors.append(obj_class.color)
             class_index = idx + 1
             class_indices_colors.append([class_index, class_index, class_index])
-            _name_to_index[obj_class.name] = class_index
+            self._name_to_index[obj_class.name] = class_index
 
         self._stats["class_names"] = self._class_names
         self._stats["class_indices_colors"] = class_indices_colors
-        self._stats["_name_to_index"] = _name_to_index
+        self._stats["_name_to_index"] = self._name_to_index
 
         self._stats["sum_class_area_per_image"] = [0] * len(self._class_names)
         self._stats["objects_count"] = [0] * len(self._class_names)
@@ -93,24 +95,42 @@ class ClassBalance:
             # obj_ids = [obj[0] for obj in ann_objects if obj[1] == class_name]
             # self._stats["object_counts_filter_by_id"][idx].extend(obj_ids)
 
-    def to_json(self):
+    def to_json(self) -> dict:
         columns = ["class", "images", "objects", "avg count per image", "avg area per image"]
         rows = []
-        for idx, name in self._class_names:
+        for name, idx in self._name_to_index.items():
             rows.append(
                 [
                     name,
-                    self._stats["images_count"],
-                    self._stats["objects_count"],
-                    round(self._stats["avg_nonzero_count"], 2),
-                    round(self._stats["avg_nonzero_area"], 2),
+                    self._stats["images_count"][idx],
+                    self._stats["objects_count"][idx],
+                    round(self._stats["avg_nonzero_count"][idx], 2),
+                    round(self._stats["avg_nonzero_area"][idx], 2),
                 ]
             )
 
-        colomns_options
+        colomns_options = [None] * len(columns)
+        colomns_options[0] = {"type": "class"}
+        colomns_options[4] = {"postfix": "%"}
+        options = {"fixColumns": 1}
 
-        # def = {"columns": [], "data": [], "summaryRow": None}
-        # return deepcopy(self._stats)
+        res = {
+            "columns": columns,
+            "data": rows,
+            "references_row": [[1, 2, 3], [7], [], ...],
+            "options": options,
+            "colomnsOptions": colomns_options,
+        }
+        return res
+
+    def to_pandas(self) -> pd.DataFrame:
+        json = self.to_json()
+        table = pd.DataFrame(data=json["data"], columns=json["columns"])
+        return table
+
+    def to_image(self, path):
+        table = self.to_pandas()
+        table.dfi.export(path)
 
 
 # Max backup
