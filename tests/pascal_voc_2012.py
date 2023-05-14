@@ -22,24 +22,23 @@ team_id = sly.env.team_id()
 project_info = api.project.get_info_by_id(project_id)
 project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 
+stats_dir = f"/dataset/{project_id}/stats"
 cls_balance = dtools.ClassBalance(project_meta)
-
 pbar = tqdm(total=project_info.items_count)
 for dataset in api.dataset.get_list(project_id):
     for batch in api.image.get_list_generator(dataset.id, batch_size=100):
         image_ids = [image.id for image in batch]
         anns = api.annotation.download_json_batch(dataset.id, image_ids)
-        for image, jann in zip(batch, anns):
+        for img, jann in zip(batch, anns):
             ann = sly.Annotation.from_json(jann, project_meta)
-            cls_balance.update(image, ann)
+            cls_balance.update(img, ann)
             pbar.update(1)
         break
     break
 
 cls_balance.to_json()
 
-# x = 10
-# exit(0)
+exit(0)
 
 # coocurance -  в формат виджета +  убрать totals + clicks
 

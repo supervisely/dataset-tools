@@ -2,6 +2,7 @@ import itertools
 import os
 import random
 from collections import defaultdict
+from copy import deepcopy
 from typing import Dict
 
 import numpy as np
@@ -43,8 +44,6 @@ class ClassBalance:
         self._stats["_name_to_index"] = _name_to_index
 
         self._stats["sum_class_area_per_image"] = [0] * len(self._class_names)
-        self._stats["sum_class_count_per_image"] = [0] * len(self._class_names)
-
         self._stats["objects_count"] = [0] * len(self._class_names)
         self._stats["images_count"] = [0] * len(self._class_names)
 
@@ -73,15 +72,15 @@ class ClassBalance:
             cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
 
             self._stats["sum_class_area_per_image"][idx] += cur_area
-            self._stats["sum_class_count_per_image"][idx] += cur_count
+            self._stats["objects_count"][idx] += cur_count
             self._stats["images_count"][idx] += 1 if stat_count[class_name] > 0 else 0
 
             if self._stats["images_count"][idx] > 0:
-                self._stats["avg_nonzero_area"] = (
+                self._stats["avg_nonzero_area"][idx] = (
                     self._stats["sum_class_area_per_image"][idx] / self._stats["images_count"][idx]
                 )
-                self._stats["avg_nonzero_count"] = (
-                    self._stats["sum_class_count_per_image"][idx] / self._stats["images_count"][idx]
+                self._stats["avg_nonzero_count"][idx] = (
+                    self._stats["objects_count"][idx] / self._stats["images_count"][idx]
                 )
 
             if class_name == "unlabeled":
@@ -93,6 +92,25 @@ class ClassBalance:
             # if stat_count[class_name] > 0:
             # obj_ids = [obj[0] for obj in ann_objects if obj[1] == class_name]
             # self._stats["object_counts_filter_by_id"][idx].extend(obj_ids)
+
+    def to_json(self):
+        columns = ["class", "images", "objects", "avg count per image", "avg area per image"]
+        rows = []
+        for idx, name in self._class_names:
+            rows.append(
+                [
+                    name,
+                    self._stats["images_count"],
+                    self._stats["objects_count"],
+                    round(self._stats["avg_nonzero_count"], 2),
+                    round(self._stats["avg_nonzero_area"], 2),
+                ]
+            )
+
+        colomns_options
+
+        # def = {"columns": [], "data": [], "summaryRow": None}
+        # return deepcopy(self._stats)
 
 
 # Max backup
