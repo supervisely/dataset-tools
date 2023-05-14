@@ -26,17 +26,14 @@ project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 classes_stats = {}
 
 
-def update_classes_stats(stats: dict, ann: sly.Annotation):
+def update_classes_stats(stats: dict, image: sly.ImageInfo, ann: sly.Annotation):
     for key in ["objects", "images", "_temp"]:
         if key not in stats:
             stats[key] = {}
 
-    objects = stats["objects"]
-    images = stats["images"]
-    temp = stats["_temp"]
-
-    if "images_count" not in temp:
-        temp["images_count"] += 1  # total = with and without specific object on image
+    objects, images, temp = stats["objects"], stats["images"], stats["_temp"]
+    if "total_images" not in temp:
+        temp["total_images"] += 1  # total = with and without specific object on image
 
     # avg count per image
     # 5 + 7 + 8 + 12 = 32 / 4 = 8

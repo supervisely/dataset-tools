@@ -1,11 +1,10 @@
-import os
-import numpy as np
-import random
-
 import itertools
+import os
+import random
 from collections import defaultdict
-
 from typing import Dict
+
+import numpy as np
 
 import supervisely as sly
 
@@ -153,3 +152,8 @@ class ImgClassesCooccurence:
 
         pd_data[:0] = [columns]
         stats["pd_data"] = pd_data
+
+
+class ClassesStats:
+    def __init__(self, project_meta: sly.ProjectMeta) -> None:
+        pass
