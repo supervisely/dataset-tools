@@ -1,47 +1,37 @@
 from collections import defaultdict
 
 import pandas as pd
+import supervisely as sly
 
 
 class ObjectsDistribution:
-    def __init__(self, project_data):
-        self.project_meta = project_data.project_meta
-        self.datasets = project_data.datasets
-        self.class_titles = [obj_class.name for obj_class in project_data.project_meta.obj_classes]
+    def __init__(self, project_meta: sly.ProjectMeta):
+        self.project_meta = project_meta
+        self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
+        self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})
+        self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 
-    def update(self):
-        pass
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation):
+        for label in ann.labels:
+            class_title = label.obj_class.name
+            self._counters[class_title]["count"] += 1
+            self._counters[class_title]["image_ids"].append(image.id)
+
+        for class_title in self._class_titles:
+            count = self._counters[class_title]["count"]
+            image_ids = self._counters[class_title]["image_ids"]
+            self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
+            self._stats[class_title][count]["count"] += 1
 
     def to_json(self):
-        self.classes = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
-        counters = defaultdict(lambda: {"count": 0, "image_ids": []})
-
-        for dataset in self.datasets:
-            anns = dataset.anns
-            image_ids = [image_info.id for image_info in dataset.image_infos]
-
-            for ann, image_id in zip(anns, image_ids):
-                counters = defaultdict(lambda: {"count": 0, "image_ids": []})
-
-                for label in ann.labels:
-                    class_title = label.obj_class.name
-                    counters[class_title]["count"] += 1
-                    counters[class_title]["image_ids"].append(image_id)
-
-                for class_title in self.class_titles:
-                    count = counters[class_title]["count"]
-                    image_ids = counters[class_title]["image_ids"]
-                    self.classes[class_title][count]["image_ids"].extend(list(set(image_ids)))
-                    self.classes[class_title][count]["count"] += 1
-
         columns = set()
-        for class_title, class_data in self.classes.items():
+        for class_title, class_data in self._stats.items():
             columns.update(class_data.keys())
 
         columns = sorted(list(columns))
 
         data = list()
-        for class_title, class_data in self.classes.items():
+        for class_title, class_data in self._stats.items():
             row = [class_title]
             for column in columns:
                 count = class_data[column]["count"]
@@ -52,7 +42,7 @@ class ObjectsDistribution:
         references = list()
 
         for column in columns:
-            for class_title, class_data in self.classes.items():
+            for class_title, class_data in self._stats.items():
                 image_ids = class_data[column]["image_ids"]
                 reference = {
                     column: image_ids,

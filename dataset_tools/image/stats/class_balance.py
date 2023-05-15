@@ -8,7 +8,6 @@ from typing import Dict
 import dataframe_image as dfi
 import numpy as np
 import pandas as pd
-
 import supervisely as sly
 
 UNLABELED_COLOR = [0, 0, 0]
