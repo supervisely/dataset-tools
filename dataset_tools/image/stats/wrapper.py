@@ -8,6 +8,7 @@ from collections import defaultdict
 import supervisely as sly
 
 
+#
 def read_project_data(project_id: int = None, project_dir: str = None) -> ProjectData:
     if project_dir:
         project_fs = sly.Project(project_dir, sly.OpenMode.READ)
