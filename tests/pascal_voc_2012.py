@@ -20,6 +20,7 @@ project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 cls_balance = dtools.ClassBalance(project_meta)
 dtools.count_stats(project_id, stats=[cls_balance], sample_rate=0.1)
 
+cls_balance.to_image("./demo/class_balance.png")
 
 exit(0)
 project_id = sly.env.project_id()

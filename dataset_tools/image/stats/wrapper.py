@@ -12,8 +12,8 @@ import supervisely as sly
 def count_stats(
     projeсt: Union[int, str], stats: list, sample_rate: float = 1, api: sly.Api = None
 ) -> None:
-    if sample_rate < 0 or sample_rate > 1:
-        raise ValueError("Sample rate has to be in range [0, 1]")
+    if sample_rate <= 0 or sample_rate > 1:
+        raise ValueError("Sample rate has to be in range (0, 1]")
 
     if isinstance(projeсt, int):
         if api is None:
@@ -22,11 +22,21 @@ def count_stats(
         project_info = api.project.get_info_by_id(projeсt, raise_error=True)
         project_meta = sly.ProjectMeta.from_json(api.project.get_meta(projeсt))
 
-        with tqdm(desc="Calculating stats", total=project_info.items_count) as pbar:
-            for dataset in api.dataset.get_list(projeсt):
-                ds_images = api.image.get_list(dataset.id)
-                k = int(max(1, sample_rate * len(ds_images)))
-                images = random.sample(ds_images, k)
+        total = 0
+        samples = []
+        for dataset in api.dataset.get_list(projeсt):
+            k = int(max(1, sample_rate * dataset.items_count))
+            ds_images = api.image.get_list(dataset.id)
+            s = random.sample(ds_images, k)
+            samples.append((dataset, s))
+            total += k
+
+        desc = "Calculating stats"
+        if sample_rate != 1:
+            desc += f" [sample={sample_rate}]"
+
+        with tqdm(desc=desc, total=total) as pbar:
+            for dataset, images in samples:
                 for batch in sly.batched(images):
                     image_ids = [image.id for image in batch]
                     janns = api.annotation.download_json_batch(dataset.id, image_ids)
