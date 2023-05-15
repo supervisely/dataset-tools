@@ -5,40 +5,10 @@ from collections import defaultdict
 import cv2
 import numpy as np
 from dotenv import load_dotenv
-
-import supervisely as sly
-from supervisely.imaging.font import get_readable_font_size
 from tqdm import tqdm
 
-# - [x] collect images infos and anns first from project ID or path
-# - [x] if project path is given read images from path
-#    else project ID is given download np images
-# - [x] collect sample images for grid as np
-# - [x] calculate shapes of small imgs (depends on rows and cols numbers)
-# - [x] create empty img with result shape (16:9 or 9:16 - depends on cols/rows number)
-# - [x] resize all images
-# - [x] draw anns
-# - [x] resize anns
-# - [x] place imgs on grid
+import supervisely as sly
 
-
-# class SideAnnotationsGrid:
-#     def __init__(self, project_meta: sly.ProjectMeta):
-#         self.project_meta = project_meta
-
-#         self.MAX_SIZE = 1920
-#         self.BATCH_SIZE = 50
-
-#         self.images_batch = []
-#         self.errors = []
-
-#         self._all_image_infos = []
-#         self.ds_img_infos = defaultdict(list)
-#         self.ds_img_anns = defaultdict(list)
-#         self.ds_img_ids = defaultdict(list)
-    
-#     def update():
-#         raise NotImplementedError('Please use "collect_data" method')
 
 def get_sample(data, cnt):
     samples = []
@@ -72,24 +42,24 @@ def resize_images(images, out_size):
         src_ratio = w / h
         img_ratio = img_w / img_h
         if img_ratio == src_ratio:
-            res_img = sly.image.resize(img, (h, w))
+            img = sly.image.resize(img, (h, w))
         else:
-            if img_ratio > src_ratio:
-                img_h, img_w = int(w * img_ratio), w
-                res_img = sly.image.resize(img, (img_h, img_w))
+            if img_ratio < src_ratio:
+                img_h, img_w = int((w * img_h) // img_w), w
             else:
-                img_h, img_w = h, int(h / img_ratio)
-                res_img = sly.image.resize(img, (img_h, img_w))
+                img_h, img_w = h, int((h * img_w) // img_h)
+            img = sly.image.resize(img, (img_h, img_w))
             crop_rect = sly.Rectangle(
                 top=(img_h - h) // 2,
                 left=(img_w - w) // 2,
                 bottom=(img_h + h) // 2,
                 right=(img_w + w) // 2,
             )
-            res_img = sly.image.crop_with_padding(res_img, crop_rect)
+            img = sly.image.crop_with_padding(img, crop_rect)
+            img = sly.image.resize(img, (h, w))
 
-        resized_images.append(res_img)
-    
+        resized_images.append(img)
+
     sly.logger.info(f"{len(resized_images)} images resized to {out_size}")
     return resized_images
 
@@ -97,51 +67,28 @@ def resize_images(images, out_size):
 def draw_masks_on_single_image(ann: sly.Annotation, image: sly.ImageInfo):
     height, width = image.height, image.width
     mask_img = np.zeros((height, width, 3), dtype=np.uint8)
-    mask_img[:, :, :] = (0, 0, 0)
+    mask_img[:, :, 0:3] = (65, 89, 119)
 
     for label in ann.labels:
-        text = label.obj_class.name
-        red, green, blue = sly.color.random_rgb()
-
-        label.geometry.draw(mask_img, (red, green, blue), thickness=10)
-
-        bbox_center = label.geometry.to_bbox().center
-        col, row = bbox_center.col, bbox_center.row
-        font_size = get_readable_font_size((width, height))
-        font = sly.image.get_font(font_file_name=None, font_size=font_size)
-        left, _, right, _ = font.getbbox(text)
-        t_width = right - left
-
-        def _put_text(org):
-            cv2.putText(
-                mask_img,
-                text,
-                org,
-                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=1.5,
-                color=[0, 0, 0, 255],
-                thickness=5,
-                lineType=cv2.LINE_AA,
-            )
-
-        _put_text((int(col - t_width // 2 + 5), row + 3))
-        _put_text((int(col - t_width // 2), row))
+        random_rgb = sly.color.random_rgb()
+        label.geometry.draw(mask_img, random_rgb, thickness=3)
 
     return mask_img
 
 
-def create_image_grid(images, grid_size):
+def create_image_grid(images, out_size, grid_size):
     img_h, img_w = images[0].shape[:2]
     num = len(images)
-    grid_h, grid_w = grid_size
+    grid_h, grid_w = out_size
+    rows, cols = grid_size
 
     grid = np.zeros(
-        [grid_h * img_h, grid_w * img_w] + list(images[0].shape[-1:]),
+        [grid_h, grid_w] + list(images[0].shape[-1:]),
         dtype=np.uint8,
     )
     for idx in range(num):
-        x = (idx % grid_w) * img_w
-        y = (idx // grid_w) * img_h
+        x = (idx % (cols * 2)) * img_w
+        y = (idx // (cols * 2)) * img_h
         grid[y : y + img_h, x : x + img_w, ...] = images[idx]
 
     return grid
@@ -174,7 +121,9 @@ def main(api: sly.Api, project_id=None, project_dir=None, rows: int = 3, cols: i
 
             for ds_id, imgs_ids in ds_img_ids.items():
                 anns_json = api.annotation.download_json_batch(ds_id, imgs_ids)
-                ds_img_anns[ds_id].extend(sly.Annotation.from_json(json, meta) for json in anns_json)
+                ds_img_anns[ds_id].extend(
+                    sly.Annotation.from_json(json, meta) for json in anns_json
+                )
 
                 np_images.extend(api.image.download_nps(ds_id, imgs_ids))
                 pbar.update(len(imgs_ids))
@@ -202,7 +151,7 @@ def main(api: sly.Api, project_id=None, project_dir=None, rows: int = 3, cols: i
                     ds: sly.Dataset
                     if ds.name == ds_name:
                         ds_img_anns[ds_name].extend(ds.get_ann(image_info.name, meta))
-                        np_images.append(cv2.imread(ds.get_img_path(image_info.name)))
+                        np_images.append(sly.image.read(ds.get_img_path(image_info.name)))
                         pbar.update(1)
 
     sly.logger.info(f"Source data for {len(src_data)} images is collected")
@@ -220,12 +169,12 @@ def main(api: sly.Api, project_id=None, project_dir=None, rows: int = 3, cols: i
     img = create_image_grid(
         [i for pair in zip(resized_images, resized_masks) for i in pair],
         (height, width),
+        (rows, cols),
     )
 
     storage_dir = sly.app.get_data_dir()
     sly.fs.clean_dir(storage_dir)
-    save_path = os.path.join(storage_dir, "separated_images_grid.jpg")
-    # cv2.imwrite(save_path, img)
+    save_path = os.path.join(storage_dir, "separated_images_grid.jpeg")
     sly.image.write(save_path, img)
     sly.logger.info(f"Result grid saved to: {save_path}")
 
