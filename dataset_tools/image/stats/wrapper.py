@@ -50,7 +50,7 @@ def initialize(project_id=None, project_path=None):
 def get_stats(stats, project_meta, datasets, sample_rate=1) -> None:
     api = sly.Api.from_env()
 
-    for Statistics in stats:
+    for stat in stats:
         dataset_sample, sample_count = sample_images(api, datasets, sample_rate)
 
         with tqdm(total=sample_count) as pbar:
@@ -61,5 +61,5 @@ def get_stats(stats, project_meta, datasets, sample_rate=1) -> None:
 
                     for img, jann in zip(batch, janns):
                         ann = sly.Annotation.from_json(jann, project_meta)
-                        Statistics.update(img, ann)
+                        stat.update(img, ann)
                         pbar.update(1)
