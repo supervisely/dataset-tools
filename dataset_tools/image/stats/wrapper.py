@@ -1,5 +1,7 @@
 import random
 import os
+from tqdm import tqdm
+import json
 
 from collections import defaultdict
 
@@ -24,70 +26,42 @@ def sample_images(api, datasets, sample_rate):
     return ds_images, cnt_images
 
 
-def get_sample(images, sample_rate):
-    cnt = int(max(1, sample_rate * len(images)))
-    random.shuffle(images)
-    images = images[:cnt]
-    return images
-
-
-def calculate(api, cfg=None, project_id=None, project_dir=None, sample_rate=0.1):
-    result = {}
-
+def calculate(
+    stats=None, project_id=None, project_dir=None, sample_rate=1, demo_dirpath=None
+) -> None:
     if project_id is not None:
-        meta_json = api.project.get_meta(project_id)
-        meta = sly.ProjectMeta.from_json(meta_json)
+        api = sly.Api.from_env()
+        project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 
-        for statsType, Statistics in cfg.items():
-            stats = {}
+        for stat_name, Statistics in stats.items():
+            stat = Statistics(project_meta)
+
+            api.image.get_list_all_pages_generator
+
             datasets = api.dataset.get_list(project_id)
-            ds_images, sample_count = sample_images(api, datasets, sample_rate)
+            dataset_sample, sample_count = sample_images(api, datasets, sample_rate)
 
-            Statistics.prepare_data(stats, meta)
+            pbar = tqdm(total=sample_count)
+            for dataset_id, sample in dataset_sample.items():
+                for batch in api.image.get_list_generator(dataset_id, batch_size=100):
+                    image_ids = [image.id for image in sample]
+                    janns = api.annotation.download_json_batch(dataset_id, image_ids)
 
-            for dataset_id, images in ds_images.items():
-                dataset = api.dataset.get_info_by_id(dataset_id)
+                    for img, jann in zip(batch, janns):
+                        ann = sly.Annotation.from_json(jann, project_meta)
+                        stat.update(img, ann)
+                        pbar.update(1)
 
-                for img_batch in sly.batched(images):
-                    image_ids = [image_info.id for image_info in img_batch]
-                    ann_batch = api.annotation.download_batch(dataset.id, image_ids)
+            if demo_dirpath is not None:
+                os.makedirs(demo_dirpath, exist_ok=True)
 
-                    for image_info, ann_info in zip(img_batch, ann_batch):
-                        #  maybe *args **kwargs?
-                        Statistics.update(stats, image_info, ann_info, meta, dataset)
+                json_file_path = os.path.join(demo_dirpath, f"{stat_name}.json")
+                image_file_path = os.path.join(demo_dirpath, f"{stat_name}.png")
 
-            Statistics.aggregate_calculations(stats)
+                with open(json_file_path, "w") as f:
+                    json.dump(stat.to_json(), f)
 
-            result[statsType] = stats
+                stat.to_image(image_file_path)
 
     elif project_dir is not None:
-        project_fs = sly.read_single_project(project_dir)
-        meta = project_fs.meta
-
-        for statsType, Statistics in cfg.items():
-            stats = {}
-            datasets = project_fs.datasets
-
-            for dataset in datasets:
-                images = [
-                    dataset.get_image_info(sly.fs.get_file_name(img))
-                    for img in os.listdir(dataset.ann_dir)
-                ]
-                images = get_sample(images, sample_rate) if sample_rate is not None else images
-
-                Statistics.prepare_data(stats, meta)
-
-                for img_batch in sly.batched(images):
-                    image_ids = [image_info.id for image_info in img_batch]
-
-                    ann_batch = api.annotation.download_batch(img_batch[0].dataset_id, image_ids)
-
-                    for image_info, ann_info in zip(img_batch, ann_batch):
-                        #  maybe *args **kwargs?
-                        Statistics.update(stats, image_info, ann_info, meta, dataset)
-
-            Statistics.aggregate_calculations(stats)
-
-            result[statsType] = stats
-
-    return result
+        pass
