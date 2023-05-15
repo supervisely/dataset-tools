@@ -58,10 +58,13 @@ class ObjectsDistribution:
 
                 references.append(reference)
 
+        options = {"fixColumns": 1}
+
         res = {
             "columns": columns,
             "data": data,
-            "references": references,
+            "referencesRow": references,
+            "options": options,
         }
 
         return res
