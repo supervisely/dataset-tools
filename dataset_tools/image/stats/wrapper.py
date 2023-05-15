@@ -8,6 +8,62 @@ from collections import defaultdict
 import supervisely as sly
 
 
+def read_project_data(project_id: int = None, project_dir: str = None) -> ProjectData:
+    if project_dir:
+        project_fs = sly.Project(project_dir, sly.OpenMode.READ)
+
+        project_meta = project_fs.meta
+
+        datasets = project_fs.datasets
+        datasets_data = []
+
+        for dataset in datasets:
+            ann_dir = dataset.ann_dir
+            image_infos_dir = dataset.item_info_dir
+
+            ann_paths = [os.path.join(ann_dir, f) for f in os.listdir(ann_dir)]
+            anns_json = [json.load(open(ann_path)) for ann_path in ann_paths]
+
+            image_infos_paths = [
+                os.path.join(image_infos_dir, f) for f in os.listdir(image_infos_dir)
+            ]
+
+            image_infos_json = [
+                json.load(open(image_info_path)) for image_info_path in image_infos_paths
+            ]
+
+            anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in anns_json]
+            image_infos = [sly.ImageInfo(**image_info_json) for image_info_json in image_infos_json]
+
+            dataset_data = DatasetData(name=dataset.name, image_infos=image_infos, anns=anns)
+            datasets_data.append(dataset_data)
+
+        project_data = ProjectData(project_meta=project_meta, datasets=datasets_data)
+
+    elif project_id:
+        project_meta_json = api.project.get_meta(project_id)
+        project_meta = sly.ProjectMeta.from_json(project_meta_json)
+
+        datasets = api.dataset.get_list(project_id)
+        datasets_data = []
+
+        for dataset in datasets:
+            image_infos = api.image.get_list(dataset.id)
+
+            ann_jsons = api.annotation.download_json_batch(
+                dataset.id, [image_info.id for image_info in image_infos]
+            )
+
+            anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in ann_jsons]
+
+            dataset_data = DatasetData(name=dataset.name, image_infos=image_infos, anns=anns)
+            datasets_data.append(dataset_data)
+
+        project_data = ProjectData(project_meta=project_meta, datasets=datasets_data)
+
+    return project_data
+
+
 def sample_images(api, datasets, sample_rate):
     all_images = []
     for dataset in datasets:
