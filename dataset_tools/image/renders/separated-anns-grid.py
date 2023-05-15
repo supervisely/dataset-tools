@@ -22,14 +22,30 @@ from tqdm import tqdm
 # - [x] place imgs on grid
 
 
+# class SideAnnotationsGrid:
+#     def __init__(self, project_meta: sly.ProjectMeta):
+#         self.project_meta = project_meta
+
+#         self.MAX_SIZE = 1920
+#         self.BATCH_SIZE = 50
+
+#         self.images_batch = []
+#         self.errors = []
+
+#         self._all_image_infos = []
+#         self.ds_img_infos = defaultdict(list)
+#         self.ds_img_anns = defaultdict(list)
+#         self.ds_img_ids = defaultdict(list)
+    
+#     def update():
+#         raise NotImplementedError('Please use "collect_data" method')
+
 def get_sample(data, cnt):
     samples = []
     while len(samples) < cnt:
         item = random.choice(data)
         if item not in samples:
             samples.append(item)
-    # random.shuffle(data)
-    # data = data[:cnt]
     return samples
 
 
@@ -112,13 +128,6 @@ def draw_masks_on_single_image(ann: sly.Annotation, image: sly.ImageInfo):
         _put_text((int(col - t_width // 2), row))
 
     return mask_img
-
-
-# def get_grid_size(num: int = 1) -> tuple:
-#     # get num of cols andd rows in result grid
-#     cols = max(int(np.ceil(np.sqrt(num))), 1)
-#     rows = max((num - 1) // cols + 1, 1)
-#     return (rows, cols)
 
 
 def create_image_grid(images, grid_size):
@@ -222,6 +231,7 @@ def main(api: sly.Api, project_id=None, project_dir=None, rows: int = 3, cols: i
 
 
 if sly.is_development():
+    load_dotenv(os.path.expanduser("~/ninja.env"))
     load_dotenv("local.env")
 
 project_id = sly.env.project_id(raise_not_found=False)
