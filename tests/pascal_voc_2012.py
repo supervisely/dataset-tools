@@ -15,8 +15,19 @@ if sly.is_development():
 
 api = sly.Api.from_env()
 project_id = sly.env.project_id()
+project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
+
+cls_balance = dtools.ClassBalance(project_meta)
+dtools.count_stats(project_id, stats=[cls_balance], sample_rate=0.1)
+
+
+exit(0)
+project_id = sly.env.project_id()
 workspace_id = sly.env.workspace_id()
 team_id = sly.env.team_id()
+
+
+exit(0)
 
 project_info = api.project.get_info_by_id(project_id)
 project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
