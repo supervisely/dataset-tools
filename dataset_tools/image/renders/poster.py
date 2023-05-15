@@ -15,7 +15,7 @@ from supervisely.imaging import font as sly_font
 
 
 if sly.is_development():
-    load_dotenv(os.path.expanduser("~/supervisely.env"))
+    # load_dotenv(os.path.expanduser("~/supervisely.env"))
     load_dotenv("local.env")
 
 storage_dir = sly.app.get_data_dir()
@@ -35,7 +35,7 @@ BORDER_OFFSET = 4
 api = sly.api.Api()
 
 
-def draw_text(image, anchor_point, text, font, is_title: bool = False):
+def draw_single_text(image, anchor_point, text, font, is_title: bool = False):
     left, top, right, bottom = font.getbbox(text)
     text_w, text_h = right - left, bottom - top
     # prepare custom text bg
@@ -45,7 +45,25 @@ def draw_text(image, anchor_point, text, font, is_title: bool = False):
         anchor_point[0] + text_h + int(1.5 * BORDER_OFFSET + top),
     )
 
-    image[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0], 0:4] = [133, 69, 253, 255]
+    # image[:, :, 0:4] = [133, 69, 253, 255]
+
+    def gradient(img, top_left, bottom_right, c1, c2):
+        shape = (bottom_right[1] - top_left[1], bottom_right[0] - top_left[0], 3)
+        im = np.zeros(shape, dtype=np.uint8)
+        row = np.linspace(0, 1, shape[1])
+        kernel_1d = np.tile(row, (shape[0], 1))
+        kernel = cv2.merge((kernel_1d, kernel_1d, kernel_1d))
+        im = kernel * c1 + (1 - kernel) * c2
+        im = im.astype(np.uint8)
+
+
+        img[top_left[1] : bottom_right[1], top_left[0] : bottom_right[0], :3] = im
+        return img
+
+    c1 = np.array((133, 69, 253))  # bgr
+    c2 = np.array((0, 208, 254))
+    image = gradient(image, top_left, bottom_right, c1, c2)
+
     if is_title:
         top_left = (top_left[0] + BORDER_OFFSET, top_left[1] + BORDER_OFFSET)
         bottom_right = (bottom_right[0] - BORDER_OFFSET, bottom_right[1] - BORDER_OFFSET)
@@ -87,21 +105,21 @@ def draw_all_text(image, title, img_cnt_text, cls_cnt_text, masks_cnt_text):
         left, top, right, bottom = font.getbbox(title)
         text_w, text_h = right - left, bottom - top
     main_anchor_point = ((IMAGE_HEIGHT - text_h) // 2, (IMAGE_WIDTH - text_w) // 2)
-    image = draw_text(image, main_anchor_point, title, font, is_title=True)
+    image = draw_single_text(image, main_anchor_point, title, font, is_title=True)
 
     # images count
     font = sly_font.get_font(font_size=int(base_font_size * font_ratio_2))
     left, top, right, bottom = font.getbbox(img_cnt_text)
     text_w_2, text_h_2 = right - left, bottom - top
     anchor_point = (main_anchor_point[0] - text_h_2 - BORDER_OFFSET * 3, main_anchor_point[1])
-    image = draw_text(image, anchor_point, img_cnt_text, font)
+    image = draw_single_text(image, anchor_point, img_cnt_text, font)
 
     # classes count
     font = sly_font.get_font(font_size=int(base_font_size * font_ratio_3))
     left, top, right, bottom = font.getbbox(cls_cnt_text)
-    text_w_3, text_h_3 = right, bottom
+    text_w_3, text_h_3 = right - left, bottom - top
     anchor_point = (main_anchor_point[0] + text_h + 4 * BORDER_OFFSET, IMAGE_WIDTH // 2 - text_w_3)
-    image = draw_text(image, anchor_point, cls_cnt_text, font)
+    image = draw_single_text(image, anchor_point, cls_cnt_text, font)
 
     # masks count
     font = sly_font.get_font(font_size=int(base_font_size * font_ratio_4))
@@ -111,47 +129,49 @@ def draw_all_text(image, title, img_cnt_text, cls_cnt_text, masks_cnt_text):
         main_anchor_point[0] - text_h_4 - BORDER_OFFSET * 2,
         main_anchor_point[1] + text_w - text_w_4,
     )
-    image = draw_text(image, anchor_point, masks_cnt_text, font)
+    image = draw_single_text(image, anchor_point, masks_cnt_text, font)
 
     sly.logger.info(f"Drawing texts on poster successfully finished.")
     return image
 
 
-def download_selected_images(selected_image_infos: List[sly.ImageInfo], project_meta):
-    sly.logger.info(f"Downloading 7 sample images.")
+def download_images_and_draw_anns(images_infos: List[sly.ImageInfo], project_meta):
+    random.shuffle(images_infos)
     np_images = []
 
     i = 0
     with tqdm(desc="Downloading 7 sample images.", total=7) as pbar:
         while len(np_images) < 7:
-            if i == len(selected_image_infos):
+            if i == len(images_infos) - 1:
                 i = 0
-            img_info = selected_image_infos[i]
+            img_info = images_infos[i]
             ann_json = api.annotation.download_json(img_info.id)
             ann = sly.Annotation.from_json(ann_json, project_meta)
             if len(ann.labels) < 1:
                 i += 1
                 continue
             np_img = api.image.download_np(img_info.id)
-            if i % 2 == 0:
+
+            if len(np_images) % 2 == 0:
                 background = np.ones((np_img.shape[0], np_img.shape[1], 3), dtype=np.uint8)
                 background[:, :, :3] = 255
-                alpha = 0.4
+                alpha = 0.5
                 np_img = cv2.addWeighted(background, 1 - alpha, np_img, alpha, 0)
-            thickness = 1 if i < 3 else 2
-            opacity = 0.7 if i % 2 == 0 else 0.3
-            ann.draw_pretty(np_img, thickness=thickness, opacity=opacity)
-                
+                ann.draw_pretty(np_img, thickness=0, opacity=0.3)
+            else:
+                thickness = 2 if len(np_images) < 3 else 3
+                ann.draw_contour(np_img, color=[253, 69, 133], thickness=thickness)
+
             np_images.append(cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR))
             i += 1
             pbar.update(1)
 
-    sly.logger.info(f"Resizing 7 sample images.")
+    return np_images
+
+
+def resize_images(np_images):
     for i, img in enumerate(np_images):
-        if i < 3:
-            h, w = IMG_HEIGHT_1, IMG_WIDTH_1
-        else:
-            h, w = IMG_HEIGHT_2, IMG_WIDTH_2
+        h, w = (IMG_HEIGHT_1, IMG_WIDTH_1) if i < 3 else (IMG_HEIGHT_2, IMG_WIDTH_2)
         img_h, img_w = img.shape[1], img.shape[0]
         src_ratio = w / h
         img_ratio = img_w / img_h
@@ -174,20 +194,14 @@ def download_selected_images(selected_image_infos: List[sly.ImageInfo], project_
 
         rgba_image = np.zeros((img.shape[0], img.shape[1], 4), dtype=np.uint8)
 
-        # if i % 2 == 0:
-        #     background = np.ones((img.shape[0], img.shape[1], 3), dtype=np.uint8)
-        #     background[:, :, :3] = 255
-        #     alpha = 0.4
-        #     img = cv2.addWeighted(background, 1 - alpha, img, alpha, 0)
         rgba_image[:, :, 3] = 255
         rgba_image[:, :, :3] = img
         np_images[i] = rgba_image
-    sly.logger.info(f"Successfully resized 7 sample images.")
+    sly.logger.info(f"Resized 7 sample images.")
     return np_images
 
 
 def create_frame(background, images: List[np.ndarray], gap):
-    sly.logger.info(f"Start creating frame.")
     x, y = gap, gap
     for img in images[:3]:
         x_end, y_end = x + img.shape[1], y + img.shape[0]
@@ -200,7 +214,7 @@ def create_frame(background, images: List[np.ndarray], gap):
         x_end, y_end = x + img.shape[1], y + img.shape[0]
         background[y:y_end, x:x_end] = img
         x = x_end + gap
-    sly.logger.info(f"Frame successfully created.")
+    sly.logger.info(f"Frame created.")
     return background
 
 
@@ -229,7 +243,6 @@ def create_poster(project_id=None, project_path=None):
                 for img in os.listdir(dataset.ann_dir)
             )
 
-    random.shuffle(images_infos)
     labels_cnt = 0
     for img_inf in images_infos:
         labels_cnt += img_inf.labels_count
@@ -237,7 +250,7 @@ def create_poster(project_id=None, project_path=None):
     TEXT = (
         project.name.upper()
         if len(project.name.split(" ")) < 4
-        else " ".join(project.name.split(" ")[:3])
+        else " ".join(project.name.split(" ")[:3]).upper()
     )
     TEXT_2 = (
         f"{project.items_count} IMAGES"
@@ -249,11 +262,11 @@ def create_poster(project_id=None, project_path=None):
 
     # empty image with white bg
     image = np.zeros((IMAGE_HEIGHT, IMAGE_WIDTH, 4), dtype=np.uint8)
-    image[:, :, 0:3] = 255
-    image[:, :, 3] = 255
+    image[:, :, 0:4] = 255
 
-    selected_image_nps = download_selected_images(images_infos, project_meta)
-    image = create_frame(image, selected_image_nps, GAP)
+    selected_image_nps = download_images_and_draw_anns(images_infos, project_meta)
+    resized_image_nps = resize_images(selected_image_nps)
+    image = create_frame(image, resized_image_nps, GAP)
 
     image = draw_all_text(image, TEXT, TEXT_2, TEXT_3, TEXT_4)
 
@@ -262,11 +275,11 @@ def create_poster(project_id=None, project_path=None):
     cv2.imwrite(save_path, image)
 
     # upload stats to Team files
-    dst_path = f"/renders/{project.name}/poster.png"
-    file_info = api.file.upload(team_id, save_path, dst_path)
-    sly.logger.info(f"Dataset poster uploaded to Team files path: {file_info.path}")
+    # dst_path = f"/renders/{project.name}/poster.png"
+    # file_info = api.file.upload(team_id, save_path, dst_path)
+    # sly.logger.info(f"Dataset poster uploaded to Team files path: {file_info.path}")
 
-    return file_info.path
+    # return file_info.path
 
 
 team_id = sly.env.team_id()
@@ -274,7 +287,7 @@ project_id = sly.env.project_id(raise_not_found=False)
 dataset_id = sly.env.dataset_id(raise_not_found=False)
 
 ################## Option 1. Get poster for project with given ID ##################
-# upload_path = create_poster(project_id=project_id)
+upload_path = create_poster(project_id=project_id)
 
 
 ###################################### or #####################################
