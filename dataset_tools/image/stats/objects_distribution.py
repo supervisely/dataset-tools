@@ -10,6 +10,9 @@ class ObjectsDistribution:
         self.class_titles = [obj_class.name for obj_class in project_data.project_meta.obj_classes]
 
     def update(self):
+        pass
+
+    def to_json(self):
         self.classes = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
         counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
@@ -31,7 +34,6 @@ class ObjectsDistribution:
                     self.classes[class_title][count]["image_ids"].extend(list(set(image_ids)))
                     self.classes[class_title][count]["count"] += 1
 
-    def to_json(self):
         columns = set()
         for class_title, class_data in self.classes.items():
             columns.update(class_data.keys())

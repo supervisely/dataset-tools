@@ -10,6 +10,9 @@ class ObjectSizes:
         self.datasets = project_data.datasets
 
     def update(self):
+        pass
+
+    def to_json(self):
         self.sizes = []
         for dataset in self.datasets:
             image_names = [image_info.name for image_info in dataset.image_infos]
@@ -33,7 +36,6 @@ class ObjectSizes:
 
                 self.sizes.append(object_data)
 
-    def to_json(self):
         options = {"fixColumns": 1}
 
         res = {
@@ -80,6 +82,9 @@ class ClassSizes:
         self.class_titles = [obj_class.name for obj_class in project_data.project_meta.obj_classes]
 
     def update(self):
+        pass
+
+    def to_json(self):
         class_heights_px = defaultdict(list)
         class_heights_pc = defaultdict(list)
         class_widths_px = defaultdict(list)
@@ -158,7 +163,6 @@ class ClassSizes:
 
             self.sizes.append(class_data)
 
-    def to_json(self):
         options = {"fixColumns": 1}
 
         res = {
