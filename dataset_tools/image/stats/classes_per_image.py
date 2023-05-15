@@ -29,14 +29,15 @@ class ClassesPerImage:
             self._class_indices_colors.append([class_index, class_index, class_index])
             self._classname_to_index[obj_class.name] = class_index
 
-
         self._stats["data"] = []
 
     def update(self, image_info: sly.ImageInfo, ann: sly.Annotation):
         render_idx_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
         render_idx_rgb[:] = UNLABELED_COLOR
         ann.draw_class_idx_rgb(render_idx_rgb, self._classname_to_index)
-        stat_area = sly.Annotation.stat_area(render_idx_rgb, self._class_names, self._class_indices_colors)
+        stat_area = sly.Annotation.stat_area(
+            render_idx_rgb, self._class_names, self._class_indices_colors
+        )
         stat_count = ann.stat_class_count(self._class_names)
 
         if stat_area["unlabeled"] > 0:
@@ -86,5 +87,9 @@ class ClassesPerImage:
 
     def to_pandas(self) -> pd.DataFrame:
         json = self.to_json()
-        table = pd.DataFrame(data=json["data"], columns=json["columns"])
+        table = pd.DataFrame(data=json["data"]["data"], columns=json["columns"])
         return table
+
+    # def to_image(self, path):
+    #     table = self.to_pandas()
+    #     table.dfi.export(path)

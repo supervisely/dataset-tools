@@ -63,5 +63,5 @@ class ObjectsDistribution:
 
     def to_pandas(self):
         json = self.to_json()
-        table = pd.DataFrame(json["data"], columns=json["columns"])
+        table = pd.DataFrame(json["data"], columns=["class names"] + json["columns"])
         return table

@@ -39,7 +39,7 @@ class ClassCooccurence:
         for class_ in classes:
             idx = self.class_names.index(class_)
             self.co_occurrence_matrix[idx][idx] += 1
-            self._stats["counters"][class_][class_].append(image.id)
+            self._stats["counters"][idx][idx].append(image.id)
 
         for i in range(len(classes)):
             for j in range(i + 1, len(classes)):
@@ -50,8 +50,8 @@ class ClassCooccurence:
                 self.co_occurrence_matrix[idx_i][idx_j] += 1
                 self.co_occurrence_matrix[idx_j][idx_i] += 1
 
-                self._stats["counters"][class_i][class_j].append(image.id)
-                self._stats["counters"][class_j][class_i].append(image.id)
+                self._stats["counters"][idx_i][idx_j].append(image.id)
+                self._stats["counters"][idx_j][idx_i].append(image.id)
 
     def to_json(self):
         options = {"fixColumns": 1}
@@ -62,9 +62,14 @@ class ClassCooccurence:
         for idx in range(1, len(colomns_options)):
             colomns_options[idx] = {"maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))}
 
+        data = [
+            [value] + sublist
+            for value, sublist in zip(self.class_names, self.co_occurrence_matrix.tolist())
+        ]
+
         res = {
-            "columns": self.class_names,
-            "data": self.co_occurrence_matrix.tolist(),
+            "columns": ["class"] + self.class_names,
+            "data": data,
             "referencesRow": self._stats["counters"],
             "options": options,
             "colomnsOptions": colomns_options,

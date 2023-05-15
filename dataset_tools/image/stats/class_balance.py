@@ -81,7 +81,7 @@ class ClassBalance:
                     self._stats["sum_class_area_per_image"][idx] / self._stats["images_count"][idx]
                 )
                 self._stats["avg_nonzero_count"][idx] = (
-                    self._stats["objects_count"][idx] / self._stats["images_count"][idx]
+                    self._stats["objects_count"][idx] or 0 / self._stats["images_count"][idx]
                 )
 
             if class_name == "unlabeled":
@@ -105,8 +105,8 @@ class ClassBalance:
                     name,
                     self._stats["images_count"][idx],
                     self._stats["objects_count"][idx],
-                    round(self._stats["avg_nonzero_count"][idx] or 0, 2),
-                    round(self._stats["avg_nonzero_area"][idx] or 0, 2),
+                    round(self._stats["avg_nonzero_count"][idx], 2),
+                    round(self._stats["avg_nonzero_area"][idx], 2),
                 ]
             )
 
