@@ -17,30 +17,25 @@ class ClassesPerImage:
 
     @staticmethod
     def prepare_data(stats: dict, meta: sly.ProjectMeta):
-        # prepare table columns
         class_names = ["unlabeled"]
-        class_colors = [[0, 0, 0]]
         class_indices_colors = [[0, 0, 0]]
         _name_to_index = {}
-        table_columns = ["image id", "image", "dataset", "height", "width", "channels", "unlabeled"]
+        table_columns = ["Image", "dataset", "height", "width", "channels", "unlabeled"]
         columns_options = ["null"] * len(table_columns)
 
         for idx, obj_class in enumerate(meta.obj_classes):
             class_names.append(obj_class.name)
-            class_colors.append(obj_class.color)
             class_index = idx + 1
             class_indices_colors.append([class_index, class_index, class_index])
             _name_to_index[obj_class.name] = class_index
             columns_options.append({"subtitle": "objects count"})
             columns_options.append({"subtitle": "covered area (%)"})
-            table_columns.append(obj_class.name)
-            table_columns.append(obj_class.name)
+            table_columns.extend([obj_class.name] * 2)
 
         stats["sum_class_area_per_image"] = [0] * len(class_names)
         stats["sum_class_count_per_image"] = [0] * len(class_names)
         stats["count_images_with_class"] = [0] * len(class_names)
         stats["class_names"] = class_names
-        stats["class_colors"] = class_colors
         stats["class_indices_colors"] = class_indices_colors
         stats["_name_to_index"] = _name_to_index
         stats["columns"] = table_columns
@@ -66,7 +61,6 @@ class ClassesPerImage:
             stat_count["unlabeled"] = 1
 
         table_row = []
-        table_row.append(image_info.id)
 
         table_row.append(image_info.name)
 
@@ -102,6 +96,6 @@ class ClassesPerImage:
         stats.pop("sum_class_count_per_image", None)
         stats.pop("count_images_with_class", None)
         stats.pop("class_names", None)
-        stats.pop("class_colors", None)
         stats.pop("class_indices_colors", None)
         stats.pop("_name_to_index", None)
+        stats["table_options"] = {"fixColumns": 1}
