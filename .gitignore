@@ -5,4 +5,5 @@ __pycache__
 tmp/
 dataset_tools.egg-info/
 build/
+demo/
 .flake8
