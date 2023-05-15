@@ -27,10 +27,11 @@ import shutil
 # sly.download(api, PROJECT_ID, PROJECT_PATH, save_image_info=True, save_images=False)
 
 
-project_meta, datasets = dtools.initialize(
-    project_id=PROJECT_ID,
-    # project_path=PROJECT_PATH,
-)
+# project_meta, datasets = dtools.initialize(
+#     project_id=PROJECT_ID,
+#     # project_path=PROJECT_PATH,
+# )
+
 
 cls_balance = dtools.ClassBalance(project_meta)
 cls_coocc = dtools.ClassCooccurence(project_meta)
