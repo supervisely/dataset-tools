@@ -27,24 +27,25 @@ def sample_images(api, datasets, sample_rate):
 
 
 def calculate(
-    stats=None, project_id=None, project_dir=None, sample_rate=1, demo_dirpath=None
+    api, stats=None, project_id=None, project_path=None, sample_rate=1, demo_dirpath=None
 ) -> None:
     if project_id is not None:
-        api = sly.Api.from_env()
         project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
+        datasets = api.dataset.get_list(project_id)
 
-        for stat_name, Statistics in stats.items():
-            stat = Statistics(project_meta)
+    elif project_path is not None:
+        project_fs = sly.Project(project_path, sly.OpenMode.READ)
+        project_meta = project_fs.meta
+        datasets = project_fs.datasets
 
-            api.image.get_list_all_pages_generator
+    for stat_name, Statistics in stats.items():
+        stat = Statistics(project_meta)
+        dataset_sample, sample_count = sample_images(api, datasets, sample_rate)
 
-            datasets = api.dataset.get_list(project_id)
-            dataset_sample, sample_count = sample_images(api, datasets, sample_rate)
-
-            pbar = tqdm(total=sample_count)
+        with tqdm(total=sample_count) as pbar:
             for dataset_id, sample in dataset_sample.items():
-                for batch in api.image.get_list_generator(dataset_id, batch_size=100):
-                    image_ids = [image.id for image in sample]
+                for batch in sly.batched(sample, batch_size=100):
+                    image_ids = [image.id for image in batch]
                     janns = api.annotation.download_json_batch(dataset_id, image_ids)
 
                     for img, jann in zip(batch, janns):
@@ -52,16 +53,12 @@ def calculate(
                         stat.update(img, ann)
                         pbar.update(1)
 
-            if demo_dirpath is not None:
-                os.makedirs(demo_dirpath, exist_ok=True)
+        if demo_dirpath is not None:
+            os.makedirs(demo_dirpath, exist_ok=True)
+            json_file_path = os.path.join(demo_dirpath, f"{stat_name}.json")
+            image_file_path = os.path.join(demo_dirpath, f"{stat_name}.png")
 
-                json_file_path = os.path.join(demo_dirpath, f"{stat_name}.json")
-                image_file_path = os.path.join(demo_dirpath, f"{stat_name}.png")
+            with open(json_file_path, "w") as f:
+                json.dump(stat.to_json(), f)
 
-                with open(json_file_path, "w") as f:
-                    json.dump(stat.to_json(), f)
-
-                stat.to_image(image_file_path)
-
-    elif project_dir is not None:
-        pass
+            stat.to_image(image_file_path)
