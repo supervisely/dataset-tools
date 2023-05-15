@@ -106,8 +106,8 @@ class ClassBalance:
                     name,
                     self._stats["images_count"][idx],
                     self._stats["objects_count"][idx],
-                    round(self._stats["avg_nonzero_count"][idx], 2),
-                    round(self._stats["avg_nonzero_area"][idx], 2),
+                    round(self._stats["avg_nonzero_count"][idx] or 0, 2),
+                    round(self._stats["avg_nonzero_area"][idx] or 0, 2),
                 ]
             )
 
