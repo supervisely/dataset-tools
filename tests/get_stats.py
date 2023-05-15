@@ -34,21 +34,24 @@ import shutil
 
 
 cls_balance = dtools.ClassBalance(project_meta)
-# stat_x = dtools.StaX(project_meta)
+cls_coocc = dtools.ClassCooccurence(project_meta)
 # stat_y = dtools.StatY(project_meta)
 
 dtools.get_stats(
     [
-        cls_balance,
+        # cls_ba/lance,
+        cls_coocc,
     ],
     project_meta,
     datasets,
-    sample_rate=0.1,
+    sample_rate=1,
 )
 
+# cls_coocc.to_json()
 
 for stat in [
-    cls_balance,
+    # cls_balance,
+    cls_coocc,
 ]:
     demo_dirpath = "demo/"
     stat_name = type(stat).__name__
