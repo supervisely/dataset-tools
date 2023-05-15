@@ -11,7 +11,13 @@ import supervisely as sly
 def sample_images(api, datasets, sample_rate):
     all_images = []
     for dataset in datasets:
-        images = api.image.get_list(dataset.id)
+        try:
+            images = api.image.get_list(dataset.id)
+        except AttributeError:
+            images = [
+                dataset.get_image_info(sly.fs.get_file_name(img))
+                for img in os.listdir(dataset.ann_dir)
+            ]
         all_images.extend(images)
 
     cnt_images = len(all_images)
@@ -26,9 +32,9 @@ def sample_images(api, datasets, sample_rate):
     return ds_images, cnt_images
 
 
-def calculate(
-    api, stats=None, project_id=None, project_path=None, sample_rate=1, demo_dirpath=None
-) -> None:
+def initialize(project_id=None, project_path=None):
+    api = sly.Api.from_env()
+
     if project_id is not None:
         project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
         datasets = api.dataset.get_list(project_id)
@@ -38,8 +44,13 @@ def calculate(
         project_meta = project_fs.meta
         datasets = project_fs.datasets
 
-    for stat_name, Statistics in stats.items():
-        stat = Statistics(project_meta)
+    return project_meta, datasets
+
+
+def get_stats(stats, project_meta, datasets, sample_rate=1) -> None:
+    api = sly.Api.from_env()
+
+    for Statistics in stats:
         dataset_sample, sample_count = sample_images(api, datasets, sample_rate)
 
         with tqdm(total=sample_count) as pbar:
@@ -50,15 +61,5 @@ def calculate(
 
                     for img, jann in zip(batch, janns):
                         ann = sly.Annotation.from_json(jann, project_meta)
-                        stat.update(img, ann)
+                        Statistics.update(img, ann)
                         pbar.update(1)
-
-        if demo_dirpath is not None:
-            os.makedirs(demo_dirpath, exist_ok=True)
-            json_file_path = os.path.join(demo_dirpath, f"{stat_name}.json")
-            image_file_path = os.path.join(demo_dirpath, f"{stat_name}.png")
-
-            with open(json_file_path, "w") as f:
-                json.dump(stat.to_json(), f)
-
-            stat.to_image(image_file_path)
