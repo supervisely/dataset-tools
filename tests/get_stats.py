@@ -32,6 +32,7 @@ cls_cooc = dtools.ClassCooccurrence(project_meta)
 obj_distrib = dtools.ObjectsDistribution(project_meta)
 obj_sizes = dtools.ObjectSizes(project_meta)
 cls_sizes = dtools.ClassSizes(project_meta)
+cls_heatmaps = dtools.ClassesHeatmaps(project_meta)
 
 
 dtools.count_stats(
@@ -57,3 +58,5 @@ with open("./demo/object_sizes.json", "w") as f:
     json.dump(obj_sizes.to_json(), f)
 with open("./demo/class_size.json", "w") as f:
     json.dump(cls_sizes.to_json(), f)
+
+cls_heatmaps.to_image("./demo")
