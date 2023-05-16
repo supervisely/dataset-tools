@@ -1,9 +1,11 @@
+import os
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 import cv2
 import math
 import supervisely as sly
+from skimage.transform import resize
 
 
 class ClassesHeatmaps:
@@ -16,7 +18,7 @@ class ClassesHeatmaps:
         if heatmap_img_size:
             self._heatmap_img_size = heatmap_img_size
         else:
-            self._heatmap_img_size = (800, 1200)
+            self._heatmap_img_size = (720, 1280)
 
         for obj_class in self._meta.obj_classes:
             self.classname_heatmap[obj_class.name] = np.zeros(
@@ -35,20 +37,28 @@ class ClassesHeatmaps:
                 self.classname_heatmap[label.obj_class.name] += temp_canvas
 
     def _create_single_images(self, path):
+        font_height_percent = 5
+        max_text_width = int(self._heatmap_img_size[1] * 0.9)
+        font_height = int(self._heatmap_img_size[0] * font_height_percent / 100)
         for heatmap in self.classname_heatmap:
-            x_pos_center = int(self.classname_heatmap[heatmap].shape[1] * 0.5)
-            y_pos_percent = int(self.classname_heatmap[heatmap].shape[0] * 0.96)
+            resized_image = resize(self.classname_heatmap[heatmap], self._heatmap_img_size)
+            x_pos_center = int(resized_image.shape[1] * 0.5)
+            y_pos_percent = int(resized_image.shape[0] * 0.95)
 
-            image_path = f"{path}/{heatmap}.png"
-            plt.imsave(image_path, self.classname_heatmap[heatmap][:, :, 0])
+            image_path = os.path.join(path, f"{heatmap}.png")
+            plt.imsave(image_path, resized_image[:, :, 0])
 
             image = cv2.imread(image_path)
             text = f"{heatmap}"
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = 2
             text_color = (255, 255, 255)
+            font_scale = font_height / 10.0
             thickness = 3
             line_type = cv2.LINE_AA
+            (text_width, _), _ = cv2.getTextSize(text, font, font_scale, thickness)
+            font_scale = min(font_scale, max_text_width / text_width)
+            if font_scale < 1:
+                thickness = 1
             (text_width, _), _ = cv2.getTextSize(text, font, font_scale, thickness)
             text_position = (x_pos_center - int(text_width / 2), y_pos_percent)
             cv2.putText(
@@ -56,10 +66,11 @@ class ClassesHeatmaps:
             )
             cv2.imwrite(image_path, image)
 
-            sly.logger.info(f"Heatmap image for class [{heatmap}] created")
+            sly.logger.info(f"Heatmap image for class [{heatmap}] processed")
             self.heatmap_image_paths.append(image_path)
 
     def to_image(self, path, grid_spacing=20, outer_grid_spacing=20):
+        self._calculate_output_img_size()
         self._create_single_images(path)
         img_height, img_width = cv2.imread(self.heatmap_image_paths[0]).shape[:2]
         num_images = len(self.heatmap_image_paths)
@@ -80,14 +91,18 @@ class ClassesHeatmaps:
             result_image.paste(img, (x, y))
             sly.api.file_api.silent_remove(img_path)
 
-        save_path = f"{path}/classes_heatmaps.png"
+        save_path = os.path.join(path, "classes_heatmaps.png")
         result_image.save(save_path)
         sly.logger.info(f"Heatmap image for all classes created at {save_path}")
 
     def _calculate_output_img_size(self):
         sizes = np.array(self._ds_image_sizes)
-        self._heatmap_img_size = (
-            np.max(sizes[:, 0]),
-            np.max(sizes[:, 1]),
-        )
+        if np.all(sizes == sizes[0]):
+            self._heatmap_img_size = sizes[0]
+        else:
+            widths = sizes[:, 1]
+            heights = sizes[:, 0]
+            median_width = np.median(widths)
+            median_height = np.median(heights)
+            self._heatmap_img_size = (median_height, median_width)
         sly.logger.info(f"Max size of {self._heatmap_img_size} for heatmaps calculated")
