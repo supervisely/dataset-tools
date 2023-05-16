@@ -1,7 +1,5 @@
-import json
 import os
 import random
-from collections import defaultdict
 from typing import Union, List
 
 from tqdm import tqdm
@@ -46,24 +44,24 @@ def sample_images(
 
 
 def count_stats(
-    projeсt: Union[int, str], stats: list, sample_rate: float = 1, api: sly.Api = None
+    project: Union[int, str], stats: list, sample_rate: float = 1, api: sly.Api = None
 ) -> None:
     if sample_rate <= 0 or sample_rate > 1:
         raise ValueError("Sample rate has to be in range (0, 1]")
     if api is None:
         api = sly.Api.from_env()
 
-    if isinstance(projeсt, int):
-        project_meta = sly.ProjectMeta.from_json(api.project.get_meta(projeсt))
-        datasets = api.dataset.get_list(projeсt)
-    elif isinstance(projeсt, str):
-        project_fs = sly.Project(projeсt, sly.OpenMode.READ)
+    if isinstance(project, int):
+        project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project))
+        datasets = api.dataset.get_list(project)
+    elif isinstance(project, str):
+        project_fs = sly.Project(project, sly.OpenMode.READ)
         project_meta = project_fs.meta
         datasets = project_fs.datasets
     else:
         raise ValueError("Project should be either an integer project ID or a string project path.")
 
-    samples, total = sample_images(api, projeсt, datasets, sample_rate)
+    samples, total = sample_images(api, project, datasets, sample_rate)
     desc = "Calculating stats" + (f" [sample={sample_rate}]" if sample_rate != 1 else "")
     with tqdm(desc=desc, total=total) as pbar:
         for dataset, images in samples:
@@ -71,7 +69,7 @@ def count_stats(
                 image_ids = [image.id for image in batch]
 
                 janns = api.annotation.download_json_batch(
-                    (dataset.id if isinstance(projeсt, int) else batch[0].dataset_id), image_ids
+                    (dataset.id if isinstance(project, int) else batch[0].dataset_id), image_ids
                 )
 
                 for img, jann in zip(batch, janns):
