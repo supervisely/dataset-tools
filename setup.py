@@ -45,6 +45,9 @@ INSTALL_REQUIRES = [
     # "arel>=0.2.0, <1.0.0",
     "tqdm>=4.62.3, <5.0.0",
     "pandas>=1.1.3, <=1.5.2",  # For compatibility with Python3.7
+    "matplotlib>=3.3.2, <4.0.0",
+    "scikit-image>=0.17.1, <1.0.0",
+    "dataframe_image>=0.1.11, <1.0.0",
     # "async_asgi_testclient",
     # "PyYAML",
     # "distinctipy",
@@ -143,8 +146,8 @@ setup(
         "extras": [
             "docker>=5.0.3, <6.0.0",
             # "imagecorruptions>=1.1.2, <2.0.0",
-            "scikit-image>=0.17.1, <1.0.0",
-            "matplotlib>=3.3.2, <4.0.0",
+            # "scikit-image>=0.17.1, <1.0.0",
+            # "matplotlib>=3.3.2, <4.0.0",
             # "pascal-voc-writer>=0.1.4, <1.0.0",
             "scipy>=1.5.2, <2.0.0",
             # "sk-video>=1.1.10, <2.0.0",

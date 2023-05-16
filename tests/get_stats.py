@@ -36,8 +36,8 @@ cls_heatmaps = dtools.ClassesHeatmaps(project_meta)
 
 
 dtools.count_stats(
-    project_path,
-    stats=[cls_cooc],
+    project_id,
+    stats=[cls_heatmaps],
     sample_rate=1,
 )
 
@@ -47,16 +47,16 @@ dtools.count_stats(
 # with open("./demo/class_balance.json", "w") as f:
 #     json.dump(cls_balance.to_json(), f)
 # cls_balance.to_image("./demo/class_balance.png")
-with open("./demo/class_cooc.json", "w") as f:
-    json.dump(cls_cooc.to_json(), f)
-cls_cooc.to_image("./demo/class_cooc.png")
-confusion_matrix = cls_cooc.get_widget()
+# with open("./demo/class_cooc.json", "w") as f:
+#     json.dump(cls_cooc.to_json(), f)
+# cls_cooc.to_image("./demo/class_cooc.png")
+# confusion_matrix = cls_cooc.get_widget()
 
-with open("./demo/obj_distrib.json", "w") as f:
-    json.dump(obj_distrib.to_json(), f)
-with open("./demo/object_sizes.json", "w") as f:
-    json.dump(obj_sizes.to_json(), f)
-with open("./demo/class_size.json", "w") as f:
-    json.dump(cls_sizes.to_json(), f)
+# with open("./demo/obj_distrib.json", "w") as f:
+#     json.dump(obj_distrib.to_json(), f)
+# with open("./demo/object_sizes.json", "w") as f:
+#     json.dump(obj_sizes.to_json(), f)
+# with open("./demo/class_size.json", "w") as f:
+#     json.dump(cls_sizes.to_json(), f)
 
 cls_heatmaps.to_image("./demo")
