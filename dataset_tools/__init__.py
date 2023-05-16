@@ -8,3 +8,7 @@ from dataset_tools.image.stats.objects_distribution import ObjectsDistribution
 from dataset_tools.image.stats.object_and_class_sizes import ObjectSizes, ClassSizes
 
 from dataset_tools.image.stats.wrapper import count_stats  # , initialize
+
+
+from dataset_tools.image.renders.wrapper import prepare_renders
+from dataset_tools.image.renders.separated_anns_grid import SideAnnotationsGrid
