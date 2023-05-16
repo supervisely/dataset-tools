@@ -8,6 +8,7 @@ from typing import Dict
 import dataframe_image as dfi
 import numpy as np
 import pandas as pd
+
 import supervisely as sly
 
 UNLABELED_COLOR = [0, 0, 0]
@@ -117,7 +118,7 @@ class ClassBalance:
             "postfix": "%",
             "maxValue": round(max(self._stats["avg_nonzero_area"]), 2),
         }
-        options = {"fixColumns": 1}
+        options = {"fixColumns": 1, "sort": {"columnIndex": 1, "order": "desc"}}  # asc
 
         res = {
             "columns": columns,
