@@ -1,115 +1,92 @@
-import os
-import random
 import numpy as np
-from dotenv import load_dotenv
-
+from PIL import Image
+import matplotlib.pyplot as plt
+import cv2
+import math
 import supervisely as sly
 
 
-if sly.is_development():
-    load_dotenv(os.path.expanduser("~/supervisely.env"))
-    load_dotenv("local.env")
+class ClassesHeatmaps:
+    def __init__(self, project_meta: sly.ProjectMeta, heatmap_img_size: tuple = None):
+        self._meta = project_meta
+        self.classname_heatmap = {}
+        self._ds_image_sizes = []
+        self.heatmap_image_paths = []
 
-api = sly.Api.from_env()
+        if heatmap_img_size:
+            self._heatmap_img_size = heatmap_img_size
+        else:
+            self._heatmap_img_size = (800, 1200)
 
-project_id = sly.env.project_id()
-project_info = api.project.get_info_by_id(project_id)
-meta_json = api.project.get_meta(project_id)
+        for obj_class in self._meta.obj_classes:
+            self.classname_heatmap[obj_class.name] = np.zeros(
+                self._heatmap_img_size + (3,), dtype=np.float32
+            )
 
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation):
+        image_height, image_width = ann.img_size
+        self._ds_image_sizes.append((image_height, image_width))
+        geometry_types_to_heatmap = ["polygon", "rectangle", "bitmap"]
+        ann = ann.resize(self._heatmap_img_size)
+        for label in ann.labels:
+            temp_canvas = np.zeros(self._heatmap_img_size + (3,), dtype=np.uint8)
+            if label.geometry.geometry_name() in geometry_types_to_heatmap:
+                label.draw(temp_canvas, color=(1, 1, 1))
+                self.classname_heatmap[label.obj_class.name] += temp_canvas
 
-def calculate_avg_img_size(datasets, imagesCount, max_imgs_for_average=30):
-    sizes = []
-    included_images = 0
+    def _create_single_images(self, path):
+        for heatmap in self.classname_heatmap:
+            x_pos_center = int(self.classname_heatmap[heatmap].shape[1] * 0.5)
+            y_pos_percent = int(self.classname_heatmap[heatmap].shape[0] * 0.96)
 
-    for ds_idx, dataset in enumerate(datasets):
-        images = api.image.get_list(dataset.id)
-        random.shuffle(images)
-        if imagesCount > 0:
-            if ds_idx >= len(datasets) - 1:
-                img_cnt = imagesCount - included_images
-                if included_images + img_cnt >= max_imgs_for_average:
-                    img_cnt = max_imgs_for_average - included_images
-                images = images[:img_cnt]
-            else:
-                img_cnt = len(images)
-                if included_images + img_cnt >= max_imgs_for_average:
-                    img_cnt = max_imgs_for_average - included_images
-                images = images[:img_cnt]
+            image_path = f"{path}/{heatmap}.png"
+            plt.imsave(image_path, self.classname_heatmap[heatmap][:, :, 0])
 
-        for _, item_name in enumerate(images):
-            sizes.append((item_name.height, item_name.width))
-            included_images += 1
+            image = cv2.imread(image_path)
+            text = f"{heatmap}"
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 2
+            text_color = (255, 255, 255)
+            thickness = 3
+            line_type = cv2.LINE_AA
+            (text_width, _), _ = cv2.getTextSize(text, font, font_scale, thickness)
+            text_position = (x_pos_center - int(text_width / 2), y_pos_percent)
+            cv2.putText(
+                image, text, text_position, font, font_scale, text_color, thickness, line_type
+            )
+            cv2.imwrite(image_path, image)
 
-    sizes = np.array(sizes)
-    avg_img_size = (
-        sizes[:, 0].mean().astype(np.int32).item(),
-        sizes[:, 1].mean().astype(np.int32).item(),
-    )
-    return avg_img_size
+            sly.logger.info(f"Heatmap image for class [{heatmap}] created at [{image_path}]")
+            self.heatmap_image_paths.append(image_path)
 
+    def to_image(self, path, grid_spacing=20, outer_grid_spacing=20):
+        self._create_single_images(path)
+        img_height, img_width = cv2.imread(self.heatmap_image_paths[0]).shape[:2]
+        num_images = len(self.heatmap_image_paths)
+        rows = math.ceil(math.sqrt(num_images))
+        cols = math.ceil(num_images / rows)
 
-def get_heatmap(api, class_name):
-    imagesCount = project_info.items_count
-    geometry_types_to_heatmap = ["polygon", "rectangle", "bitmap"]
-    meta = sly.ProjectMeta.from_json(meta_json)
+        result_width = cols * (img_width + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
+        result_height = rows * (img_height + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
 
-    datasets = api.dataset.get_list(project_info.id)
+        result_image = Image.new("RGB", (result_width, result_height), "white")
 
-    avg_img_size = calculate_avg_img_size(datasets, imagesCount)
+        for i, img_path in enumerate(self.heatmap_image_paths):
+            img = Image.open(img_path)
+            row = i // cols
+            col = i % cols
+            x = outer_grid_spacing + col * (img_width + grid_spacing)
+            y = outer_grid_spacing + row * (img_height + grid_spacing)
+            result_image.paste(img, (x, y))
+            sly.api.file_api.silent_remove(img_path)
 
-    heatmap = np.zeros(avg_img_size + (3,), dtype=np.float32)
-    included_images = 0
-    for ds_idx, dataset in enumerate(datasets):
-        images = api.image.get_list(dataset.id)
-        random.shuffle(images)
-        if imagesCount > 0:
-            if ds_idx >= len(datasets) - 1:
-                images = images[: imagesCount - included_images]
-            else:
-                img_cnt = len(images)
-                images = images[:img_cnt]
+        result_image.save(f"{path}/classes_heatmaps.png")
+        sly.logger.info("Heatmap images for all classes created")
 
-        for _, item_infos in enumerate(sly.batched(images)):
-            img_ids = [x.id for x in item_infos]
-            ann_infos = api.annotation.download_batch(dataset.id, img_ids)
-            anns = [sly.Annotation.from_json(x.annotation, meta) for x in ann_infos]
-            for ann in anns:
-                ann = ann.resize(avg_img_size)
-                temp_canvas = np.zeros(avg_img_size + (3,), dtype=np.uint8)
-                for label in ann.labels:
-                    if (
-                        label.obj_class.name == class_name
-                        and label.geometry.geometry_name() in geometry_types_to_heatmap
-                    ):
-                        ann = ann.delete_label(label)
-                        label.draw(temp_canvas, color=(1, 1, 1))
-                heatmap += temp_canvas
-
-            included_images += len(item_infos)
-
-    return heatmap
-
-
-def create_heatmaps(api: sly.Api):
-    heatmaps = {}
-    classes = [obj_class.get("title") for obj_class in meta_json["classes"]]
-
-    for class_name in classes:
-        heatmap = get_heatmap(api, class_name)
-        heatmaps[class_name] = heatmap
-
-    return heatmaps
-
-
-### For visual debug:
-#
-# import matplotlib
-# import matplotlib.pyplot as plt
-
-# if __name__ == "__main__":
-#     heatmaps = create_heatmaps(api)
-#     cmap = matplotlib.colormaps.get_cmap("viridis")
-#     for heatmap in heatmaps:
-#         plt.imshow(heatmaps[heatmap][:, :, 0], cmap=cmap)
-#         plt.colorbar(cmap=cmap)
-#         plt.show()
+    def _calculate_output_img_size(self):
+        sizes = np.array(self._ds_image_sizes)
+        self._heatmap_img_size = (
+            np.max(sizes[:, 0]),
+            np.max(sizes[:, 1]),
+        )
+        sly.logger.info(f"Max size of {self._heatmap_img_size} for heatmaps calculated")
