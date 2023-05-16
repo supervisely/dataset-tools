@@ -23,11 +23,11 @@ class ClassCooccurence:
         self._meta = project_meta
         self._stats = {}
 
-        self.class_names = [cls.name for cls in project_meta.obj_classes]
+        self._class_names = [cls.name for cls in project_meta.obj_classes]
 
-        self._stats["counters"] = defaultdict(lambda: defaultdict(list))
+        self._references = defaultdict(lambda: defaultdict(list))
 
-        num_classes = len(self.class_names)
+        num_classes = len(self._class_names)
         self.co_occurrence_matrix = np.zeros((num_classes, num_classes), dtype=int)
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation):
@@ -37,26 +37,26 @@ class ClassCooccurence:
 
         classes = list(classes)
         for class_ in classes:
-            idx = self.class_names.index(class_)
+            idx = self._class_names.index(class_)
             self.co_occurrence_matrix[idx][idx] += 1
-            self._stats["counters"][idx][idx].append(image.id)
+            self._references[idx][idx].append(image.id)
 
         for i in range(len(classes)):
             for j in range(i + 1, len(classes)):
                 class_i = classes[i]
                 class_j = classes[j]
-                idx_i = list(self.class_names).index(class_i)
-                idx_j = list(self.class_names).index(class_j)
+                idx_i = list(self._class_names).index(class_i)
+                idx_j = list(self._class_names).index(class_j)
                 self.co_occurrence_matrix[idx_i][idx_j] += 1
                 self.co_occurrence_matrix[idx_j][idx_i] += 1
 
-                self._stats["counters"][idx_i][idx_j].append(image.id)
-                self._stats["counters"][idx_j][idx_i].append(image.id)
+                self._references[idx_i][idx_j].append(image.id)
+                self._references[idx_j][idx_i].append(image.id)
 
     def to_json(self):
         options = {"fixColumns": 1}
 
-        colomns_options = [None] * (len(self.class_names) + 1)
+        colomns_options = [None] * (len(self._class_names) + 1)
         colomns_options[0] = {"type": "class"}
 
         for idx in range(1, len(colomns_options)):
@@ -64,13 +64,13 @@ class ClassCooccurence:
 
         data = [
             [value] + sublist
-            for value, sublist in zip(self.class_names, self.co_occurrence_matrix.tolist())
+            for value, sublist in zip(self._class_names, self.co_occurrence_matrix.tolist())
         ]
 
         res = {
-            "columns": ["class"] + self.class_names,
+            "columns": ["class"] + self._class_names,
             "data": data,
-            "referencesRow": self._stats["counters"],
+            "referencesRow": self._references,
             "options": options,
             "colomnsOptions": colomns_options,
         }
