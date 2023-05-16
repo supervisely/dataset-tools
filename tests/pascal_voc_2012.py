@@ -19,7 +19,7 @@ project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 
 cls_perimage = dtools.ClassesPerImage(project_meta)
 cls_balance = dtools.ClassBalance(project_meta)
-cls_cooc = dtools.ClassCooccurence(project_meta)
+cls_cooc = dtools.ClassCooccurrence(project_meta)
 
 obj_distrib = dtools.ObjectsDistribution(project_meta)
 obj_sizes = dtools.ObjectSizes(project_meta)

@@ -10,13 +10,13 @@ import numpy as np
 import pandas as pd
 import supervisely as sly
 
+from supervisely.app.widgets import ConfusionMatrix
 
-class ClassCooccurence:
+
+class ClassCooccurrence:
     """
-    Important fields of modified stats dict:
-        "class_names": [],
-        "counters": [],
-        "pd_data": [],
+    Classes co-occurrence matrix.
+    Column names depends on the number of classes
     """
 
     def __init__(self, project_meta: sly.ProjectMeta) -> None:
@@ -24,7 +24,6 @@ class ClassCooccurence:
         self._stats = {}
 
         self._class_names = [cls.name for cls in project_meta.obj_classes]
-
         self._references = defaultdict(lambda: defaultdict(list))
 
         num_classes = len(self._class_names)
@@ -55,7 +54,6 @@ class ClassCooccurence:
 
     def to_json(self):
         options = {"fixColumns": 1}
-
         colomns_options = [None] * (len(self._class_names) + 1)
         colomns_options[0] = {"type": "class"}
 
@@ -78,9 +76,15 @@ class ClassCooccurence:
 
     def to_pandas(self) -> pd.DataFrame:
         json = self.to_json()
-        table = pd.DataFrame(data=json["data"], columns=json["columns"])
-        return table
+        df = pd.DataFrame(data=json["data"], columns=json["columns"])
+        return df
 
-    def to_image(self, path):
-        table = self.to_pandas()
-        table.dfi.export(path)
+    def to_image(self, path) -> None:
+        df = self.to_pandas()
+        df.dfi.export(path)
+
+    def get_widget(self) -> ConfusionMatrix:
+        df = pd.DataFrame(data=self.co_occurrence_matrix.tolist(), columns=self._class_names)
+        confusion_matrix = ConfusionMatrix()
+        confusion_matrix.read_pandas(df)
+        return confusion_matrix
