@@ -1,10 +1,11 @@
 from collections import defaultdict
+from dataset_tools.image.stats.basestats import BaseStats
 
 import pandas as pd
 import supervisely as sly
 
 
-class ObjectsDistribution:
+class ObjectsDistribution(BaseStats):
     def __init__(self, project_meta: sly.ProjectMeta):
         self.project_meta = project_meta
         self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})

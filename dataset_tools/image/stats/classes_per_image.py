@@ -3,16 +3,25 @@ import pandas as pd
 
 import supervisely as sly
 
+from dataset_tools.image.stats.basestats import BaseStats
+
 UNLABELED_COLOR = [0, 0, 0]
 
 
-class ClassesPerImage:
+class ClassesPerImage(BaseStats):
     """
-    Important fields of modified stats dict:
-        "columns": [],
-        "columnsOptions": [],
-        "data": [],
-        "options": dict
+    Columns:
+        Image
+        dataset
+        height
+        width
+        channels
+        unlabeled
+        class1 objects count
+        class1 covered area (%)
+        class2 objects count
+        class2 covered area (%)
+        etc.
     """
 
     def __init__(self, project_meta: sly.ProjectMeta) -> None:
@@ -67,7 +76,7 @@ class ClassesPerImage:
 
         self._stats["data"].append(table_row)
 
-    def to_json(self):
+    def to_json(self) -> dict:
         columns = ["Image", "dataset", "height", "width", "channels", "unlabeled"]
         columns_options = [None] * len(columns)
 
@@ -80,16 +89,7 @@ class ClassesPerImage:
         res = {
             "columns": columns,
             "columnsOptions": columns_options,
-            "data": self._stats,
+            "data": self._stats["data"],
             "options": options,
         }
         return res
-
-    def to_pandas(self) -> pd.DataFrame:
-        json = self.to_json()
-        table = pd.DataFrame(data=json["data"]["data"], columns=json["columns"])
-        return table
-
-    # def to_image(self, path):
-    #     table = self.to_pandas()
-    #     table.dfi.export(path)

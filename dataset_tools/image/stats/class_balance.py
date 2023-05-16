@@ -11,10 +11,12 @@ import pandas as pd
 
 import supervisely as sly
 
+from dataset_tools.image.stats.basestats import BaseStats
+
 UNLABELED_COLOR = [0, 0, 0]
 
 
-class ClassBalance:
+class ClassBalance(BaseStats):
     """
     Columns:
         class,
@@ -80,7 +82,7 @@ class ClassBalance:
                     self._stats["sum_class_area_per_image"][idx] / self._stats["images_count"][idx]
                 )
                 self._stats["avg_nonzero_count"][idx] = (
-                    self._stats["objects_count"][idx] or 0 / self._stats["images_count"][idx]
+                    self._stats["objects_count"][idx] / self._stats["images_count"][idx]
                 )
 
             if class_name == "unlabeled":
@@ -104,19 +106,20 @@ class ClassBalance:
                     name,
                     self._stats["images_count"][idx],
                     self._stats["objects_count"][idx],
-                    round(self._stats["avg_nonzero_count"][idx], 2),
-                    round(self._stats["avg_nonzero_area"][idx], 2),
+                    round(self._stats["avg_nonzero_count"][idx] or 0, 2),
+                    round(self._stats["avg_nonzero_area"][idx] or 0, 2),
                 ]
             )
-
+        notnonecount = [item for item in self._stats["avg_nonzero_count"] if item is not None]
+        notnonearea = [item for item in self._stats["avg_nonzero_area"] if item is not None]
         colomns_options = [None] * len(columns)
         colomns_options[0] = {"type": "class"}
         colomns_options[1] = {"maxValue": max(self._stats["images_count"])}
         colomns_options[2] = {"maxValue": max(self._stats["objects_count"])}
-        colomns_options[3] = {"maxValue": round(max(self._stats["avg_nonzero_count"]), 2)}
+        colomns_options[3] = {"maxValue": round(max(notnonecount), 2)}
         colomns_options[4] = {
             "postfix": "%",
-            "maxValue": round(max(self._stats["avg_nonzero_area"]), 2),
+            "maxValue": round(max(notnonearea), 2),
         }
         options = {"fixColumns": 1, "sort": {"columnIndex": 1, "order": "desc"}}  # asc
 
@@ -128,60 +131,3 @@ class ClassBalance:
             "colomnsOptions": colomns_options,
         }
         return res
-
-    def to_pandas(self) -> pd.DataFrame:
-        json = self.to_json()
-        table = pd.DataFrame(data=json["data"], columns=json["columns"])
-        return table
-
-    def to_image(self, path):
-        table = self.to_pandas()
-        table.dfi.export(path)
-
-
-# Max backup
-# # Classes (grouped bar chart)
-# classes_stats = {}
-
-
-# def update_classes_stats(stats: dict, image: sly.ImageInfo, ann: sly.Annotation):
-#     for key in ["objects", "images", "_temp"]:
-#         if key not in stats:
-#             stats[key] = {}
-
-#     objects, images, temp = stats["objects"], stats["images"], stats["_temp"]
-#     if "total_images" not in temp:
-#         temp["total_images"] += 1  # total = with and without specific object on image
-
-#     # avg count per image
-#     # 5 + 7 + 8 + 12 = 32 / 4 = 8
-
-#     class_flag = {}  # increment only once
-#     for label in ann.labels:
-#         name = label.obj_class.name
-#         if name not in class_flag:
-#             class_flag[name] = True
-#             images[name] += 1
-#         if name not in objects:
-#             objects[name]["total"] = 0
-#         objects[name]["total"] += 1
-#         objects[name]["avg_num_per_image"] = objects[name]["total"] / temp["images_count"]
-
-
-# def get_basic_classes_stats(project_id):
-#     stats = {}
-#     project_info = api.project.get_info_by_id(project_id)
-#     project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
-#     pbar = tqdm(total=project_info.items_count)
-#     for dataset in api.dataset.get_list(project_id):
-#         for batch in api.image.get_list_generator(dataset.id, batch_size=100):
-#             image_ids = [image.id for image in batch]
-#             anns = api.annotation.download_json_batch(dataset.id, image_ids)
-#             # anns = [sly.Annotation.from_json(j, project_meta) for j in jann]
-#             for image, jann in zip(batch, anns):
-#                 ann = sly.Annotation.from_json(jann, project_meta)
-#                 update_classes_stats()
-#     pbar.close()
-
-
-# res = get_basic_classes_stats(project_id)
