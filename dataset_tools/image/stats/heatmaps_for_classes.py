@@ -56,7 +56,7 @@ class ClassesHeatmaps:
             )
             cv2.imwrite(image_path, image)
 
-            sly.logger.info(f"Heatmap image for class [{heatmap}] created at [{image_path}]")
+            sly.logger.info(f"Heatmap image for class [{heatmap}] created")
             self.heatmap_image_paths.append(image_path)
 
     def to_image(self, path, grid_spacing=20, outer_grid_spacing=20):
@@ -80,8 +80,9 @@ class ClassesHeatmaps:
             result_image.paste(img, (x, y))
             sly.api.file_api.silent_remove(img_path)
 
-        result_image.save(f"{path}/classes_heatmaps.png")
-        sly.logger.info("Heatmap images for all classes created")
+        save_path = f"{path}/classes_heatmaps.png"
+        result_image.save(save_path)
+        sly.logger.info(f"Heatmap image for all classes created at {save_path}")
 
     def _calculate_output_img_size(self):
         sizes = np.array(self._ds_image_sizes)
