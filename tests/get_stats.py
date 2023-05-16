@@ -8,16 +8,6 @@ from tqdm import tqdm
 import dataset_tools as dtools
 import supervisely as sly
 
-if sly.is_development():
-    load_dotenv(os.path.expanduser("~/ninja.env"))
-    load_dotenv("local.env")
-
-api = sly.Api.from_env()
-
-PROJECT_ID = sly.env.project_id()
-TEAM_ID = sly.env.team_id()
-PROJECT_PATH = os.environ["LOCAL_DATA_DIR"]
-
 
 import shutil
 
@@ -26,40 +16,44 @@ import shutil
 
 # sly.download(api, PROJECT_ID, PROJECT_PATH, save_image_info=True, save_images=False)
 
+if sly.is_development():
+    load_dotenv(os.path.expanduser("~/ninja.env"))
+    load_dotenv("local.env")
 
-# project_meta, datasets = dtools.initialize(
-#     project_id=PROJECT_ID,
-#     # project_path=PROJECT_PATH,
-# )
+api = sly.Api.from_env()
+project_id = sly.env.project_id()
+project_path = os.environ["LOCAL_DATA_DIR"]
+project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 
-
+cls_perimage = dtools.ClassesPerImage(project_meta)
 cls_balance = dtools.ClassBalance(project_meta)
-cls_coocc = dtools.ClassCooccurence(project_meta)
-# stat_y = dtools.StatY(project_meta)
+cls_cooc = dtools.ClassCooccurrence(project_meta)
 
-dtools.get_stats(
-    [
-        # cls_ba/lance,
-        cls_coocc,
-    ],
-    project_meta,
-    datasets,
+obj_distrib = dtools.ObjectsDistribution(project_meta)
+obj_sizes = dtools.ObjectSizes(project_meta)
+cls_sizes = dtools.ClassSizes(project_meta)
+
+
+dtools.count_stats(
+    project_path,
+    stats=[cls_cooc],
     sample_rate=1,
 )
 
-# cls_coocc.to_json()
+# with open("./demo/class_perimage.json", "w") as f:
+#     json.dump(cls_perimage.to_json(), f)
+# # cls_perimage.to_image("./demo/class_perimage.png")
+# with open("./demo/class_balance.json", "w") as f:
+#     json.dump(cls_balance.to_json(), f)
+# cls_balance.to_image("./demo/class_balance.png")
+with open("./demo/class_cooc.json", "w") as f:
+    json.dump(cls_cooc.to_json(), f)
+cls_cooc.to_image("./demo/class_cooc.png")
+confusion_matrix = cls_cooc.get_widget()
 
-for stat in [
-    # cls_balance,
-    cls_coocc,
-]:
-    demo_dirpath = "demo/"
-    stat_name = type(stat).__name__
-    os.makedirs(demo_dirpath, exist_ok=True)
-    json_file_path = os.path.join(demo_dirpath, f"{stat_name}.json")
-    image_file_path = os.path.join(demo_dirpath, f"{stat_name}.png")
-
-    with open(json_file_path, "w") as f:
-        json.dump(stat.to_json(), f)
-
-    stat.to_image(image_file_path)
+with open("./demo/obj_distrib.json", "w") as f:
+    json.dump(obj_distrib.to_json(), f)
+with open("./demo/object_sizes.json", "w") as f:
+    json.dump(obj_sizes.to_json(), f)
+with open("./demo/class_size.json", "w") as f:
+    json.dump(cls_sizes.to_json(), f)

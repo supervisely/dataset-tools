@@ -15,14 +15,12 @@ UNLABELED_COLOR = [0, 0, 0]
 
 class ClassBalance:
     """
-    Important fields of modified stats dict:
-        "class_names": [],
-        "images_count": [],
-        "image_counts_filter_by_id": [],
-        "objects_count": [],
-        "object_counts_filter_by_id": [],
-        "avg_nonzero_area": [],
-        "avg_nonzero_count": [],
+    Columns:
+        class,
+        images,
+        objects,
+        avg count per image,
+        avg area per image,
     """
 
     def __init__(self, project_meta: sly.ProjectMeta) -> None:
