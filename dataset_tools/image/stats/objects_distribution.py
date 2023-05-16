@@ -7,23 +7,32 @@ import supervisely as sly
 class ObjectsDistribution:
     def __init__(self, project_meta: sly.ProjectMeta):
         self.project_meta = project_meta
-        self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
         self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
+        self._data = []
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation):
-        for label in ann.labels:
-            class_title = label.obj_class.name
-            self._counters[class_title]["count"] += 1
-            self._counters[class_title]["image_ids"].append(image.id)
-
-        for class_title in self._class_titles:
-            count = self._counters[class_title]["count"]
-            image_ids = self._counters[class_title]["image_ids"]
-            self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
-            self._stats[class_title][count]["count"] += 1
+        self._data.append((image, ann))
 
     def to_json(self):
+        self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
+        counters = defaultdict(lambda: {"count": 0, "image_ids": []})
+
+        for image, ann in self._data:
+            image_id = image.id
+            counters = defaultdict(lambda: {"count": 0, "image_ids": []})
+
+            for label in ann.labels:
+                class_title = label.obj_class.name
+                counters[class_title]["count"] += 1
+                counters[class_title]["image_ids"].append(image_id)
+
+            for class_title in self._class_titles:
+                count = counters[class_title]["count"]
+                image_ids = counters[class_title]["image_ids"]
+                self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
+                self._stats[class_title][count]["count"] += 1
+
         columns = set()
         for class_title, class_data in self._stats.items():
             columns.update(class_data.keys())
