@@ -10,10 +10,11 @@ import numpy as np
 import pandas as pd
 import supervisely as sly
 
+from dataset_tools.image.stats.basestats import BaseStats
 from supervisely.app.widgets import ConfusionMatrix
 
 
-class ClassCooccurrence:
+class ClassCooccurrence(BaseStats):
     """
     Classes co-occurrence matrix.
     Column names depends on the number of classes
@@ -73,15 +74,6 @@ class ClassCooccurrence:
             "colomnsOptions": colomns_options,
         }
         return res
-
-    def to_pandas(self) -> pd.DataFrame:
-        json = self.to_json()
-        df = pd.DataFrame(data=json["data"], columns=json["columns"])
-        return df
-
-    def to_image(self, path) -> None:
-        df = self.to_pandas()
-        df.dfi.export(path)
 
     def get_widget(self) -> ConfusionMatrix:
         df = pd.DataFrame(data=self.co_occurrence_matrix.tolist(), columns=self._class_names)

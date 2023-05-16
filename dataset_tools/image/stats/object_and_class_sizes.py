@@ -1,10 +1,11 @@
 from collections import defaultdict
+from dataset_tools.image.stats.basestats import BaseStats
 
 import pandas as pd
 import supervisely as sly
 
 
-class ObjectSizes:
+class ObjectSizes(BaseStats):
     def __init__(self, project_meta: sly.ProjectMeta):
         self.project_meta = project_meta
         self._stats = []
@@ -60,13 +61,8 @@ class ObjectSizes:
 
         return res
 
-    def to_pandas(self):
-        json = self.to_json()
-        table = pd.DataFrame(json["data"], columns=json["columns"])
-        return table
 
-
-class ClassSizes:
+class ClassSizes(BaseStats):
     def __init__(self, project_meta):
         self.project_meta = project_meta
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
@@ -206,11 +202,6 @@ class ClassSizes:
         }
 
         return res
-
-    def to_pandas(self):
-        json = self.to_json()
-        table = pd.DataFrame(json["data"], columns=json["columns"])
-        return table
 
 
 def calculate_obj_sizes(label, image_height, image_width):
