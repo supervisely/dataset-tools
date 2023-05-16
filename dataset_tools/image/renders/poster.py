@@ -15,7 +15,7 @@ from supervisely.imaging import font as sly_font
 
 
 if sly.is_development():
-    # load_dotenv(os.path.expanduser("~/supervisely.env"))
+    load_dotenv(os.path.expanduser("~/ninja.env"))
     load_dotenv("local.env")
 
 storage_dir = sly.app.get_data_dir()
