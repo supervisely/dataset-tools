@@ -31,6 +31,7 @@ def main():
         dtools.ObjectsDistribution(project_meta),
         dtools.ObjectSizes(project_meta),
         dtools.ClassSizes(project_meta),
+        dtools.ClassesHeatmaps(project_meta),
     ]
     # pass project_id or project_path as a first argument
     dtools.count_stats(
@@ -40,9 +41,12 @@ def main():
     )
     print("Saving stats...")
     for stat in stats:
-        with open(f"./stats/{stat.json_name}.json", "w") as f:
-            json.dump(stat.to_json(), f)
-        stat.to_image(f"./stats/{stat.json_name}.png")
+        if not isinstance(stat, dtools.ClassesHeatmaps):
+            with open(f"./stats/{stat.json_name}.json", "w") as f:
+                json.dump(stat.to_json(), f)
+            stat.to_image(f"./stats/{stat.json_name}.png")
+        else:
+            stat.to_image("./stats/", ["inside_white", "outside_black"])
 
 
 if __name__ == "__main__":
