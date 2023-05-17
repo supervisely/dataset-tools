@@ -61,9 +61,6 @@ class ClassesHeatmaps:
         """
         self._calculate_output_img_size()
 
-        path = os.path.join(path,'heatmaps' )
-        os.makedirs(path, exist_ok=True)
-
         for draw_style in draw_styles:
             if draw_style == "inside_white":
                 self._create_single_images_text_outside(path)
@@ -95,7 +92,7 @@ class ClassesHeatmaps:
                 self.heatmap_image_paths = []
 
             save_path = os.path.join(path, file_name)
-            result_image.save(save_path)
+            result_image.save(save_path)    
             sly.logger.info(
                 f"Heatmap image in style [{draw_style}] for all classes created at {save_path}"
             )

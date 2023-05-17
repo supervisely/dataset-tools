@@ -46,7 +46,7 @@ def main():
                 json.dump(stat.to_json(), f)
             stat.to_image(f"./stats/{stat.json_name}.png")
         else:
-            stat.to_image("./stats", ["inside_white", "outside_black"])
+            stat.to_image("./stats/", ["inside_white", "outside_black"])
 
 
 if __name__ == "__main__":
