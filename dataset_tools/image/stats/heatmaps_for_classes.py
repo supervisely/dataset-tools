@@ -48,7 +48,7 @@ class ClassesHeatmaps:
         outer_grid_spacing: int = 20,
     ):
         """
-        Crates reault image with heatmaps of all possible classes.
+        Crates result image with heatmaps of all possible classes.
 
         :param path: dir where to save output images.
         :type path: str.
@@ -60,6 +60,9 @@ class ClassesHeatmaps:
         :type outer_grid_spacing: int, optional
         """
         self._calculate_output_img_size()
+
+        path = os.path.join(path,'heatmaps' )
+        os.makedirs(path, exist_ok=True)
 
         for draw_style in draw_styles:
             if draw_style == "inside_white":
