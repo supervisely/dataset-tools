@@ -4,7 +4,7 @@ from typing import List, Union
 
 import cv2
 import numpy as np
-from dotenv import load_dotenv
+from PIL import Image, ImageDraw
 from tqdm import tqdm
 
 import supervisely as sly
@@ -61,6 +61,8 @@ class Poster:
 
         self._poster = np.ones((*self._size, 4), dtype=np.uint8) * 255  # result poster
 
+        self._logo_text = "logo.png"
+
     def update(self, data: tuple):
         np_images = []
         join_data = [(ds, img, ann) for ds, list1, list2 in data for img, ann in zip(list1, list2)]
@@ -98,6 +100,7 @@ class Poster:
         self._resize_images(np_images)
         self._create_frame(np_images)
         self._draw_text_and_bboxes()
+        self._put_watermark(self._logo_text)
 
     def to_image(self, path: str = None):
         if path is None:
@@ -220,3 +223,33 @@ class Poster:
             x_end, y_end = x + img.shape[1], y + img.shape[0]
             self._poster[y:y_end, x:x_end] = img
             x = x_end + self._GAP
+
+    def _put_watermark(self, path):
+        img = sly.image.read(path)
+        poster_h, poster_w = self._size
+
+        # resize logo to poster size
+        mark_w = int(self._size_line_2[0] * 0.9)
+        mark_h = mark_w * img.shape[0] // img.shape[1]
+        img = cv2.resize(img, (mark_w, mark_h), interpolation=cv2.INTER_NEAREST)
+        # img = sly.image.resize_inter_nearest(img, (mark_h, mark_w))
+        img_h, img_w = img.shape[:2]
+
+        # calculate coords
+        offset_x = (self._size_line_2[1] - img_w) // 2
+        x = 3 * self._size_line_2[1] + 4 * self._GAP + offset_x
+        y = int(poster_h - 1.2 * self._GAP - img_h)
+
+        # add logo
+        logo = np.zeros((poster_h, poster_w, 4), dtype=np.uint8)
+        logo[y : y + img_h, x : x + img.shape[1], :3] = img[:, :, :3]
+        logo[y : y + img_h, x : x + img.shape[1], 3] = 255
+
+        self._poster = cv2.addWeighted(self._poster, 0.9, logo, 0.5, 0)
+
+        # or
+        # background = Image.fromarray(self._poster, mode="RGBA")
+        # overlay = Image.fromarray(logo, mode="RGBA")
+        # overlay = overlay.resize(background.size)
+        # new_image = Image.blend(background, overlay, alpha=0.15)
+        # self._poster = np.array(new_image, dtype=np.uint8)
