@@ -74,7 +74,7 @@ class ClassCooccurrence(BaseStats):
         ]
 
         res = {
-            "columns": ["Class"] + [string.capitalize() for string in self._class_names],
+            "columns": ["Class"] + self._class_names,
             "data": data,
             "referencesCell": self._references,  # row - col
             "options": options,
