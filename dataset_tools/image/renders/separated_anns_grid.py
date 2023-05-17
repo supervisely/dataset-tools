@@ -1,15 +1,22 @@
 import os
 import random
+from typing import Union
 
 import numpy as np
-from dotenv import load_dotenv
 from tqdm import tqdm
 
 import supervisely as sly
 
 
 class SideAnnotationsGrid:
-    def __init__(self, project_meta: sly.ProjectMeta, api: sly.Api = None, rows: int = 3, cols: int = 3):
+    def __init__(
+        self,
+        project: Union[str, int],
+        project_meta: sly.ProjectMeta,
+        api: sly.Api = None,
+        rows: int = 3,
+        cols: int = 3,
+    ):
         self.project_meta = project_meta
 
         self._max_size = 1920
@@ -27,23 +34,23 @@ class SideAnnotationsGrid:
         self.original_masks = []
         self._grid = None
 
+        self._local = False if isinstance(project, int) else True
         self._api = api if api is not None else sly.Api.from_env()
 
     def update(self, data: tuple):
         cnt = self._cols * self._rows
-        temp_imgs = []
-        temp_anns = []
-        for dataset_id, image_infos, anns in data:
-            temp_imgs.extend(image_infos)
-            temp_anns.extend(anns)
-        temp_data = list(zip(temp_imgs, temp_anns))
+        join_data = [(ds, img, ann) for ds, list1, list2 in data for img, ann in zip(list1, list2)]
 
-        random.shuffle(temp_data)
+        random.shuffle(join_data)
         with tqdm(desc="Downloading images", total=cnt) as p:
-            for img_info, ann in temp_data[:cnt]:
+            for ds, img_info, ann in join_data[:cnt]:
                 self._all_image_infos.append(img_info)
                 self._all_anns.append(ann)
-                self.np_images.append(self._api.image.download_np(img_info.id))
+                self.np_images.append(
+                    sly.image.read(ds.get_img_path(img_info.name))
+                    if self._local
+                    else self._api.image.download_np(img_info.id)
+                )
                 p.update(1)
 
                 self.original_masks.append(self._draw_masks_on_single_image(ann, img_info))
@@ -135,40 +142,3 @@ class SideAnnotationsGrid:
             grid[y : y + img_h, x : x + img_w, ...] = images[idx][:, :, ...]
 
         return grid
-
-
-###########################################################################
-############################# for local debug #############################
-###########################################################################
-
-# if sly.is_development():
-#     load_dotenv(os.path.expanduser("~/ninja.env"))
-#     load_dotenv("local.env")
-
-# project_id = sly.env.project_id(raise_not_found=False)
-
-# api = sly.Api.from_env()
-
-# project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
-# grid = SideAnnotationsGrid(project_meta=project_meta, rows=5, cols=2)
-
-# limit = 30
-# samples = []
-# for dataset in api.dataset.get_list(project_id):
-#     ds_images = api.image.get_list(
-#         dataset.id,
-#         filters=[{"field": "labelsCount", "operator": ">", "value": "0"}],
-#     )
-#     if len(ds_images) == 0:
-#         continue
-#     sample_image_infos = random.sample(ds_images, limit)
-#     ds_anns_infos = api.annotation.download_json_batch(
-#         dataset.id, [s.id for s in sample_image_infos]
-#     )
-#     ds_anns = [sly.Annotation.from_json(a, project_meta) for a in ds_anns_infos]
-#     samples.append((dataset.id, sample_image_infos, ds_anns))
-
-# # for dataset_id, ds_images, ds_anns in samples:
-# grid.update(samples)
-
-# grid.to_image("/tmp/grid.png")
