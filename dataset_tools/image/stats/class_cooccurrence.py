@@ -6,7 +6,8 @@ import pandas as pd
 import supervisely as sly
 
 from dataset_tools.image.stats.basestats import BaseStats
-from supervisely.app.widgets import ConfusionMatrix
+
+# from supervisely.app.widgets import ConfusionMatrix
 
 
 class ClassCooccurrence(BaseStats):
@@ -52,7 +53,10 @@ class ClassCooccurrence(BaseStats):
                 self._references[idx_j][idx_i].append(image.id)
 
     def to_json(self):
-        options = {"fixColumns": 1}
+        options = {
+            "fixColumns": 1,
+            "cellTooltip": "{currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
+        }
         colomns_options = [None] * (len(self._class_names) + 1)
         colomns_options[0] = {"type": "class"}
 
@@ -67,14 +71,14 @@ class ClassCooccurrence(BaseStats):
         res = {
             "columns": ["Class"] + [string.capitalize() for string in self._class_names],
             "data": data,
-            "referencesRow": self._references,
+            "referencesCell": self._references,
             "options": options,
             "colomnsOptions": colomns_options,
         }
         return res
 
-    def get_widget(self) -> ConfusionMatrix:
-        df = pd.DataFrame(data=self.co_occurrence_matrix.tolist(), columns=self._class_names)
-        confusion_matrix = ConfusionMatrix()
-        confusion_matrix.read_pandas(df)
-        return confusion_matrix
+    # def get_widget(self) -> ConfusionMatrix:
+    #     df = pd.DataFrame(data=self.co_occurrence_matrix.tolist(), columns=self._class_names)
+    #     confusion_matrix = ConfusionMatrix()
+    #     confusion_matrix.read_pandas(df)
+    #     return confusion_matrix
