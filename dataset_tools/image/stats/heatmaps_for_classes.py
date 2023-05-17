@@ -6,9 +6,9 @@ import cv2
 import math
 import supervisely as sly
 from skimage.transform import resize
+from dataset_tools.image.stats.basestats import BaseVisual
 
-
-class ClassesHeatmaps:
+class ClassesHeatmaps(BaseVisual):
     """
     Get heatmap of visual density of aggregated annotations for every class
     """
@@ -43,17 +43,17 @@ class ClassesHeatmaps:
     def to_image(
         self,
         path: str,
-        draw_styles: list = ["inside_white"],
+        draw_style: str = "inside_white",
         grid_spacing: int = 20,
         outer_grid_spacing: int = 20,
-    ):
+    ) -> None:
         """
         Crates result image with heatmaps of all possible classes.
 
         :param path: dir where to save output images.
         :type path: str.
-        :param draw_styles: style in which output heatmaps will be represented. Defaults to ["inside_white"]. Possible values ["inside_white", "outside_black"]
-        :type draw_styles: list, optional
+        :param draw_style: style in which output heatmaps grid will be represented. Possible values: "inside_white", "outside_black"
+        :type draw_style: str, optional
         :param grid_spacing: spaces between images. Defaults to 20.
         :type grid_spacing: int, optional
         :param outer_grid_spacing: frame around the overall image. Defaults to 20.
@@ -61,46 +61,39 @@ class ClassesHeatmaps:
         """
         self._calculate_output_img_size()
 
-        for draw_style in draw_styles:
-            if draw_style == "inside_white":
-                self._create_single_images_text_outside(path)
-                file_name = "classes_heatmaps_names_outside.png"
-            if draw_style == "outside_black":
-                self._create_single_images_text_inside(path)
-                file_name = "classes_heatmaps_names_inside.png"
+        if draw_style == "inside_white":
+            self._create_single_images_text_outside(path)
+        if draw_style == "outside_black":
+            self._create_single_images_text_inside(path)
 
-            img_height, img_width = cv2.imread(self.heatmap_image_paths[0]).shape[:2]
-            num_images = len(self.heatmap_image_paths)
-            rows = math.ceil(math.sqrt(num_images))
-            cols = math.ceil(num_images / rows)
+        img_height, img_width = cv2.imread(self.heatmap_image_paths[0]).shape[:2]
+        num_images = len(self.heatmap_image_paths)
+        rows = math.ceil(math.sqrt(num_images))
+        cols = math.ceil(num_images / rows)
 
-            result_width = cols * (img_width + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
-            result_height = (
-                rows * (img_height + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
-            )
+        result_width = cols * (img_width + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
+        result_height = (
+            rows * (img_height + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
+        )
 
-            result_image = Image.new("RGB", (result_width, result_height), "white")
+        result_image = Image.new("RGB", (result_width, result_height), "white")
 
-            for i, img_path in enumerate(self.heatmap_image_paths):
-                img = Image.open(img_path)
-                row = i // cols
-                col = i % cols
-                x = outer_grid_spacing + col * (img_width + grid_spacing)
-                y = outer_grid_spacing + row * (img_height + grid_spacing)
-                result_image.paste(img, (x, y))
-                sly.api.file_api.silent_remove(img_path)
-                self.heatmap_image_paths = []
+        for i, img_path in enumerate(self.heatmap_image_paths):
+            img = Image.open(img_path)
+            row = i // cols
+            col = i % cols
+            x = outer_grid_spacing + col * (img_width + grid_spacing)
+            y = outer_grid_spacing + row * (img_height + grid_spacing)
+            result_image.paste(img, (x, y))
+            sly.api.file_api.silent_remove(img_path)
+            self.heatmap_image_paths = []
 
-            save_path = os.path.join(path, file_name)
-            result_image.save(save_path)    
-            sly.logger.info(
-                f"Heatmap image in style [{draw_style}] for all classes created at {save_path}"
-            )
+        result_image.save(path)
 
     def _create_single_images_text_outside(self, path):
         for heatmap in self.classname_heatmap:
             resized_image = resize(self.classname_heatmap[heatmap], self._heatmap_img_size)
-            image_path = os.path.join(path, f"{heatmap}.png")
+            image_path = os.path.join(os.path.dirname(path) , f"{heatmap}.png")
             plt.imsave(image_path, resized_image[:, :, 0])
 
             image = cv2.imread(image_path)
@@ -179,7 +172,7 @@ class ClassesHeatmaps:
             x_pos_center = int(resized_image.shape[1] * 0.5)
             y_pos_percent = int(resized_image.shape[0] * 0.95)
 
-            image_path = os.path.join(path, f"{heatmap}.png")
+            image_path = os.path.join(os.path.dirname(path), f"{heatmap}.png")
             plt.imsave(image_path, resized_image[:, :, 0])
 
             image = cv2.imread(image_path)
@@ -226,4 +219,3 @@ class ClassesHeatmaps:
             median_width = np.median(widths)
             median_height = np.median(heights)
             self._heatmap_img_size = (median_height, median_width)
-        sly.logger.info(f"Max size of {self._heatmap_img_size} for heatmaps calculated")
