@@ -63,6 +63,10 @@ class Poster:
 
         self._logo_text = "logo.png"
 
+    @property
+    def render_name(self) -> None:
+        return sly.utils.camel_to_snake(self.__class__.__name__)
+
     def update(self, data: tuple):
         np_images = []
         join_data = [(ds, img, ann) for ds, list1, list2 in data for img, ann in zip(list1, list2)]

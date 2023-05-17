@@ -37,6 +37,10 @@ class SideAnnotationsGrid:
         self._local = False if isinstance(project, int) else True
         self._api = api if api is not None else sly.Api.from_env()
 
+    @property
+    def render_name(self) -> None:
+        return sly.utils.camel_to_snake(self.__class__.__name__)
+
     def update(self, data: tuple):
         cnt = self._cols * self._rows
         join_data = [(ds, img, ann) for ds, list1, list2 in data for img, ann in zip(list1, list2)]
@@ -51,9 +55,9 @@ class SideAnnotationsGrid:
                     if self._local
                     else self._api.image.download_np(img_info.id)
                 )
-                p.update(1)
-
                 self.original_masks.append(self._draw_masks_on_single_image(ann, img_info))
+
+                p.update(1)
 
         resized_images = self._resize_images(self.np_images)
         resized_masks = self._resize_images(self.original_masks)
@@ -71,9 +75,7 @@ class SideAnnotationsGrid:
         sly.image.write(path, self._grid)
         sly.logger.info(f"Result grid saved to: {path}")
 
-    def _calculate_shapes(
-        self,
-    ):
+    def _calculate_shapes(self):
         height = width = self._max_size
         if self._rows > self._cols * 2:
             piece_h = height // self._rows
@@ -119,7 +121,7 @@ class SideAnnotationsGrid:
     def _draw_masks_on_single_image(self, ann: sly.Annotation, image: sly.ImageInfo):
         height, width = image.height, image.width
         mask_img = np.zeros((height, width, 3), dtype=np.uint8)
-        mask_img[:, :, 0:3] = (165, 180, 180)  # rgb(165, 180, 180)
+        mask_img[:, :, 0:3] = (221, 210, 230)  # rgb(221, 210, 230)
 
         for label in ann.labels:
             random_rgb = sly.color.random_rgb()
