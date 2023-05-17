@@ -94,7 +94,7 @@ class ClassesHeatmaps:
             save_path = os.path.join(path, file_name)
             result_image.save(save_path)
             sly.logger.info(
-                f"Heatmap image in style {draw_style} for all classes created at {save_path}"
+                f"Heatmap image in style [{draw_style}] for all classes created at {save_path}"
             )
 
     def _create_single_images_text_outside(self, path):
