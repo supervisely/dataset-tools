@@ -6,6 +6,19 @@ import supervisely as sly
 
 
 class ObjectSizes(BaseStats):
+    """
+    Columns:
+        Class name
+        Image name
+        Image size
+        Height px
+        Height %
+        Width px
+        Width %
+        Area px
+        Area %
+    """
+
     def __init__(self, project_meta: sly.ProjectMeta):
         self.project_meta = project_meta
         self._stats = []
@@ -63,6 +76,30 @@ class ObjectSizes(BaseStats):
 
 
 class ClassSizes(BaseStats):
+    """
+    Columns:
+        Class name
+        Object count
+        Min height px
+        Min height %
+        Max height px
+        Max height %
+        Avg height px
+        Avg height %
+        Min width px
+        Min width %
+        Max width px
+        Max width %
+        Avg width px
+        Avg width %
+        Min area px
+        Min area %
+        Max area px
+        Max area %
+        Avg area px
+        Avg area %
+    """
+
     def __init__(self, project_meta):
         self.project_meta = project_meta
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]

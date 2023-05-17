@@ -6,6 +6,15 @@ import supervisely as sly
 
 
 class ObjectsDistribution(BaseStats):
+    """
+    Columns:
+        class name
+        1 object on image (if object exists)
+        2 objects on image (if objects exist)
+        3 objects on image (if objects exist)
+        etc.
+    """
+
     def __init__(self, project_meta: sly.ProjectMeta):
         self.project_meta = project_meta
         self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})
@@ -63,7 +72,7 @@ class ObjectsDistribution(BaseStats):
         options = {"fixColumns": 1}
 
         res = {
-            "columns": ["class names"] + columns,
+            "columns": ["class name"] + columns,
             "data": data,
             "referencesRow": references,
             "options": options,

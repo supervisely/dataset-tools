@@ -16,8 +16,11 @@ from supervisely.app.widgets import ConfusionMatrix
 
 class ClassCooccurrence(BaseStats):
     """
-    Classes co-occurrence matrix.
-    Column names depends on the number of classes
+    Columns:
+        class name
+        class 1
+        class 2
+        etc.
     """
 
     def __init__(self, project_meta: sly.ProjectMeta) -> None:
@@ -67,7 +70,7 @@ class ClassCooccurrence(BaseStats):
         ]
 
         res = {
-            "columns": ["class"] + self._class_names,
+            "columns": ["class name"] + self._class_names,
             "data": data,
             "referencesRow": self._references,
             "options": options,

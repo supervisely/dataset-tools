@@ -19,11 +19,11 @@ UNLABELED_COLOR = [0, 0, 0]
 class ClassBalance(BaseStats):
     """
     Columns:
-        class,
-        images,
-        objects,
-        avg count per image,
-        avg area per image,
+        class name
+        images
+        objects
+        avg count per image
+        avg area per image
     """
 
     def __init__(self, project_meta: sly.ProjectMeta) -> None:
@@ -98,7 +98,13 @@ class ClassBalance(BaseStats):
             # self._stats["object_counts_filter_by_id"][idx].extend(obj_ids)
 
     def to_json(self) -> dict:
-        columns = ["class", "images", "objects", "avg count per image", "avg area per image"]
+        columns = [
+            "class name",
+            "num images",
+            "num objects",
+            "avg count per image",
+            "avg area per image",
+        ]
         rows = []
         for name, idx in self._name_to_index.items():
             rows.append(

@@ -9,6 +9,10 @@ from skimage.transform import resize
 
 
 class ClassesHeatmaps:
+    """
+    Get heatmap of visual density of aggregated annotations for every class
+    """
+
     def __init__(self, project_meta: sly.ProjectMeta, heatmap_img_size: tuple = None):
         self._meta = project_meta
         self.classname_heatmap = {}
