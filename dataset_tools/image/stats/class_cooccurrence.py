@@ -54,11 +54,11 @@ class ClassCooccurrence(BaseStats):
 
     def to_json(self):
         options = {
-            "fixColumns": 1,
+            "fixColumns": 1,  # not used in Web
             "cellTooltip": "{currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
         }
         colomns_options = [None] * (len(self._class_names) + 1)
-        colomns_options[0] = {"type": "class"}
+        colomns_options[0] = {"type": "class"}  # not used in Web
 
         for idx in range(1, len(colomns_options)):
             colomns_options[idx] = {"maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))}
