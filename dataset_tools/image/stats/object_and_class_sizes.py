@@ -1,14 +1,15 @@
 from collections import defaultdict
-from dataset_tools.image.stats.basestats import BaseStats
 
-import pandas as pd
 import supervisely as sly
+
+from dataset_tools.image.stats.basestats import BaseStats
 
 
 class ObjectSizes(BaseStats):
     """
     Columns:
         Class name
+        Dataset ID
         Image name
         Image size
         Height px
@@ -32,6 +33,7 @@ class ObjectSizes(BaseStats):
 
             object_data = {
                 "class_name": label.obj_class.name,
+                "dataset_id": image.dataset_id,
                 "image_name": image.name,
                 "image_size_hw": f"{image_height}x{image_width}",
             }
@@ -48,6 +50,7 @@ class ObjectSizes(BaseStats):
         res = {
             "columns": [
                 "Class name",
+                "Dataset ID",
                 "Image name",
                 "Image size",
                 "Height",
@@ -58,6 +61,7 @@ class ObjectSizes(BaseStats):
                 "Area",
             ],
             "columnsOptions": [
+                {},
                 {},
                 {},
                 {},
@@ -105,34 +109,39 @@ class ClassSizes(BaseStats):
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 
         self._stats = []
-
-        self._class_heights_px = defaultdict(list)
-        self._class_heights_pc = defaultdict(list)
-        self._class_widths_px = defaultdict(list)
-        self._class_widths_pc = defaultdict(list)
-        self._class_areas_px = defaultdict(list)
-        self._class_areas_pc = defaultdict(list)
-        self._class_object_counts = defaultdict(int)
+        self._data = []
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation):
-        image_height, image_width = ann.img_size
-        for label in ann.labels:
-            if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
-                continue
+        self._data.append(ann)
 
-            self._class_object_counts[label.obj_class.name] += 1
+    def to_json(self):
+        class_heights_px = defaultdict(list)
+        class_heights_pc = defaultdict(list)
+        class_widths_px = defaultdict(list)
+        class_widths_pc = defaultdict(list)
+        class_areas_px = defaultdict(list)
+        class_areas_pc = defaultdict(list)
+        class_object_counts = defaultdict(int)
 
-            obj_sizes = calculate_obj_sizes(label, image_height, image_width)
+        for ann in self._data:
+            image_height, image_width = ann.img_size
+            for label in ann.labels:
+                if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
+                    continue
 
-            self._class_heights_px[label.obj_class.name].append(obj_sizes["height_px"])
-            self._class_heights_pc[label.obj_class.name].append(obj_sizes["height_pc"])
-            self._class_widths_px[label.obj_class.name].append(obj_sizes["width_px"])
-            self._class_widths_pc[label.obj_class.name].append(obj_sizes["width_pc"])
-            self._class_areas_px[label.obj_class.name].append(obj_sizes["area_px"])
-            self._class_areas_pc[label.obj_class.name].append(obj_sizes["area_pc"])
+                class_object_counts[label.obj_class.name] += 1
+
+                obj_sizes = calculate_obj_sizes(label, image_height, image_width)
+
+                class_heights_px[label.obj_class.name].append(obj_sizes["height_px"])
+                class_heights_pc[label.obj_class.name].append(obj_sizes["height_pc"])
+                class_widths_px[label.obj_class.name].append(obj_sizes["width_px"])
+                class_widths_pc[label.obj_class.name].append(obj_sizes["width_pc"])
+                class_areas_px[label.obj_class.name].append(obj_sizes["area_px"])
+                class_areas_pc[label.obj_class.name].append(obj_sizes["area_pc"])
 
         for class_title in self._class_titles:
-            object_count = self._class_object_counts[class_title]
+            object_count = class_object_counts[class_title]
 
             if object_count < 1:
                 continue
@@ -140,44 +149,40 @@ class ClassSizes(BaseStats):
             class_data = {
                 "class_name": class_title,
                 "object_count": object_count,
-                "min_height_px": min(self._class_heights_px[class_title]),
-                "min_height_pc": min(self._class_heights_pc[class_title]),
-                "max_height_px": max(self._class_heights_px[class_title]),
-                "max_height_pc": max(self._class_heights_pc[class_title]),
+                "min_height_px": min(class_heights_px[class_title]),
+                "min_height_pc": min(class_heights_pc[class_title]),
+                "max_height_px": max(class_heights_px[class_title]),
+                "max_height_pc": max(class_heights_pc[class_title]),
                 "avg_height_px": round(
-                    sum(self._class_heights_px[class_title])
-                    / len(self._class_heights_px[class_title]),
+                    sum(class_heights_px[class_title]) / len(class_heights_px[class_title]),
                     2,
                 ),
                 "avg_height_pc": round(
-                    sum(self._class_heights_pc[class_title])
-                    / len(self._class_heights_pc[class_title]),
+                    sum(class_heights_pc[class_title]) / len(class_heights_pc[class_title]),
                     2,
                 ),
-                "min_width_px": min(self._class_widths_px[class_title]),
-                "min_width_pc": min(self._class_widths_pc[class_title]),
-                "max_width_px": max(self._class_widths_px[class_title]),
-                "max_width_pc": max(self._class_widths_pc[class_title]),
+                "min_width_px": min(class_widths_px[class_title]),
+                "min_width_pc": min(class_widths_pc[class_title]),
+                "max_width_px": max(class_widths_px[class_title]),
+                "max_width_pc": max(class_widths_pc[class_title]),
                 "avg_width_px": round(
-                    sum(self._class_widths_px[class_title])
-                    / len(self._class_widths_px[class_title]),
+                    sum(class_widths_px[class_title]) / len(class_widths_px[class_title]),
                     2,
                 ),
                 "avg_width_pc": round(
-                    sum(self._class_widths_pc[class_title])
-                    / len(self._class_widths_pc[class_title]),
+                    sum(class_widths_pc[class_title]) / len(class_widths_pc[class_title]),
                     2,
                 ),
-                "min_area_px": min(self._class_areas_px[class_title]),
-                "min_area_pc": min(self._class_areas_pc[class_title]),
-                "max_area_px": max(self._class_areas_px[class_title]),
-                "max_area_pc": max(self._class_areas_pc[class_title]),
+                "min_area_px": min(class_areas_px[class_title]),
+                "min_area_pc": min(class_areas_pc[class_title]),
+                "max_area_px": max(class_areas_px[class_title]),
+                "max_area_pc": max(class_areas_pc[class_title]),
                 "avg_area_px": round(
-                    sum(self._class_areas_px[class_title]) / len(self._class_areas_px[class_title]),
+                    sum(class_areas_px[class_title]) / len(class_areas_px[class_title]),
                     2,
                 ),
                 "avg_area_pc": round(
-                    sum(self._class_areas_pc[class_title]) / len(self._class_areas_pc[class_title]),
+                    sum(class_areas_pc[class_title]) / len(class_areas_pc[class_title]),
                     2,
                 ),
             }
@@ -186,7 +191,6 @@ class ClassSizes(BaseStats):
 
             self._stats.append(class_data)
 
-    def to_json(self):
         options = {"fixColumns": 1}
 
         res = {
