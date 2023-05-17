@@ -59,8 +59,6 @@ class HorizontalGrid:
                     else self._api.image.download_np(img_info.id)
                 )
                 p.update(1)
-                img = self._resize_image(img)
-                ann = ann.resize(self._piece_size)
                 ann.draw_pretty(img, thickness=0, opacity=0.3)
                 for label in ann.labels:
                     bbox = label.geometry.to_bbox()
@@ -71,12 +69,13 @@ class HorizontalGrid:
                         color=label.obj_class.color,
                         thickness=2,
                     )
-                    font_size = sly_font.get_readable_font_size(img.shape[:2]) * 2
+                    font_size = int(sly_font.get_readable_font_size(img.shape[:2]) * 1.4)
                     font = sly_font.get_font(font_size=font_size)
                     _, _, _, bottom = font.getbbox(label.obj_class.name)
                     anchor = (bbox.top - bottom, bbox.left)
                     sly.image.draw_text(img, label.obj_class.name, anchor, font=font)
 
+                img = self._resize_image(img)
                 self.np_images.append(img)
 
         self._grid = self._create_image_grid(self.np_images)
