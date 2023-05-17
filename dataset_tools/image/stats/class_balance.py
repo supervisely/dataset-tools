@@ -137,7 +137,11 @@ class ClassBalance(BaseStats):
             "subtitle": "average",
             "tooltip": "Average image area of corresponding class. Images without such objects are not taking into account",
         }
-        options = {"fixColumns": 1, "sort": {"columnIndex": 1, "order": "desc"}}  # asc
+        options = {
+            "fixColumns": 1,
+            "sort": {"columnIndex": 1, "order": "desc"},
+            "pageSize": len(self._class_names),
+        }  # asc
 
         res = {
             "columns": columns,
