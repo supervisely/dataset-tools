@@ -36,9 +36,9 @@ class ClassBalance(BaseStats):
         for idx, obj_class in enumerate(self._meta.obj_classes):
             self._class_names.append(obj_class.name)
             class_colors.append(obj_class.color)
-            class_index = idx + 1
-            class_indices_colors.append([class_index, class_index, class_index])
-            self._name_to_index[obj_class.name] = class_index
+            # class_index = idx + 1 # unlabeled
+            class_indices_colors.append([idx, idx, idx])
+            self._name_to_index[obj_class.name] = idx
 
         self._stats["class_names"] = self._class_names
         self._stats["class_indices_colors"] = class_indices_colors
@@ -86,7 +86,8 @@ class ClassBalance(BaseStats):
 
             # if class_name == "unlabeled":
             #     continue
-            elif stat_count[class_name] > 0:
+            # elif stat_count[class_name] > 0:
+            if stat_count[class_name] > 0:
                 self._stats["image_counts_filter_by_id"][idx].append(image.id)
 
             # TODO: implement later
@@ -123,7 +124,7 @@ class ClassBalance(BaseStats):
         }
         colomns_options[2] = {
             "maxValue": max(self._stats["objects_count"]),
-            "tooltip": "Number of objects in the project",
+            "tooltip": "Number of objects of corresponding class in the project",
         }
         colomns_options[3] = {
             "maxValue": round(max(notnonecount), 2),
