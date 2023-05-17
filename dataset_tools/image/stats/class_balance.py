@@ -8,7 +8,6 @@ from typing import Dict
 import dataframe_image as dfi
 import numpy as np
 import pandas as pd
-
 import supervisely as sly
 
 from dataset_tools.image.stats.basestats import BaseStats
@@ -30,9 +29,9 @@ class ClassBalance(BaseStats):
         self._meta = project_meta
         self._stats = {}
 
-        self._class_names = ["unlabeled"]
-        class_colors = [UNLABELED_COLOR]
-        class_indices_colors = [UNLABELED_COLOR]
+        self._class_names = []  # ["unlabeled"]
+        class_colors = []  # [UNLABELED_COLOR]
+        class_indices_colors = []  # [UNLABELED_COLOR]
         self._name_to_index = {}
         for idx, obj_class in enumerate(self._meta.obj_classes):
             self._class_names.append(obj_class.name)
@@ -66,8 +65,8 @@ class ClassBalance(BaseStats):
         )
         stat_count = ann.stat_class_count(self._stats["class_names"])
 
-        if stat_area["unlabeled"] > 0:
-            stat_count["unlabeled"] = 1
+        # if stat_area["unlabeled"] > 0:
+        # stat_count["unlabeled"] = 1
 
         for idx, class_name in enumerate(self._stats["class_names"]):
             cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
@@ -85,10 +84,8 @@ class ClassBalance(BaseStats):
                     self._stats["objects_count"][idx] / self._stats["images_count"][idx]
                 )
 
-            if class_name == "unlabeled":
-                continue
-                # if len(ann.labels) == 0:  # and stat_count["total"] == 0:
-                #     self._stats["image_counts_filter_by_id"][idx].append(image.id)
+            # if class_name == "unlabeled":
+            #     continue
             elif stat_count[class_name] > 0:
                 self._stats["image_counts_filter_by_id"][idx].append(image.id)
 
@@ -99,11 +96,11 @@ class ClassBalance(BaseStats):
 
     def to_json(self) -> dict:
         columns = [
-            "class name",
-            "num images",
-            "num objects",
-            "avg count per image",
-            "avg area per image",
+            "Class",
+            "Images",
+            "Objects",
+            "Count on image",
+            "Area on image",
         ]
         rows = []
         for name, idx in self._name_to_index.items():
@@ -120,12 +117,24 @@ class ClassBalance(BaseStats):
         notnonearea = [item for item in self._stats["avg_nonzero_area"] if item is not None]
         colomns_options = [None] * len(columns)
         colomns_options[0] = {"type": "class"}
-        colomns_options[1] = {"maxValue": max(self._stats["images_count"])}
-        colomns_options[2] = {"maxValue": max(self._stats["objects_count"])}
-        colomns_options[3] = {"maxValue": round(max(notnonecount), 2)}
+        colomns_options[1] = {
+            "maxValue": max(self._stats["images_count"]),
+            "tooltip": "Number of images with at least one object of corresponding class",
+        }
+        colomns_options[2] = {
+            "maxValue": max(self._stats["objects_count"]),
+            "tooltip": "Number of objects in the project",
+        }
+        colomns_options[3] = {
+            "maxValue": round(max(notnonecount), 2),
+            "subtitle": "average",
+            "tooltip": "Average number of objects of corresponding class on the image. Images without such objects are not taking into account",
+        }
         colomns_options[4] = {
             "postfix": "%",
             "maxValue": round(max(notnonearea), 2),
+            "subtitle": "average",
+            "tooltip": "Average image area of corresponding class. Images without such objects are not taking into account",
         }
         options = {"fixColumns": 1, "sort": {"columnIndex": 1, "order": "desc"}}  # asc
 
@@ -134,6 +143,6 @@ class ClassBalance(BaseStats):
             "data": rows,
             "referencesRow": self._stats["image_counts_filter_by_id"],
             "options": options,
-            "colomnsOptions": colomns_options,
+            "columnsOptions": colomns_options,
         }
         return res
