@@ -23,6 +23,7 @@ class SideAnnotationsGrid:
         self._rows = rows
         self._cols = cols
         self._aspect_ratio = 9 / 16
+        self._gap = 15
 
         height, width, piece_h, piece_w = self._calculate_shapes()
         self._grid_size = (height, width)
@@ -78,12 +79,14 @@ class SideAnnotationsGrid:
     def _calculate_shapes(self):
         height = width = self._max_size
         if self._rows > self._cols * 2:
-            piece_h = height // self._rows
+            piece_h = (height - self._gap * (self._rows + 1)) // self._rows
             piece_w = int(max(1, piece_h / self._aspect_ratio))
         else:
-            piece_w = width // (self._cols * 2)
+            piece_w = (width - self._gap * (self._cols + 1)) // (self._cols * 2)
             piece_h = int(max(1, piece_w * self._aspect_ratio))
-        height, width = piece_h * self._rows, piece_w * self._cols * 2
+
+        height = (piece_h + self._gap) * self._rows + self._gap
+        width = piece_w * self._cols * 2 + self._gap * (self._cols + 1)
 
         sly.logger.info(f"Result image size is ({height}, {width})")
         return height, width, piece_h, piece_w
@@ -134,13 +137,11 @@ class SideAnnotationsGrid:
         num = len(images)
         grid_h, grid_w = self._grid_size
 
-        grid = np.zeros(
-            [grid_h, grid_w, 3],
-            dtype=np.uint8,
-        )
+        grid = np.ones([grid_h, grid_w, 3], dtype=np.uint8) * 255
+
         for idx in range(num):
-            x = (idx % (self._cols * 2)) * img_w
-            y = (idx // (self._cols * 2)) * img_h
+            x = (idx % (self._cols * 2)) * img_w + (idx % self._cols + 1) * self._gap
+            y = (idx // (self._cols * 2)) * img_h + (idx // (self._cols * 2) + 1) * self._gap
             grid[y : y + img_h, x : x + img_w, ...] = images[idx][:, :, ...]
 
         return grid
