@@ -63,15 +63,10 @@ class ObjectsDistribution(BaseStats):
         options = {"fixColumns": 1}
 
         res = {
-            "columns": columns,
+            "columns": ["class names"] + columns,
             "data": data,
             "referencesRow": references,
             "options": options,
         }
 
         return res
-
-    def to_pandas(self):
-        json = self.to_json()
-        table = pd.DataFrame(json["data"], columns=["class names"] + json["columns"])
-        return table
