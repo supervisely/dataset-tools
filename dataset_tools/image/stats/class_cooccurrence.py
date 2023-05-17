@@ -1,11 +1,6 @@
-import itertools
-import os
-import random
 from collections import defaultdict
-from copy import deepcopy
 from typing import Dict
 
-import dataframe_image as dfi
 import numpy as np
 import pandas as pd
 import supervisely as sly
@@ -17,9 +12,9 @@ from supervisely.app.widgets import ConfusionMatrix
 class ClassCooccurrence(BaseStats):
     """
     Columns:
-        class name
-        class 1
-        class 2
+        Class
+        Class 1
+        Class 2
         etc.
     """
 
@@ -70,7 +65,7 @@ class ClassCooccurrence(BaseStats):
         ]
 
         res = {
-            "columns": ["class name"] + self._class_names,
+            "columns": ["Class"] + [string.capitalize() for string in self._class_names],
             "data": data,
             "referencesRow": self._references,
             "options": options,

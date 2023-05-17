@@ -8,7 +8,7 @@ from dataset_tools.image.stats.basestats import BaseStats
 class ObjectSizes(BaseStats):
     """
     Columns:
-        Class name
+        Class
         Dataset ID
         Image name
         Image size
@@ -49,7 +49,7 @@ class ObjectSizes(BaseStats):
 
         res = {
             "columns": [
-                "Class name",
+                "Class",
                 "Dataset ID",
                 "Image name",
                 "Image size",
@@ -82,7 +82,7 @@ class ObjectSizes(BaseStats):
 class ClassSizes(BaseStats):
     """
     Columns:
-        Class name
+        Class
         Object count
         Min height px
         Min height %
@@ -196,7 +196,7 @@ class ClassSizes(BaseStats):
 
         res = {
             "columns": [
-                "Class name",
+                "Class",
                 "Object count",
                 "Min height",
                 "Min height",

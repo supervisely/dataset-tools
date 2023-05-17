@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 import supervisely as sly
 
@@ -12,15 +11,15 @@ class ClassesPerImage(BaseStats):
     """
     Columns:
         Image
-        dataset
-        height
-        width
-        channels
-        unlabeled
-        class1 objects count
-        class1 covered area (%)
-        class2 objects count
-        class2 covered area (%)
+        Dataset
+        Height
+        Width
+        Channels
+        Unlabeled
+        Class1 objects count
+        Class1 covered area (%)
+        Class2 objects count
+        Class2 covered area (%)
         etc.
     """
 
@@ -77,13 +76,13 @@ class ClassesPerImage(BaseStats):
         self._stats["data"].append(table_row)
 
     def to_json(self) -> dict:
-        columns = ["Image", "dataset", "height", "width", "channels", "unlabeled"]
+        columns = ["Image", "Dataset", "Height", "Width", "Channels", "Unlabeled"]
         columns_options = [None] * len(columns)
 
         for obj_class in self._meta.obj_classes:
             columns_options.append({"subtitle": "objects count"})
             columns_options.append({"subtitle": "covered area (%)"})
-            columns.extend([obj_class.name] * 2)
+            columns.extend([obj_class.name.capitalize()] * 2)
 
         options = {"fixColumns": 1}
         res = {

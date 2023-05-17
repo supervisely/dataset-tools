@@ -1,14 +1,13 @@
 from collections import defaultdict
 from dataset_tools.image.stats.basestats import BaseStats
 
-import pandas as pd
 import supervisely as sly
 
 
 class ObjectsDistribution(BaseStats):
     """
     Columns:
-        class name
+        Class
         1 object on image (if object exists)
         2 objects on image (if objects exist)
         3 objects on image (if objects exist)
@@ -72,7 +71,7 @@ class ObjectsDistribution(BaseStats):
         options = {"fixColumns": 1}
 
         res = {
-            "columns": ["class name"] + columns,
+            "columns": ["Class"] + columns,
             "data": data,
             "referencesRow": references,
             "options": options,
