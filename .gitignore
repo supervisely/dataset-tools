@@ -9,3 +9,4 @@ demo/
 .flake8
 data/
 stats/
+render_results/
