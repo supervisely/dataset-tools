@@ -1,5 +1,6 @@
-import numpy as np
+from typing import List
 
+import numpy as np
 import supervisely as sly
 
 from dataset_tools.image.stats.basestats import BaseStats
@@ -14,7 +15,7 @@ class ClassesPerImage(BaseStats):
         Dataset
         Height
         Width
-        Channels
+        # Channels
         Unlabeled
         Class1 objects count
         Class1 covered area (%)
@@ -23,9 +24,14 @@ class ClassesPerImage(BaseStats):
         etc.
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta) -> None:
+    def __init__(
+        self, project_meta: sly.ProjectMeta, datasets: List[sly.DatasetInfo] = None
+    ) -> None:
         self._meta = project_meta
         self._stats = {}
+        self._dataset_id_to_name = None
+        if datasets is not None:
+            self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
 
         self._class_names = ["unlabeled"]
         self._class_indices_colors = [UNLABELED_COLOR]
@@ -38,6 +44,7 @@ class ClassesPerImage(BaseStats):
             self._classname_to_index[obj_class.name] = class_index
 
         self._stats["data"] = []
+        self._referencesRow = []
 
     def update(self, image_info: sly.ImageInfo, ann: sly.Annotation):
         render_idx_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
@@ -55,14 +62,15 @@ class ClassesPerImage(BaseStats):
 
         table_row.append(image_info.name)
 
-        table_row.append(image_info.dataset_id)
+        if self._dataset_id_to_name is not None:
+            table_row.append(self._dataset_id_to_name[image_info.dataset_id])
         area_unl = stat_area["unlabeled"] if not np.isnan(stat_area["unlabeled"]) else 0
         table_row.extend(
             [
                 stat_area["height"],
                 stat_area["width"],
-                stat_area["channels"],
-                round(area_unl, 2),
+                # stat_area["channels"],
+                round(area_unl, 2) if area_unl != 0 else 0,
             ]
         )
         for class_name in self._class_names:
@@ -70,19 +78,39 @@ class ClassesPerImage(BaseStats):
             cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
             if class_name == "unlabeled":
                 continue
-            table_row.append(round(cur_area, 2))
-            table_row.append(round(cur_count, 2))
+            table_row.append(round(cur_area, 2) if cur_area != 0 else 0)
+            table_row.append(cur_count)
 
         self._stats["data"].append(table_row)
+        self._referencesRow.append(image_info.id)
 
     def to_json(self) -> dict:
-        columns = ["Image", "Dataset", "Height", "Width", "Channels", "Unlabeled"]
+        if self._dataset_id_to_name is not None:
+            columns = ["Image", "Split", "Height", "Width", "Unlabeled"]
+        else:
+            columns = ["Image", "Height", "Width", "Unlabeled"]
+
         columns_options = [None] * len(columns)
+
+        if self._dataset_id_to_name is not None:
+            columns_options[columns.index("Split")] = {
+                "subtitle": "folder name",
+            }
+        columns_options[columns.index("Height")] = {
+            "postfix": "px",
+        }
+        columns_options[columns.index("Width")] = {
+            "postfix": "px",
+        }
+        columns_options[columns.index("Unlabeled")] = {
+            "subtitle": "area",
+            "postfix": "%",
+        }
 
         for obj_class in self._meta.obj_classes:
             columns_options.append({"subtitle": "objects count"})
-            columns_options.append({"subtitle": "covered area (%)"})
-            columns.extend([obj_class.name.capitalize()] * 2)
+            columns_options.append({"subtitle": "covered area", "postfix": "%"})
+            columns.extend([obj_class.name] * 2)
 
         options = {"fixColumns": 1}
         res = {
