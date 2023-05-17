@@ -78,8 +78,8 @@ class ClassesPerImage(BaseStats):
             cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
             if class_name == "unlabeled":
                 continue
-            table_row.append(round(cur_area, 2) if cur_area != 0 else 0)
             table_row.append(cur_count)
+            table_row.append(round(cur_area, 2) if cur_area != 0 else 0)
 
         self._stats["data"].append(table_row)
         self._referencesRow.append(image_info.id)
