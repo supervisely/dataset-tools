@@ -8,4 +8,4 @@ build/
 demo/
 .flake8
 data/
-stats/
+/stats/
