@@ -118,5 +118,6 @@ class ClassesPerImage(BaseStats):
             "columnsOptions": columns_options,
             "data": self._stats["data"],
             "options": options,
+            "referencesRow": self._referencesRow,
         }
         return res
