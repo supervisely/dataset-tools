@@ -13,4 +13,5 @@ from dataset_tools.image.stats.wrapper import count_stats  # , initialize
 
 from dataset_tools.image.renders.wrapper import prepare_renders
 from dataset_tools.image.renders.separated_anns_grid import SideAnnotationsGrid
+from dataset_tools.image.renders.horizontal_grid import HorizontalGrid
 from dataset_tools.image.renders.poster import Poster
