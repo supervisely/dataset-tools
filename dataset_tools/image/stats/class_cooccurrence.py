@@ -23,6 +23,11 @@ class ClassCooccurrence(BaseStats):
         self._meta = project_meta
         self._stats = {}
 
+        self._name_to_index = {}
+
+        for idx, obj_class in enumerate(self._meta.obj_classes):
+            self._name_to_index[obj_class.name] = idx
+
         self._class_names = [cls.name for cls in project_meta.obj_classes]
         self._references = defaultdict(lambda: defaultdict(list))
 
@@ -36,7 +41,7 @@ class ClassCooccurrence(BaseStats):
 
         classes = list(classes)
         for class_ in classes:
-            idx = self._class_names.index(class_)
+            idx = self._name_to_index[class_]
             self.co_occurrence_matrix[idx][idx] += 1
             self._references[idx][idx].append(image.id)
 
@@ -44,8 +49,8 @@ class ClassCooccurrence(BaseStats):
             for j in range(i + 1, len(classes)):
                 class_i = classes[i]
                 class_j = classes[j]
-                idx_i = list(self._class_names).index(class_i)
-                idx_j = list(self._class_names).index(class_j)
+                idx_i = self._name_to_index[class_i]
+                idx_j = self._name_to_index[class_j]
                 self.co_occurrence_matrix[idx_i][idx_j] += 1
                 self.co_occurrence_matrix[idx_j][idx_i] += 1
 
