@@ -108,13 +108,14 @@ class ClassSizes(BaseStats):
         self.project_meta = project_meta
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 
-        self._stats = []
         self._data = []
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation):
         self._data.append(ann)
 
     def to_json(self):
+        stats = []
+
         class_heights_px = defaultdict(list)
         class_heights_pc = defaultdict(list)
         class_widths_px = defaultdict(list)
@@ -189,7 +190,7 @@ class ClassSizes(BaseStats):
 
             class_data = list(class_data.values())
 
-            self._stats.append(class_data)
+            stats.append(class_data)
 
         options = {"fixColumns": 1}
 
@@ -238,7 +239,7 @@ class ClassSizes(BaseStats):
                 {"postfix": "px"},
                 {"postfix": "%"},
             ],
-            "data": self._stats,
+            "data": stats,
             "options": options,
         }
 
