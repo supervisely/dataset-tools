@@ -79,7 +79,7 @@ class SideAnnotationsGrid:
     def _calculate_shapes(self):
         height = width = self._max_size
         if self._rows > self._cols * 2:
-            piece_h = piece_h = (height - self._gap * (self._rows + 1)) // self._rows
+            piece_h = (height - self._gap * (self._rows + 1)) // self._rows
             piece_w = int(max(1, piece_h / self._aspect_ratio))
         else:
             piece_w = (width - self._gap * (self._cols + 1)) // (self._cols * 2)
