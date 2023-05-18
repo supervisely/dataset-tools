@@ -1,3 +1,4 @@
+from typing import Dict
 from collections import defaultdict
 
 import supervisely as sly
@@ -24,7 +25,7 @@ class ObjectSizes(BaseStats):
         self.project_meta = project_meta
         self._stats = []
 
-    def update(self, image: sly.ImageInfo, ann: sly.Annotation):
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         image_height, image_width = ann.img_size
 
         for label in ann.labels:
@@ -44,7 +45,7 @@ class ObjectSizes(BaseStats):
 
             self._stats.append(object_data)
 
-    def to_json(self):
+    def to_json(self) -> Dict:
         options = {"fixColumns": 1}
 
         res = {
@@ -104,16 +105,16 @@ class ClassSizes(BaseStats):
         Avg area %
     """
 
-    def __init__(self, project_meta):
+    def __init__(self, project_meta: sly.ProjectMeta):
         self.project_meta = project_meta
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 
         self._data = []
 
-    def update(self, image: sly.ImageInfo, ann: sly.Annotation):
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         self._data.append(ann)
 
-    def to_json(self):
+    def to_json(self) -> Dict:
         stats = []
 
         class_heights_px = defaultdict(list)
@@ -246,7 +247,7 @@ class ClassSizes(BaseStats):
         return res
 
 
-def calculate_obj_sizes(label, image_height, image_width):
+def calculate_obj_sizes(label: sly.Label, image_height: int, image_width: int) -> Dict:
     image_area = image_height * image_width
 
     rect_geometry = label.geometry.to_bbox()

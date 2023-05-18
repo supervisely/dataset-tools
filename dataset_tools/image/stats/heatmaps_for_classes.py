@@ -8,6 +8,7 @@ import supervisely as sly
 from skimage.transform import resize
 from dataset_tools.image.stats.basestats import BaseVisual
 
+
 class ClassesHeatmaps(BaseVisual):
     """
     Get heatmaps of visual density of aggregated annotations for every class in the dataset
@@ -29,7 +30,7 @@ class ClassesHeatmaps(BaseVisual):
                 self._heatmap_img_size + (3,), dtype=np.float32
             )
 
-    def update(self, image: sly.ImageInfo, ann: sly.Annotation):
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         image_height, image_width = ann.img_size
         self._ds_image_sizes.append((image_height, image_width))
         geometry_types_to_heatmap = ["polygon", "rectangle", "bitmap"]
@@ -72,9 +73,7 @@ class ClassesHeatmaps(BaseVisual):
         cols = math.ceil(num_images / rows)
 
         result_width = cols * (img_width + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
-        result_height = (
-            rows * (img_height + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
-        )
+        result_height = rows * (img_height + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
 
         result_image = Image.new("RGB", (result_width, result_height), "white")
 
@@ -93,7 +92,7 @@ class ClassesHeatmaps(BaseVisual):
     def _create_single_images_text_outside(self, path):
         for heatmap in self.classname_heatmap:
             resized_image = resize(self.classname_heatmap[heatmap], self._heatmap_img_size)
-            image_path = os.path.join(os.path.dirname(path) , f"{heatmap}.png")
+            image_path = os.path.join(os.path.dirname(path), f"{heatmap}.png")
             plt.imsave(image_path, resized_image[:, :, 0])
 
             image = cv2.imread(image_path)

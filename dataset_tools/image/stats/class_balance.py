@@ -81,7 +81,7 @@ class ClassBalance(BaseStats):
             # obj_ids = [obj[0] for obj in ann_objects if obj[1] == class_name]
             # self._stats["object_counts_filter_by_id"][idx].extend(obj_ids)
 
-    def to_json(self) -> dict:
+    def to_json(self) -> Dict:
         columns = [
             "Class",
             "Images",

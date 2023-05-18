@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 import numpy as np
 import supervisely as sly
@@ -46,7 +46,7 @@ class ClassesPerImage(BaseStats):
         self._stats["data"] = []
         self._referencesRow = []
 
-    def update(self, image_info: sly.ImageInfo, ann: sly.Annotation):
+    def update(self, image_info: sly.ImageInfo, ann: sly.Annotation) -> None:
         render_idx_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
         render_idx_rgb[:] = UNLABELED_COLOR
         ann.draw_class_idx_rgb(render_idx_rgb, self._classname_to_index)
@@ -84,7 +84,7 @@ class ClassesPerImage(BaseStats):
         self._stats["data"].append(table_row)
         self._referencesRow.append(image_info.id)
 
-    def to_json(self) -> dict:
+    def to_json(self) -> Dict:
         if self._dataset_id_to_name is not None:
             columns = ["Image", "Split", "Height", "Width", "Unlabeled"]
         else:

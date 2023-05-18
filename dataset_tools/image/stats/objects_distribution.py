@@ -1,7 +1,10 @@
 from collections import defaultdict
-from dataset_tools.image.stats.basestats import BaseStats
+
+from typing import Dict
 
 import supervisely as sly
+
+from dataset_tools.image.stats.basestats import BaseStats
 
 
 class ObjectsDistribution(BaseStats):
@@ -20,10 +23,10 @@ class ObjectsDistribution(BaseStats):
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
         self._data = []
 
-    def update(self, image: sly.ImageInfo, ann: sly.Annotation):
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         self._data.append((image, ann))
 
-    def to_json(self):
+    def to_json(self) -> Dict:
         self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
         counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
