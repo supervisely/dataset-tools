@@ -7,8 +7,6 @@ from supervisely.app.widgets import HeatmapChart
 
 from dataset_tools.image.stats.basestats import BaseStats
 
-from dataset_tools.image.stats.basestats import BaseStats
-
 
 class ObjectsDistribution(BaseStats):
     """
