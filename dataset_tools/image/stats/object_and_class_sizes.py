@@ -31,7 +31,7 @@ class ObjectSizes(BaseStats):
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
         self._counters = defaultdict(int)
         for class_title in self._class_titles:
-            self._counters[class_title] = 0
+            self._counters[class_title] = 1
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         image_height, image_width = ann.img_size
@@ -45,7 +45,7 @@ class ObjectSizes(BaseStats):
             self._counters[class_title] += 1
 
             object_data = {
-                "object_name": f"{class_title} {object_number:04d}",
+                "object_name": f"{class_title} #{object_number}",
                 "image_name": image.name,
             }
 
@@ -62,11 +62,6 @@ class ObjectSizes(BaseStats):
             self._stats.append(object_data)
 
     def to_json(self) -> Dict:
-        options = {
-            "fixColumns": 1,
-            "sort": {"columnIndex": 0, "order": "asc"},
-        }
-
         columns = [
             "Object",
             "Image name",
@@ -104,7 +99,6 @@ class ObjectSizes(BaseStats):
             "columns": columns,
             "columnsOptions": columns_options,
             "data": self._stats,
-            "options": options,
         }
 
         return res
