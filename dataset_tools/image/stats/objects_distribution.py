@@ -1,8 +1,14 @@
 from collections import defaultdict
+<<<<<<< HEAD
+=======
 
 from typing import Dict
+>>>>>>> refs/remotes/origin/main
 
 import supervisely as sly
+from supervisely.app.widgets import HeatmapChart
+
+from dataset_tools.image.stats.basestats import BaseStats
 
 from dataset_tools.image.stats.basestats import BaseStats
 
@@ -51,16 +57,17 @@ class ObjectsDistribution(BaseStats):
 
         columns = sorted(list(columns))
 
-        data = list()
+        series = list()
         for class_title, class_data in self._stats.items():
-            row = [class_title]
-            for column in columns:
-                count = class_data[column]["count"]
-                row.append(count)
+            row = {
+                "name": class_title,
+                "y": [class_data[column]["count"] for column in columns],
+                "x": columns,
+            }
 
-            data.append(row)
+            series.append(row)
 
-        references = list()
+        references = defaultdict(dict)
 
         for column in columns:
             for class_title, class_data in self._stats.items():
@@ -68,16 +75,15 @@ class ObjectsDistribution(BaseStats):
                 reference = {
                     column: image_ids,
                 }
+                if references[class_title]:
+                    references[class_title].update(reference)
+                else:
+                    references[class_title] = reference
 
-                references.append(reference)
+        hmp = HeatmapChart(title="Objects Distribution")
+        hmp.add_series_batch(series)
 
-        options = {"fixColumns": 1}
-
-        res = {
-            "columns": ["Class"] + columns,
-            "data": data,
-            "referencesRow": references,
-            "options": options,
-        }
+        res = hmp.get_json_data()
+        res["referencesCell"] = references
 
         return res
