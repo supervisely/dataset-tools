@@ -42,11 +42,11 @@ def main():
     )
     print("Saving stats and images...")
     for stat in stats:
-        with open(f"./stats/{stat.json_name}.json", "w") as f:
+        with open(f"./stats/{stat.basename_stem}.json", "w") as f:
             json.dump(stat.to_json(), f)
-        stat.to_image(f"./stats/{stat.json_name}.png")
+        stat.to_image(f"./stats/{stat.basename_stem}.png")
     for vis in vstats:
-        vis.to_image(f"./stats/{vis.json_name}.png", draw_style="outside_black")
+        vis.to_image(f"./stats/{vis.basename_stem}.png", draw_style="outside_black")
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ from dataset_tools.image.stats.basestats import BaseVisual
 
 class ClassesHeatmaps(BaseVisual):
     """
-    Get heatmap of visual density of aggregated annotations for every class
+    Get heatmaps of visual density of aggregated annotations for every class in the dataset
     """
 
     def __init__(self, project_meta: sly.ProjectMeta, heatmap_img_size: tuple = None):
@@ -48,9 +48,9 @@ class ClassesHeatmaps(BaseVisual):
         outer_grid_spacing: int = 20,
     ) -> None:
         """
-        Crates result image with heatmaps of all possible classes.
+        Crates image grid with density heatmaps of all possible classes.
 
-        :param path: dir where to save output images.
+        :param path: path to save output image.
         :type path: str.
         :param draw_style: style in which output heatmaps grid will be represented. Possible values: "inside_white", "outside_black"
         :type draw_style: str, optional
