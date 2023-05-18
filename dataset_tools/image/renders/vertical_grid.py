@@ -18,21 +18,23 @@ class VerticalGrid:
         api: sly.Api = None,
         rows: int = 6,
         cols: int = 3,
+        footer_path: str = "dninja_footer.png",
     ):
         self.project_meta = project_meta
 
-        self._max_width = 1920
+        self._img_width = 1920
         self._rows = rows
         self._cols = cols
         self._g_spacing = 15
         self._column_height = 0
+        self._footer_path = footer_path
 
         self._all_image_infos = []
         self._all_anns = []
         self.np_images = []
-        self._grid = None
+        self._img_array = None
         self._column_width = int(
-            (self._max_width - self._g_spacing * (self._cols + 1)) / self._cols
+            (self._img_width - self._g_spacing * (self._cols + 1)) / self._cols
         )
 
         self._local = False if isinstance(project, int) else True
@@ -62,31 +64,29 @@ class VerticalGrid:
     def to_image(self, path: str = None):
         if path is None:
             storage_dir = sly.app.get_data_dir()
-            sly.fs.clean_dir(storage_dir)
-            path = os.path.join(storage_dir, "separated_images_grid.jpeg")
+            path = os.path.join(storage_dir, "vertical_grid.png")
         self._merge_canvas_with_images()
-        sly.image.write(path, self._grid)
+        self._add_footer_with_logo()
+        cv2.imwrite(path, self._img_array)
         sly.logger.info(f"Result grid saved to: {path}")
 
     def _create_image_canvas(self):
-        self._grid = np.ones([self._column_height, self._max_width, 3], dtype=np.uint8) * 255
+        self._img_array = np.ones([self._column_height, self._img_width, 3], dtype=np.uint8) * 255
 
     def _merge_canvas_with_images(self):
         columns = self._create_columns()
         self._create_image_canvas()
         columns = self._merge_img_in_columns(columns)
         for i, image in enumerate(columns):
-            if image.shape[0] > self._grid.shape[0]:
-                image = image[: self._grid.shape[0] - self._g_spacing, :]
+            if image.shape[0] > self._img_array.shape[0]:
+                image = image[: self._img_array.shape[0] - self._g_spacing, :]
 
                 column_start = i * (self._column_width + self._g_spacing) + self._g_spacing
                 column_end = column_start + self._column_width
                 row_start = self._g_spacing
-                row_end = self._grid.shape[0]
+                row_end = self._img_array.shape[0]
 
-                self._grid[row_start:row_end, column_start:column_end] = image
-
-        # gradient = self._create_gradient()
+                self._img_array[row_start:row_end, column_start:column_end] = image
 
     def _create_columns(self):
         num_images = len(self.np_images)
@@ -139,13 +139,18 @@ class VerticalGrid:
 
         return image
 
-    def _create_gradient(self):
-        height, width, _ = self._grid.shape
-        gradient_height = int(0.1 * height)
+    def _add_footer_with_logo(self):
+        image2 = cv2.imread(self._footer_path, cv2.IMREAD_UNCHANGED)
 
-        gradient = np.zeros((gradient_height, width, 4), dtype=np.uint8)
-        for y in range(gradient_height):
-            alpha = int((1 - y / gradient_height) * 255)
-            gradient[y] = (255, 255, 255, alpha)
+        height1, _ = self._img_array.shape[:2]
+        height2, width2 = image2.shape[:2]
 
-        return gradient
+        alpha_channel = image2[:, :, 3] / 255.0
+
+        x = 0
+        y = height1 - height2
+
+        region = self._img_array[y:height1, x : x + width2]
+        self._img_array[y:height1, x : x + width2, :3] = (
+            1 - alpha_channel[:, :, np.newaxis]
+        ) * region + alpha_channel[:, :, np.newaxis] * image2[:, :, :3]
