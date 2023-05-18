@@ -25,12 +25,15 @@ class VerticalGrid:
         self._rows = rows
         self._cols = cols
         self._g_spacing = 15
+        self._column_height = 0
 
         self._all_image_infos = []
         self._all_anns = []
         self.np_images = []
         self._grid = None
-        self._column_width = (self._max_width - self._g_spacing * (self._cols + 1)) / self._cols
+        self._column_width = int(
+            (self._max_width - self._g_spacing * (self._cols + 1)) / self._cols
+        )
 
         self._local = False if isinstance(project, int) else True
         self._api = api if api is not None else sly.Api.from_env()
@@ -52,7 +55,7 @@ class VerticalGrid:
                 )
                 p.update(1)
 
-                ann.draw_pretty(img, thickness=0, opacity=0.3)
+                ann.draw_pretty(img, thickness=0, opacity=0.7)
                 img = self._resize_image(img)
                 self.np_images.append(img)
 
@@ -61,38 +64,43 @@ class VerticalGrid:
             storage_dir = sly.app.get_data_dir()
             sly.fs.clean_dir(storage_dir)
             path = os.path.join(storage_dir, "separated_images_grid.jpeg")
+        self._merge_canvas_with_images()
         sly.image.write(path, self._grid)
         sly.logger.info(f"Result grid saved to: {path}")
 
-    def _create_image_canvas(self, columns):
-        heights = []
-        for column in columns:
-            clmn_h = column.shape[:2][0]
-            heights.append(clmn_h)
-        grid_h = max(heights)
-        self._grid = np.ones([grid_h, self._max_width, 3], dtype=np.uint8) * 255
+    def _create_image_canvas(self):
+        self._grid = np.ones([self._column_height, self._max_width, 3], dtype=np.uint8) * 255
 
     def _merge_canvas_with_images(self):
         columns = self._create_columns()
-        self._create_image_canvas(columns)
+        self._create_image_canvas()
+        columns = self._merge_img_in_columns(columns)
         for i, image in enumerate(columns):
-            self._grid[:, i * self._column_width : (i + 1) * self._column_width] = np.expand_dims(
-                image, axis=1
-            )
+            if image.shape[0] > self._grid.shape[0]:
+                image = image[: self._grid.shape[0] - self._g_spacing, :]
+
+                column_start = i * (self._column_width + self._g_spacing) + self._g_spacing
+                column_end = column_start + self._column_width
+                row_start = self._g_spacing
+                row_end = self._grid.shape[0]
+
+                self._grid[row_start:row_end, column_start:column_end] = image
+
+        # gradient = self._create_gradient()
 
     def _create_columns(self):
         num_images = len(self.np_images)
         image_heights = [image.shape[0] for image in self.np_images]
 
         one_big_column_height = sum(image_heights) + (num_images - 1) * self._g_spacing
-        target_column_height = one_big_column_height // self._cols
+        self._column_height = one_big_column_height // self._cols
 
         columns = []
         column_images = []
         current_height = 0
 
         for image, height in zip(self.np_images, image_heights):
-            if current_height + height > target_column_height:
+            if current_height + height > self._column_height:
                 column_images.append(image)
                 columns.append(column_images)
 
@@ -102,16 +110,42 @@ class VerticalGrid:
             column_images.append(image)
             current_height += height + self._g_spacing
 
-        columns.append(column_images)
-
+        if len(columns) == self._cols:
+            return columns
         return columns
+
+    def _merge_img_in_columns(self, columns):
+        combined_columns = []
+        separator = np.ones((15, self._column_width, 3), dtype=np.uint8) * 255
+        for column in columns:
+            combined_images = []
+
+            for image in column:
+                combined_images.append(image)
+                combined_images.append(separator)
+            combined_images.pop()
+            combined_image = np.vstack(combined_images)
+            combined_columns.append(combined_image)
+
+        return combined_columns
 
     def _resize_image(self, image):
         img_h, img_w = image.shape[:2]
         img_aspect_ratio = self._column_width / img_w
-        img_w = self._column_width
-        img_h = img_aspect_ratio * img_h
+        img_w = int(self._column_width)
+        img_h = int(img_aspect_ratio * img_h)
 
         image = sly.image.resize(image, (img_h, img_w))
 
         return image
+
+    def _create_gradient(self):
+        height, width, _ = self._grid.shape
+        gradient_height = int(0.1 * height)
+
+        gradient = np.zeros((gradient_height, width, 4), dtype=np.uint8)
+        for y in range(gradient_height):
+            alpha = int((1 - y / gradient_height) * 255)
+            gradient[y] = (255, 255, 255, alpha)
+
+        return gradient
