@@ -36,11 +36,5 @@ dtools.prepare_renders(
     sample_cnt=40,
 )
 
-poster_path = os.path.join(sly.app.get_data_dir(), "poster.png")
-poster.to_image(poster_path)
-
-side_anns_grid_path = os.path.join(sly.app.get_data_dir(), "grid_1.png")
-side_anns_grid.to_image(side_anns_grid_path)
-
-vertical_grid_path = os.path.join(sly.app.get_data_dir(), "vertical_grid.png")
-vertical_grid.to_image(vertical_grid_path)
+for renderer in renderers:
+    renderer.to_image(f"./render_results/{renderer.render_name}.png")
