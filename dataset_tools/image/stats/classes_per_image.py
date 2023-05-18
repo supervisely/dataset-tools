@@ -82,7 +82,7 @@ class ClassesPerImage(BaseStats):
             table_row.append(round(cur_area, 2) if cur_area != 0 else 0)
 
         self._stats["data"].append(table_row)
-        self._referencesRow.append(image_info.id)
+        self._referencesRow.append([image_info.id])
 
     def to_json(self) -> Dict:
         if self._dataset_id_to_name is not None:
