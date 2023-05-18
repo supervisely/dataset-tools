@@ -20,6 +20,9 @@ class BaseStats:
         return table
 
     def to_image(self, path: str) -> None:
+        """
+        Create an image visualizing the results of statistics from a Pandas DataFrame.
+        """
         table = self.to_pandas()[:100]  # max rows == 100
         table.dfi.export(path, max_rows=-1, max_cols=-1)
 
