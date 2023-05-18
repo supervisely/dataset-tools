@@ -2,13 +2,15 @@ import os
 import random
 from typing import Union
 
+import cv2
 import numpy as np
 from tqdm import tqdm
 
 import supervisely as sly
+from supervisely.imaging import font as sly_font
 
 
-class SideAnnotationsGrid:
+class HorizontalGrid:
     def __init__(
         self,
         project: Union[str, int],
@@ -32,7 +34,6 @@ class SideAnnotationsGrid:
         self._all_image_infos = []
         self._all_anns = []
         self.np_images = []
-        self.original_masks = []
         self._grid = None
 
         self._local = False if isinstance(project, int) else True
@@ -49,24 +50,35 @@ class SideAnnotationsGrid:
         random.shuffle(join_data)
         with tqdm(desc="Downloading images", total=cnt) as p:
             for ds, img_info, ann in join_data[:cnt]:
+                ann: sly.Annotation
                 self._all_image_infos.append(img_info)
                 self._all_anns.append(ann)
-                self.np_images.append(
+                img = (
                     sly.image.read(ds.get_img_path(img_info.name))
                     if self._local
                     else self._api.image.download_np(img_info.id)
                 )
-                self.original_masks.append(self._draw_masks_on_single_image(ann, img_info))
-
                 p.update(1)
+                ann.draw_pretty(img, thickness=0, opacity=0.3)
+                for label in ann.labels:
+                    bbox = label.geometry.to_bbox()
+                    cv2.rectangle(
+                        img,
+                        (bbox.left, bbox.top),
+                        (bbox.right, bbox.bottom),
+                        color=label.obj_class.color,
+                        thickness=2,
+                    )
+                    font_size = int(sly_font.get_readable_font_size(img.shape[:2]) * 1.4)
+                    font = sly_font.get_font(font_size=font_size)
+                    _, _, _, bottom = font.getbbox(label.obj_class.name)
+                    anchor = (bbox.top - bottom, bbox.left)
+                    sly.image.draw_text(img, label.obj_class.name, anchor, font=font)
 
-        resized_images = self._resize_images(self.np_images)
-        resized_masks = self._resize_images(self.original_masks)
+                img = self._resize_image(img)
+                self.np_images.append(img)
 
-        img = self._create_image_grid(
-            [i for pair in zip(resized_images, resized_masks) for i in pair]
-        )
-        self._grid = img
+        self._grid = self._create_image_grid(self.np_images)
 
     def to_image(self, path: str = None):
         if path is None:
@@ -78,70 +90,52 @@ class SideAnnotationsGrid:
 
     def _calculate_shapes(self):
         height = width = self._max_size
-        if self._rows > self._cols * 2:
+        if self._rows > self._cols:
             piece_h = (height - self._gap * (self._rows + 1)) // self._rows
             piece_w = int(max(1, piece_h / self._aspect_ratio))
         else:
-            piece_w = (width - self._gap * (self._cols + 1)) // (self._cols * 2)
+            piece_w = (width - self._gap * (self._cols + 1)) // (self._cols)
             piece_h = int(max(1, piece_w * self._aspect_ratio))
-
         height = (piece_h + self._gap) * self._rows + self._gap
-        width = piece_w * self._cols * 2 + self._gap * (self._cols + 1)
+        width = (piece_w + self._gap) * self._cols + self._gap
 
-        sly.logger.info(f"Result image size is ({height}, {width})")
+        sly.logger.info(f"Grid item size is (h: {piece_h}, w: {piece_w})")
         return height, width, piece_h, piece_w
-
-    def _resize_images(self, images):
-        h, w = self._piece_size
-        resized_images = []
-
-        for img in images:
-            img_h, img_w = img.shape[:2]
-            src_ratio = w / h
-            img_ratio = img_w / img_h
-            if img_ratio == src_ratio:
-                img = sly.image.resize(img, (h, w))
-            else:
-                if img_ratio < src_ratio:
-                    img_h, img_w = int((w * img_h) // img_w), w
-                else:
-                    img_h, img_w = h, int((h * img_w) // img_h)
-                img = sly.image.resize(img, (img_h, img_w))
-                crop_rect = sly.Rectangle(
-                    top=(img_h - h) // 2,
-                    left=(img_w - w) // 2,
-                    bottom=(img_h + h) // 2,
-                    right=(img_w + w) // 2,
-                )
-                img = sly.image.crop_with_padding(img, crop_rect)
-                img = sly.image.resize(img, (h, w))
-
-            resized_images.append(img)
-
-        sly.logger.info(f"{len(resized_images)} images resized to {self._piece_size}")
-        return resized_images
-
-    def _draw_masks_on_single_image(self, ann: sly.Annotation, image: sly.ImageInfo):
-        height, width = image.height, image.width
-        mask_img = np.zeros((height, width, 3), dtype=np.uint8)
-        mask_img[:, :, 0:3] = (221, 210, 230)  # rgb(221, 210, 230)
-
-        for label in ann.labels:
-            random_rgb = sly.color.random_rgb()
-            label.geometry.draw(mask_img, random_rgb, thickness=3)
-
-        return mask_img
 
     def _create_image_grid(self, images):
         img_h, img_w = images[0].shape[:2]
         num = len(images)
-        grid_h, grid_w = self._grid_size
 
-        grid = np.ones([grid_h, grid_w, 3], dtype=np.uint8) * 255
+        grid = np.ones([*self._grid_size, 3], dtype=np.uint8) * 255
 
         for idx in range(num):
-            x = (idx % (self._cols * 2)) * img_w + (idx % self._cols + 1) * self._gap
-            y = (idx // (self._cols * 2)) * img_h + (idx // (self._cols * 2) + 1) * self._gap
+            x = (idx % self._cols) * (img_w + self._gap) + self._gap
+            y = (idx // self._cols) * (img_h + self._gap) + self._gap
             grid[y : y + img_h, x : x + img_w, ...] = images[idx][:, :, ...]
 
         return grid
+
+    def _resize_image(self, image):
+        h, w = self._piece_size
+
+        img_h, img_w = image.shape[:2]
+        src_ratio = w / h
+        img_ratio = img_w / img_h
+        if img_ratio == src_ratio:
+            image = sly.image.resize(image, (h, w))
+        else:
+            if img_ratio < src_ratio:
+                img_h, img_w = int((w * img_h) // img_w), w
+            else:
+                img_h, img_w = h, int((h * img_w) // img_h)
+            image = sly.image.resize(image, (img_h, img_w))
+            crop_rect = sly.Rectangle(
+                top=(img_h - h) // 2,
+                left=(img_w - w) // 2,
+                bottom=(img_h + h) // 2,
+                right=(img_w + w) // 2,
+            )
+            image = sly.image.crop_with_padding(image, crop_rect)
+            image = sly.image.resize(image, (h, w))
+
+        return image

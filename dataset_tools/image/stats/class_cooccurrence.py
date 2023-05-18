@@ -6,7 +6,8 @@ import pandas as pd
 import supervisely as sly
 
 from dataset_tools.image.stats.basestats import BaseStats
-from supervisely.app.widgets import ConfusionMatrix
+
+# from supervisely.app.widgets import ConfusionMatrix
 
 
 class ClassCooccurrence(BaseStats):
@@ -22,6 +23,11 @@ class ClassCooccurrence(BaseStats):
         self._meta = project_meta
         self._stats = {}
 
+        self._name_to_index = {}
+
+        for idx, obj_class in enumerate(self._meta.obj_classes):
+            self._name_to_index[obj_class.name] = idx
+
         self._class_names = [cls.name for cls in project_meta.obj_classes]
         self._references = defaultdict(lambda: defaultdict(list))
 
@@ -35,7 +41,7 @@ class ClassCooccurrence(BaseStats):
 
         classes = list(classes)
         for class_ in classes:
-            idx = self._class_names.index(class_)
+            idx = self._name_to_index[class_]
             self.co_occurrence_matrix[idx][idx] += 1
             self._references[idx][idx].append(image.id)
 
@@ -43,8 +49,8 @@ class ClassCooccurrence(BaseStats):
             for j in range(i + 1, len(classes)):
                 class_i = classes[i]
                 class_j = classes[j]
-                idx_i = list(self._class_names).index(class_i)
-                idx_j = list(self._class_names).index(class_j)
+                idx_i = self._name_to_index[class_i]
+                idx_j = self._name_to_index[class_j]
                 self.co_occurrence_matrix[idx_i][idx_j] += 1
                 self.co_occurrence_matrix[idx_j][idx_i] += 1
 
@@ -52,9 +58,12 @@ class ClassCooccurrence(BaseStats):
                 self._references[idx_j][idx_i].append(image.id)
 
     def to_json(self):
-        options = {"fixColumns": 1}
+        options = {
+            "fixColumns": 1,  # not used in Web
+            "cellTooltip": "{currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
+        }
         colomns_options = [None] * (len(self._class_names) + 1)
-        colomns_options[0] = {"type": "class"}
+        colomns_options[0] = {"type": "class"}  # not used in Web
 
         for idx in range(1, len(colomns_options)):
             colomns_options[idx] = {"maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))}
@@ -65,16 +74,16 @@ class ClassCooccurrence(BaseStats):
         ]
 
         res = {
-            "columns": ["Class"] + [string.capitalize() for string in self._class_names],
+            "columns": ["Class"] + self._class_names,
             "data": data,
-            "referencesRow": self._references,
+            "referencesCell": self._references,  # row - col
             "options": options,
             "colomnsOptions": colomns_options,
         }
         return res
 
-    def get_widget(self) -> ConfusionMatrix:
-        df = pd.DataFrame(data=self.co_occurrence_matrix.tolist(), columns=self._class_names)
-        confusion_matrix = ConfusionMatrix()
-        confusion_matrix.read_pandas(df)
-        return confusion_matrix
+    # def get_widget(self) -> ConfusionMatrix:
+    #     df = pd.DataFrame(data=self.co_occurrence_matrix.tolist(), columns=self._class_names)
+    #     confusion_matrix = ConfusionMatrix()
+    #     confusion_matrix.read_pandas(df)
+    #     return confusion_matrix

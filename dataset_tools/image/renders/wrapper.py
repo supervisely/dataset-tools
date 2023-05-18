@@ -22,21 +22,25 @@ def sample_images(
         )
 
         ds_images = (
-            api.image.get_list(dataset.id)
+            api.image.get_list(
+                dataset.id,
+                filters=[{"field": "labelsCount", "operator": ">", "value": 0}],
+            )
             if isinstance(project, int)
             else [
                 dataset.get_image_info(sly.fs.get_file_name(img))
                 for img in os.listdir(dataset.ann_dir)
+                if dataset.get_image_info(sly.fs.get_file_name(img)).labels_count > 0
             ]
         )
 
         s = random.sample(ds_images, min(k, len(ds_images)))
         anns = (
             [
-                sly.Annotation.from_json(ann.annotation, meta)
-                for ann in api.annotation.get_list(
+                sly.Annotation.from_json(ann_json, meta)
+                for ann_json in api.annotation.download_json_batch(
                     dataset.id,
-                    filters=[{"field": "imageId", "operator": "in", "value": [item.id for item in s]}],
+                    [item.id for item in s],
                 )
             ]
             if isinstance(project, int)

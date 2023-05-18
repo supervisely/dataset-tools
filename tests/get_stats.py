@@ -30,23 +30,23 @@ def main():
         dtools.ClassCooccurrence(project_meta),
         dtools.ObjectsDistribution(project_meta),
         dtools.ObjectSizes(project_meta),
-        dtools.ClassSizes(project_meta),
-        dtools.ClassesHeatmaps(project_meta),
+        dtools.ClassSizes(project_meta),        
     ]
+    vstats = [dtools.ClassesHeatmaps(project_meta)]
+
     # pass project_id or project_path as a first argument
     dtools.count_stats(
         project_id,
-        stats=stats,
+        stats=stats+vstats,
         sample_rate=0.01,
     )
-    print("Saving stats...")
+    print("Saving stats and images...")
     for stat in stats:
-        if not isinstance(stat, dtools.ClassesHeatmaps):
-            with open(f"./stats/{stat.json_name}.json", "w") as f:
-                json.dump(stat.to_json(), f)
-            stat.to_image(f"./stats/{stat.json_name}.png")
-        else:
-            stat.to_image("./stats/", ["inside_white", "outside_black"])
+        with open(f"./stats/{stat.basename_stem}.json", "w") as f:
+            json.dump(stat.to_json(), f)
+        stat.to_image(f"./stats/{stat.basename_stem}.png")
+    for vis in vstats:
+        vis.to_image(f"./stats/{vis.basename_stem}.png", draw_style="outside_black")
 
 
 if __name__ == "__main__":

@@ -63,6 +63,10 @@ class Poster:
 
         self._logo_text = "logo.png"
 
+    @property
+    def render_name(self) -> None:
+        return sly.utils.camel_to_snake(self.__class__.__name__)
+
     def update(self, data: tuple):
         np_images = []
         join_data = [(ds, img, ann) for ds, list1, list2 in data for img, ann in zip(list1, list2)]
@@ -116,19 +120,19 @@ class Poster:
             img_h, img_w = img.shape[1], img.shape[0]
             src_ratio = w / h
             img_ratio = img_w / img_h
-            if img_ratio != src_ratio:
-                if img_ratio > src_ratio:
-                    img_h, img_w = int(w * img_ratio), w
-                    img = sly.image.resize_inter_nearest(img, (img_h, img_w))
-                else:
-                    img_h, img_w = h, int(h / img_ratio)
-                    img = sly.image.resize_inter_nearest(img, (img_h, img_w))
-                rect = ((img_h - h) // 2, (img_w - w) // 2, (img_h + h) // 2, (img_w + w) // 2)
-                img = sly.image.crop_with_padding(img, sly.Rectangle(*rect))
+            if img_ratio > src_ratio:
+                img_h, img_w = int(w * img_ratio), w
             else:
-                img = sly.image.resize(img, (h, w))
+                img_h, img_w = h, int(h / img_ratio)
+            img = sly.image.resize_inter_nearest(img, (img_h, img_w))
+            rect = ((img_h - h) // 2, (img_w - w) // 2, (img_h + h) // 2, (img_w + w) // 2)
+            img = sly.image.crop_with_padding(img, sly.Rectangle(*rect))
 
             rgba_image = np.zeros((img.shape[0], img.shape[1], 4), dtype=np.uint8)
+            # img = sly.image.resize(img, (h, w))
+            # rgba_image[:, :, :3] = img[
+            #     (img_h - h) // 2 : (img_h + h) // 2, (img_w - w) // 2 : (img_w + w) // 2
+            # ]
             rgba_image[:, :, :3] = img
             images[i] = rgba_image
         sly.logger.info(f"Resized {len(images)} sample images.")
