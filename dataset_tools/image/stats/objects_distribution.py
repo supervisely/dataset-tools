@@ -1,9 +1,6 @@
 from collections import defaultdict
-<<<<<<< HEAD
-=======
 
 from typing import Dict
->>>>>>> refs/remotes/origin/main
 
 import supervisely as sly
 from supervisely.app.widgets import HeatmapChart
