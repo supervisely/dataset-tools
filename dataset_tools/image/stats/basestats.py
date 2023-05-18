@@ -1,9 +1,9 @@
+from typing import Dict
+
 import dataframe_image as dfi
-import numpy as np
 import pandas as pd
 
 import supervisely as sly
-
 from supervisely._utils import camel_to_snake
 
 
@@ -11,7 +11,7 @@ class BaseStats:
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         pass
 
-    def to_json(self) -> dict:
+    def to_json(self) -> Dict:
         pass
 
     def to_pandas(self) -> pd.DataFrame:
@@ -19,12 +19,16 @@ class BaseStats:
         table = pd.DataFrame(data=json["data"], columns=json["columns"])
         return table
 
-    def to_image(self, path) -> None:
+    def to_image(self, path: str) -> None:
+        """
+        Create an image visualizing the results of statistics from a Pandas DataFrame.
+        """
         table = self.to_pandas()[:100]  # max rows == 100
         table.dfi.export(path, max_rows=-1, max_cols=-1)
 
     @property
-    def basename_stem(self) -> None:
+    def basename_stem(self) -> str:
+        """Get name of your class for your file system"""
         return camel_to_snake(self.__class__.__name__)
 
 
@@ -42,5 +46,6 @@ class BaseVisual:
         pass
 
     @property
-    def basename_stem(self) -> None:
+    def basename_stem(self) -> str:
+        """Get name of your class for your file system"""
         return camel_to_snake(self.__class__.__name__)

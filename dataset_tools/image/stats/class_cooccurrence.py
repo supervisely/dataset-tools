@@ -2,7 +2,6 @@ from collections import defaultdict
 from typing import Dict
 
 import numpy as np
-import pandas as pd
 import supervisely as sly
 
 from dataset_tools.image.stats.basestats import BaseStats
@@ -14,8 +13,8 @@ class ClassCooccurrence(BaseStats):
     """
     Columns:
         Class
-        Class 1
-        Class 2
+        class 1
+        class 2
         etc.
     """
 
@@ -34,17 +33,17 @@ class ClassCooccurrence(BaseStats):
         num_classes = len(self._class_names)
         self.co_occurrence_matrix = np.zeros((num_classes, num_classes), dtype=int)
 
-    def update(self, image: sly.ImageInfo, ann: sly.Annotation):
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         classes = set()
         for label in ann.labels:
             classes.add(label.obj_class.name)
 
-        classes = list(classes)
         for class_ in classes:
             idx = self._name_to_index[class_]
             self.co_occurrence_matrix[idx][idx] += 1
             self._references[idx][idx].append(image.id)
 
+        classes = list(classes)
         for i in range(len(classes)):
             for j in range(i + 1, len(classes)):
                 class_i = classes[i]
@@ -57,7 +56,7 @@ class ClassCooccurrence(BaseStats):
                 self._references[idx_i][idx_j].append(image.id)
                 self._references[idx_j][idx_i].append(image.id)
 
-    def to_json(self):
+    def to_json(self) -> Dict:
         options = {
             "fixColumns": 1,  # not used in Web
             "cellTooltip": "{currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
