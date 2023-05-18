@@ -28,11 +28,8 @@ side_anns_grid = dtools.SideAnnotationsGrid(project_id, project_meta)
 vertical_grid = dtools.VerticalGrid(project_id, project_meta)
 horizontal_grid = dtools.HorizontalGrid(project_path, project_meta)
 
-renderers = [
-    poster,
-    side_anns_grid,
-    horizontal_grid,
-]
+renderers = [poster, side_anns_grid, horizontal_grid, vertical_grid]
+
 dtools.prepare_renders(
     project_path,
     renderers=renderers,
@@ -44,3 +41,6 @@ poster.to_image(poster_path)
 
 side_anns_grid_path = os.path.join(sly.app.get_data_dir(), "grid_1.png")
 side_anns_grid.to_image(side_anns_grid_path)
+
+vertical_grid_path = os.path.join(sly.app.get_data_dir(), "vertical_grid.png")
+vertical_grid.to_image(vertical_grid_path)
