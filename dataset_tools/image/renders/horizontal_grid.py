@@ -28,8 +28,6 @@ class HorizontalGrid:
         self._row_width = 0
         self._side_overlay_path = side_overlay_path
 
-        self._all_image_infos = []
-        self._all_anns = []
         self.np_images = []
         self._img_array = None
         self._row_height = int((self._img_height - self._gap * (self._rows + 1)) / self._rows)
@@ -48,9 +46,6 @@ class HorizontalGrid:
         random.shuffle(join_data)
         with tqdm(desc="Downloading images", total=cnt) as p:
             for ds, img_info, ann in join_data[:cnt]:
-                ann: sly.Annotation
-                self._all_image_infos.append(img_info)
-                self._all_anns.append(ann)
                 img = (
                     sly.image.read(ds.get_img_path(img_info.name))
                     if self._local
