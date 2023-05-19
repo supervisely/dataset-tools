@@ -21,9 +21,9 @@ project_path = os.environ["LOCAL_DATA_DIR"]
 # sly.download(api, project_id, project_path, save_image_info=True, save_images=False)
 # project_meta = sly.Project(project_path, sly.OpenMode.READ).meta
 
-poster = dtools.Poster(project_path, project_meta)
-side_anns_grid = dtools.SideAnnotationsGrid(project_path, project_meta)
-horizontal_grid = dtools.HorizontalGrid(project_path, project_meta)
+poster = dtools.Poster(project_id, project_meta)
+side_anns_grid = dtools.SideAnnotationsGrid(project_id, project_meta)
+horizontal_grid = dtools.HorizontalGrid(project_id, project_meta)
 
 renderers = [
     poster,
@@ -31,7 +31,7 @@ renderers = [
     horizontal_grid,
 ]
 dtools.prepare_renders(
-    project_path,
+    project_id,
     renderers=renderers,
     sample_cnt=40,
 )
