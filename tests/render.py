@@ -30,6 +30,10 @@ renderers = [
     side_anns_grid,
     horizontal_grid,
 ]
+
+animations = [
+    horizontal_grid,
+]
 dtools.prepare_renders(
     project_id,
     renderers=renderers,
@@ -38,3 +42,6 @@ dtools.prepare_renders(
 
 for r in renderers:
     r.to_image(f"./render_results/{r.basename_stem}.png")
+
+for a in animations:
+    a.to_gif(f"./render_results/{a.basename_stem}.gif")
