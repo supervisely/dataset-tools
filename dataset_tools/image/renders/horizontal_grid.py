@@ -7,6 +7,7 @@ import numpy as np
 from tqdm import tqdm
 
 import supervisely as sly
+from supervisely.imaging import font as sly_font
 
 
 class HorizontalGrid:
@@ -54,6 +55,22 @@ class HorizontalGrid:
                 p.update(1)
 
                 ann.draw_pretty(img, thickness=0, opacity=0.7)
+                for label in ann.labels:
+                    if label.obj_class.name == "neutral":
+                        continue
+                    bbox = label.geometry.to_bbox()
+                    cv2.rectangle(
+                        img,
+                        (bbox.left, bbox.top),
+                        (bbox.right, bbox.bottom),
+                        color=label.obj_class.color,
+                        thickness=2,
+                    )
+                    font_size = int(sly_font.get_readable_font_size(img.shape[:2]) * 1.4)
+                    font = sly_font.get_font(font_size=font_size)
+                    _, _, _, bottom = font.getbbox(label.obj_class.name)
+                    anchor = (bbox.top - bottom, bbox.left)
+                    sly.image.draw_text(img, label.obj_class.name, anchor, font=font)
                 img = self._resize_image(img)
                 self.np_images.append(img)
 
