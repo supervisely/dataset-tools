@@ -26,7 +26,17 @@ side_anns_grid = dtools.SideAnnotationsGrid(project_id, project_meta)
 vertical_grid = dtools.VerticalGrid(project_id, project_meta)
 horizontal_grid = dtools.HorizontalGrid(project_path, project_meta)
 
-renderers = [poster, side_anns_grid, horizontal_grid, vertical_grid]
+renderers = [
+    poster,
+    side_anns_grid,
+    horizontal_grid,
+    vertical_grid,
+]
+
+animations = [
+    horizontal_grid,
+    vertical_grid,
+]
 
 dtools.prepare_renders(
     project_id,
@@ -36,3 +46,6 @@ dtools.prepare_renders(
 
 for r in renderers:
     r.to_image(f"./render_results/{r.basename_stem}.png")
+
+for a in animations:
+    a.to_gif(f"./render_results/{a.basename_stem}.gif")
