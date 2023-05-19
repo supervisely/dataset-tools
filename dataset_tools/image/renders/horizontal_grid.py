@@ -89,7 +89,7 @@ class HorizontalGrid:
             path = os.path.join(storage_dir, "horizontal_grid.png")
 
         self._img_array = self._merge_canvas_with_images(self.np_images)
-        self._img_array = self._add_overlay_with_logo(self._img_array)
+        self._add_overlay_with_logo(self._img_array)
         sly.image.write(path, self._img_array)
         sly.logger.info(f"Result grid saved to: {path}")
 
@@ -99,7 +99,7 @@ class HorizontalGrid:
 
         canvas = np.ones([self._img_height, self._row_width, channels], dtype=np.uint8) * 255
         for i, image in enumerate(rows):
-            if image.shape[1] > canvas.shape[1]:
+            if image.shape[1] > canvas.shape[1] - self._gap:
                 image = image[:, : canvas.shape[1] - self._gap]
 
             row_start = i * (self._row_height + self._gap) + self._gap
@@ -114,7 +114,7 @@ class HorizontalGrid:
         num_images = len(images)
         image_widths = [image.shape[1] for image in images]
 
-        one_big_row_width = sum(image_widths) + (num_images - 1) * self._gap
+        one_big_row_width = sum(image_widths[: -self._rows]) + (num_images - 1) * self._gap
         self._row_width = one_big_row_width // self._rows
 
         rows = []
@@ -122,15 +122,13 @@ class HorizontalGrid:
         current_width = 0
 
         for image, width in zip(images, image_widths):
-            if current_width + width > self._row_width:
-                row_images.append(image)
+            row_images.append(image)
+            current_width += width + self._gap
+            if current_width > self._row_width:
                 rows.append(row_images)
 
                 row_images = []
                 current_width = 0
-
-            row_images.append(image)
-            current_width += width + self._gap
 
         if len(rows) == self._rows:
             return rows
@@ -179,7 +177,6 @@ class HorizontalGrid:
         image[:height2, x : x + width2, :3] = (
             1 - alpha_channel[:, :, np.newaxis]
         ) * region + alpha_channel[:, :, np.newaxis] * image2[:, :, :3]
-        return image
 
     def to_gif(self, path: str = None):
         bg = self._merge_canvas_with_images(self.np_frames, 4)
