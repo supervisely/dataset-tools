@@ -23,17 +23,21 @@ project_path = os.environ["LOCAL_DATA_DIR"]
 
 poster = dtools.Poster(project_id, project_meta)
 side_anns_grid = dtools.SideAnnotationsGrid(project_id, project_meta)
-horizontal_grid = dtools.HorizontalGrid(project_id, project_meta)
+vertical_grid = dtools.VerticalGrid(project_id, project_meta)
+horizontal_grid = dtools.HorizontalGrid(project_path, project_meta)
 
 renderers = [
     poster,
     side_anns_grid,
     horizontal_grid,
+    vertical_grid,
 ]
 
 animations = [
     horizontal_grid,
+    vertical_grid,
 ]
+
 dtools.prepare_renders(
     project_id,
     renderers=renderers,
