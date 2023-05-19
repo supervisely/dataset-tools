@@ -179,7 +179,7 @@ class Poster:
         l, t, r, b = font.getbbox(text)
         title_w, title_h = r - l, b
         while title_w > poster_w * 0.9:
-            font.font_variant(size=int(font.size * 0.96))
+            font = font.font_variant(size=int(font.size * 0.96))
             l, t, r, b = font.getbbox(text)
             title_w, title_h = r - l, b
         title_x, title_y = (poster_w - title_w) // 2, (poster_h - title_h) // 2
