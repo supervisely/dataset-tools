@@ -4,7 +4,6 @@ from typing import List, Union
 
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw
 from tqdm import tqdm
 
 import supervisely as sly
@@ -48,7 +47,7 @@ class Poster:
         else:
             raise Exception('Parameter "project" has to be one of `int` or `str` types.')
 
-        self._size = (540, 960)
+        self._size = (1080, 1960)
         self._GAP = 20
         self._size_line_1 = (
             (self._size[0] - 3 * self._GAP) // 5 * 3,
@@ -61,10 +60,10 @@ class Poster:
 
         self._poster = np.ones((*self._size, 4), dtype=np.uint8) * 255  # result poster
 
-        self._logo_text = "logo.png"
+        self._logo_path = "logo.png"
 
     @property
-    def render_name(self) -> None:
+    def basename_stem(self) -> None:
         return sly.utils.camel_to_snake(self.__class__.__name__)
 
     def update(self, data: tuple):
@@ -87,24 +86,29 @@ class Poster:
                     else self._api.image.download_np(img_info.id)
                 )
 
-                if len(np_images) % 2 == 0:
-                    h, w = np_img.shape[:2]
-                    background = np.ones((h, w, 3), dtype=np.uint8) * 255
-                    alpha = 0.5
-                    np_img = cv2.addWeighted(background, 1 - alpha, np_img, alpha, 0)
-                    ann.draw_pretty(np_img, thickness=0, opacity=0.3)
-                else:
-                    thickness = 7 if len(np_images) < 3 else 9
-                    ann.draw_contour(np_img, color=[253, 69, 133], thickness=thickness)
+                h, w = np_img.shape[:2]
+                background = np.ones((h, w, 3), dtype=np.uint8) * 255
+                ann.draw_pretty(np_img, thickness=0, opacity=0.7)
+                np_img = cv2.addWeighted(np_img, 0.8, background, 0.2, 0)
 
-                np_images.append(np_img)
+                # backup
+                # if len(np_images) % 2 == 0:
+                #     h, w = np_img.shape[:2]
+                #     background = np.ones((h, w, 3), dtype=np.uint8) * 255
+                #     alpha = 0.5
+                #     np_img = cv2.addWeighted(background, 1 - alpha, np_img, alpha, 0)
+                #     ann.draw_pretty(np_img, thickness=0, opacity=0.6)
+                # else:
+                #     ann: sly.Annotation
+                #     thickness = 3
+                #     ann.draw_contour(np_img, thickness=thickness)
+
+                np_images.append(self._resize_image(np_img, i))
                 i += 1
                 pbar.update(1)
 
-        self._resize_images(np_images)
         self._create_frame(np_images)
         self._draw_text_and_bboxes()
-        self._put_watermark(self._logo_text)
 
     def to_image(self, path: str = None):
         if path is None:
@@ -114,97 +118,134 @@ class Poster:
         sly.image.write(path, self._poster)
         sly.logger.info(f"Poster saved to: {path}")
 
-    def _resize_images(self, images):
-        for i, img in enumerate(images):
-            h, w = (self._size_line_1) if i < 3 else (self._size_line_2)
-            img_h, img_w = img.shape[1], img.shape[0]
-            src_ratio = w / h
-            img_ratio = img_w / img_h
-            if img_ratio > src_ratio:
-                img_h, img_w = int(w * img_ratio), w
-            else:
-                img_h, img_w = h, int(h / img_ratio)
-            img = sly.image.resize_inter_nearest(img, (img_h, img_w))
-            rect = ((img_h - h) // 2, (img_w - w) // 2, (img_h + h) // 2, (img_w + w) // 2)
-            img = sly.image.crop_with_padding(img, sly.Rectangle(*rect))
+    def _resize_image(self, image: np.ndarray, image_num: int):
+        h, w = self._size_line_1 if image_num < 3 else self._size_line_2
+        img_h, img_w = image.shape[:2]
+        scale_ratio = max(h / img_h, w / img_w)
+        img_h, img_w = int(img_h * scale_ratio), int(img_w * scale_ratio)
+        image = sly.image.resize(image, (img_h, img_w))
+        start_h = (img_h - h) // 2
+        start_w = (img_w - w) // 2
+        rect = (start_h, start_w, start_h + h, start_w + w)
+        image = sly.image.crop_with_padding(image, sly.Rectangle(*rect))
 
-            rgba_image = np.zeros((img.shape[0], img.shape[1], 4), dtype=np.uint8)
-            # img = sly.image.resize(img, (h, w))
-            # rgba_image[:, :, :3] = img[
-            #     (img_h - h) // 2 : (img_h + h) // 2, (img_w - w) // 2 : (img_w + w) // 2
-            # ]
-            rgba_image[:, :, :3] = img
-            images[i] = rgba_image
-        sly.logger.info(f"Resized {len(images)} sample images.")
+        rgba_image = np.zeros((h, w, 4), dtype=np.uint8)
+        rgba_image[:h, :w, :3] = image[:h, :w, :3]
+        return rgba_image
 
     def _draw_text_and_bboxes(self):
         base_font_size = sly_font.get_readable_font_size(self._size)
-        fonts = [
-            sly_font.get_font(font_size=int(base_font_size * 6)),  # title
-            sly_font.get_font(font_size=int(base_font_size * 1.5)),  # images count
-            sly_font.get_font(font_size=int(base_font_size * 1.3)),  # classes count
-            sly_font.get_font(font_size=int(base_font_size * 1)),  # labels count
-        ]
-        texts = self._get_text_from_project()
+        font_name_title = "FiraSans-Regular.ttf"
+        font_name_subs = "FiraSans-Thin.ttf"
+        font_title = sly_font.get_font(font_name_title, int(base_font_size * 6))
+        font_subs = sly_font.get_font(font_name_subs, int(base_font_size * 1.8))
+        title, *subs = self._get_text_from_project()
+        _, _, _, subs_height = font_subs.getbbox("".join(subs))
 
-        h, w = self._size
+        poster_h, poster_w = self._size
 
-        bg_image = np.zeros((h, w, 3), dtype=np.uint8)
+        bg_image = np.zeros((poster_h, poster_w, 3), dtype=np.uint8)
 
-        def _get_text_bbox(text, font):
-            if text is None:
-                return None
-            left, top, right, bottom = font.getbbox(text)
-            text_w, text_h = right - left, bottom
-            while text_w > w * 0.9:
-                font_size *= 0.96
-                left, top, right, bottom = font.getbbox(text)
-                text_w, text_h = right - left, bottom
-            return text_w, text_h
+        title_bottom = self._draw_title(bg_image, font_title, title)
 
-        text_sizes = [_get_text_bbox(t, f) for t, f in zip(texts, fonts)]
+        sub_imgs = [self._draw_subtitles(font_subs, text, subs_height) for text in subs]
+        logo = self._draw_logo(subs_height)
 
-        x1, y1 = (w - text_sizes[0][0]) // 2, (h - text_sizes[0][1]) // 2
-        text_coords = [
-            (x1, y1),
-            (x1, (y1 - text_sizes[1][1])),
-            (x1 + text_sizes[0][0] - text_sizes[2][0], (y1 - text_sizes[2][1])),
-        ]
-        if text_sizes[3] is not None:
-            text_coords.append((w // 2 - text_sizes[3][0], (y1 + text_sizes[0][1])))
+        image = np.hstack(sub_imgs)
 
-        bg_image = self._gradient(bg_image, x1, 0, x1 + text_sizes[0][0], h)
+        subs_h, subs_w = image.shape[:2]
+        subs_x = (poster_w - subs_w - logo.shape[1]) // 2
+        subs_y = title_bottom + self._GAP
 
-        for idx, (t, c, s, f) in enumerate(zip(texts, text_coords, text_sizes, fonts)):
-            if c is False:
-                continue
-            left, top, right, bottom = c[0], c[1], c[0] + s[0], c[1] + s[1]
-            if idx == 0:
-                offset = self._GAP // 5
-                bg_image[top + offset : bottom - offset, left + offset : right - offset] = 255
-            offs_x = (right - left - f.getlength(t)) // 2
-            offs_y = f.getbbox(t)[1] // 2
-            sly.image.draw_text(
-                bg_image, t, (top - offs_y, left + offs_x), font=f, fill_background=False
-            )
+        bg = bg_image[subs_y : subs_y + subs_h, subs_x : subs_x + subs_w, :3]
+        alpha_channel = image[:, :, 3]
+        text_image_bw = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
+        _, text_mask = cv2.threshold(text_image_bw, 1, 255, cv2.THRESH_BINARY)
+        inverse_text_mask = cv2.bitwise_not(text_mask)
+        background_masked = cv2.bitwise_and(bg, bg, mask=inverse_text_mask)
+        text_image_alpha = cv2.merge(
+            (image[:, :, 0], image[:, :, 1], image[:, :, 2], alpha_channel)
+        )
+        text_image_alpha = cv2.cvtColor(text_image_alpha, cv2.COLOR_BGRA2BGR)
+        result = cv2.add(background_masked, text_image_alpha)
+        result = np.hstack([result, logo])
 
-            self._poster[top:bottom, left:right, :3] = bg_image[top:bottom, left:right, :3]
+        h, w = result.shape[:2]
+        cv2.rectangle(result, (0, 0), (w - 1, h - 1), (255, 255, 255), 2)
+        self._poster[subs_y : subs_y + h, subs_x : subs_x + w, :3] = result
+
+    def _draw_title(self, image, font, text):
+        poster_h, poster_w = self._size
+        l, t, r, b = font.getbbox(text)
+        title_w, title_h = r - l, b
+        while title_w > poster_w * 0.9:
+            font = font.font_variant(size=int(font.size * 0.96))
+            l, t, r, b = font.getbbox(text)
+            title_w, title_h = r - l, b
+        title_x, title_y = (poster_w - title_w) // 2, (poster_h - title_h) // 2
+        left, top, right, bottom = title_x, title_y, title_x + title_w, title_y + title_h
+
+        image = self._gradient(image, title_x, 0, title_x + title_w, poster_h)
+        p = self._GAP // 3
+        image[top + p : bottom - p, left + p : right - p] = 255
+
+        sly.image.draw_text(
+            image,
+            text,
+            (top - t // 2, left),
+            font=font,
+            fill_background=False,
+            color=(0, 0, 0, 210),
+        )
+
+        self._poster[top:bottom, left:right, :3] = image[top:bottom, left:right, :3]
+        return bottom + p
+
+    def _draw_subtitles(self, font, text, height):
+        _, t, r, _ = font.getbbox(text)
+        pad = self._GAP // 4
+        w = r + self._GAP
+        image = np.zeros((height, w, 4), dtype=np.uint8)
+        sly.image.draw_text(
+            image,
+            text,
+            (-t // 2, pad * 2),
+            font=font,
+            fill_background=False,
+            color=(255, 255, 255, 128),
+        )
+        image[:, r + 3 * pad :, :3] = 255
+        return image
+
+    def _draw_logo(self, height):
+        logo = sly.image.read(self._logo_path)
+        logo_h, logo_w = logo.shape[:2]
+        scale_factor = height / logo_h
+        logo_h, logo_w = height, int(logo_w * scale_factor)
+
+        logo = sly.image.resize(logo, (logo_h, logo_w))
+        image = np.zeros((logo_h, logo_w, 4), dtype=np.uint8)
+        image[:, :, :3] = logo[:, :, :3]
+        return logo
 
     def _get_text_from_project(self):
-        title = (
+        texts = []
+        texts.append(
             self._project.name.upper()
             if len(self._project.name.split(" ")) < 4
             else " ".join(self._project.name.split(" ")[:3]).upper()
         )
-        images_text = f"{self._items_count} IMAGES"
-        classes_text = f"{len(self._project_meta.obj_classes)} CLASSES"
-        labels_text = f"{self._total_labels} LABELS" if self._total_labels else None
 
-        return title, images_text, classes_text, labels_text
+        texts.append(f"{self._items_count} IMAGES")
+        texts.append(f"{len(self._project_meta.obj_classes)} CLASSES")
+        if self._total_labels:
+            texts.append(f"{self._total_labels} LABELS")
+
+        return texts
 
     def _gradient(self, img, left, top, right, bottom):
-        c1 = np.array((210, 95, 144))  # rgb (253, 69, 133)
-        c2 = np.array((234, 197, 77))  # (254, 208, 0)
+        c1 = np.array((225, 181, 62))  # rgb
+        c2 = np.array((219, 84, 150))  # rgb
         im = np.zeros((bottom - top, right - left, 3), dtype=np.uint8)
         row = np.linspace(0, 1, right - left)
         kernel_1d = np.tile(row, (bottom - top, 1))
@@ -216,6 +257,8 @@ class Poster:
 
     def _create_frame(self, images: List[np.ndarray]):
         x, y = self._GAP, self._GAP
+        x_end, y_end = x, y
+
         for img in images[:3]:
             x_end, y_end = x + img.shape[1], y + img.shape[0]
             self._poster[y:y_end, x:x_end] = img
@@ -223,37 +266,8 @@ class Poster:
 
         y = y_end + self._GAP
         x = self._GAP
+
         for img in images[3:]:
             x_end, y_end = x + img.shape[1], y + img.shape[0]
             self._poster[y:y_end, x:x_end] = img
             x = x_end + self._GAP
-
-    def _put_watermark(self, path):
-        img = sly.image.read(path)
-        poster_h, poster_w = self._size
-
-        # resize logo to poster size
-        mark_w = int(self._size_line_2[0] * 0.9)
-        mark_h = mark_w * img.shape[0] // img.shape[1]
-        img = cv2.resize(img, (mark_w, mark_h), interpolation=cv2.INTER_NEAREST)
-        # img = sly.image.resize_inter_nearest(img, (mark_h, mark_w))
-        img_h, img_w = img.shape[:2]
-
-        # calculate coords
-        offset_x = (self._size_line_2[1] - img_w) // 2
-        x = 3 * self._size_line_2[1] + 4 * self._GAP + offset_x
-        y = int(poster_h - 1.2 * self._GAP - img_h)
-
-        # add logo
-        logo = np.zeros((poster_h, poster_w, 4), dtype=np.uint8)
-        logo[y : y + img_h, x : x + img.shape[1], :3] = img[:, :, :3]
-        logo[y : y + img_h, x : x + img.shape[1], 3] = 255
-
-        self._poster = cv2.addWeighted(self._poster, 0.9, logo, 0.5, 0)
-
-        # or
-        # background = Image.fromarray(self._poster, mode="RGBA")
-        # overlay = Image.fromarray(logo, mode="RGBA")
-        # overlay = overlay.resize(background.size)
-        # new_image = Image.blend(background, overlay, alpha=0.15)
-        # self._poster = np.array(new_image, dtype=np.uint8)

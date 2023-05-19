@@ -2,6 +2,7 @@ import os
 import random
 from typing import Union
 
+import cv2
 import numpy as np
 from tqdm import tqdm
 
@@ -16,30 +17,27 @@ class SideAnnotationsGrid:
         api: sly.Api = None,
         rows: int = 3,
         cols: int = 3,
+        side_overlay_path: str = "side_logo_overlay.png",
     ):
         self.project_meta = project_meta
 
-        self._max_size = 1920
+        self._img_height = 1080
         self._rows = rows
         self._cols = cols
-        self._aspect_ratio = 9 / 16
+        self._row_width = 0
         self._gap = 15
-
-        height, width, piece_h, piece_w = self._calculate_shapes()
-        self._grid_size = (height, width)
-        self._piece_size = (piece_h, piece_w)
-
-        self._all_image_infos = []
-        self._all_anns = []
-        self.np_images = []
-        self.original_masks = []
-        self._grid = None
+        self._bg_color = (221, 210, 230)  # rgb(221, 210, 230)
+        self._side_overlay_path = side_overlay_path
 
         self._local = False if isinstance(project, int) else True
         self._api = api if api is not None else sly.Api.from_env()
 
+        self.np_images = []
+        self._img_array = None
+        self._row_height = int((self._img_height - self._gap * (self._rows + 1)) / self._rows)
+
     @property
-    def render_name(self) -> None:
+    def basename_stem(self) -> None:
         return sly.utils.camel_to_snake(self.__class__.__name__)
 
     def update(self, data: tuple):
@@ -49,99 +47,120 @@ class SideAnnotationsGrid:
         random.shuffle(join_data)
         with tqdm(desc="Downloading images", total=cnt) as p:
             for ds, img_info, ann in join_data[:cnt]:
-                self._all_image_infos.append(img_info)
-                self._all_anns.append(ann)
-                self.np_images.append(
+                img = (
                     sly.image.read(ds.get_img_path(img_info.name))
                     if self._local
                     else self._api.image.download_np(img_info.id)
                 )
-                self.original_masks.append(self._draw_masks_on_single_image(ann, img_info))
+                mask = self._draw_masks_on_single_image(ann, img_info)
+
+                img = self._resize_image(img)
+                mask = self._resize_image(mask)
+                join_image = np.hstack([img, mask])
+                self.np_images.append(join_image)
 
                 p.update(1)
-
-        resized_images = self._resize_images(self.np_images)
-        resized_masks = self._resize_images(self.original_masks)
-
-        img = self._create_image_grid(
-            [i for pair in zip(resized_images, resized_masks) for i in pair]
-        )
-        self._grid = img
-
-    def to_image(self, path: str = None):
-        if path is None:
-            storage_dir = sly.app.get_data_dir()
-            sly.fs.clean_dir(storage_dir)
-            path = os.path.join(storage_dir, "separated_images_grid.jpeg")
-        sly.image.write(path, self._grid)
-        sly.logger.info(f"Result grid saved to: {path}")
-
-    def _calculate_shapes(self):
-        height = width = self._max_size
-        if self._rows > self._cols * 2:
-            piece_h = (height - self._gap * (self._rows + 1)) // self._rows
-            piece_w = int(max(1, piece_h / self._aspect_ratio))
-        else:
-            piece_w = (width - self._gap * (self._cols + 1)) // (self._cols * 2)
-            piece_h = int(max(1, piece_w * self._aspect_ratio))
-
-        height = (piece_h + self._gap) * self._rows + self._gap
-        width = piece_w * self._cols * 2 + self._gap * (self._cols + 1)
-
-        sly.logger.info(f"Result image size is ({height}, {width})")
-        return height, width, piece_h, piece_w
-
-    def _resize_images(self, images):
-        h, w = self._piece_size
-        resized_images = []
-
-        for img in images:
-            img_h, img_w = img.shape[:2]
-            src_ratio = w / h
-            img_ratio = img_w / img_h
-            if img_ratio == src_ratio:
-                img = sly.image.resize(img, (h, w))
-            else:
-                if img_ratio < src_ratio:
-                    img_h, img_w = int((w * img_h) // img_w), w
-                else:
-                    img_h, img_w = h, int((h * img_w) // img_h)
-                img = sly.image.resize(img, (img_h, img_w))
-                crop_rect = sly.Rectangle(
-                    top=(img_h - h) // 2,
-                    left=(img_w - w) // 2,
-                    bottom=(img_h + h) // 2,
-                    right=(img_w + w) // 2,
-                )
-                img = sly.image.crop_with_padding(img, crop_rect)
-                img = sly.image.resize(img, (h, w))
-
-            resized_images.append(img)
-
-        sly.logger.info(f"{len(resized_images)} images resized to {self._piece_size}")
-        return resized_images
 
     def _draw_masks_on_single_image(self, ann: sly.Annotation, image: sly.ImageInfo):
         height, width = image.height, image.width
         mask_img = np.zeros((height, width, 3), dtype=np.uint8)
-        mask_img[:, :, 0:3] = (221, 210, 230)  # rgb(221, 210, 230)
+        mask_img[:, :, 0:3] = self._bg_color  # rgb(221, 210, 230)
 
         for label in ann.labels:
-            random_rgb = sly.color.random_rgb()
-            label.geometry.draw(mask_img, random_rgb, thickness=3)
+            label.geometry.draw(mask_img, color=label.obj_class.color, thickness=3)
 
         return mask_img
 
-    def _create_image_grid(self, images):
-        img_h, img_w = images[0].shape[:2]
-        num = len(images)
-        grid_h, grid_w = self._grid_size
+    def to_image(self, path: str = None):
+        if path is None:
+            storage_dir = sly.app.get_data_dir()
+            path = os.path.join(storage_dir, "horizontal_grid.png")
+        self._merge_canvas_with_images()
+        self._add_overlay_with_logo()
+        sly.image.write(path, self._img_array)
+        sly.logger.info(f"Result grid saved to: {path}")
 
-        grid = np.ones([grid_h, grid_w, 3], dtype=np.uint8) * 255
+    def _create_image_canvas(self):
+        self._img_array = np.ones([self._img_height, self._row_width, 3], dtype=np.uint8) * 255
 
-        for idx in range(num):
-            x = (idx % (self._cols * 2)) * img_w + (idx % self._cols + 1) * self._gap
-            y = (idx // (self._cols * 2)) * img_h + (idx // (self._cols * 2) + 1) * self._gap
-            grid[y : y + img_h, x : x + img_w, ...] = images[idx][:, :, ...]
+    def _merge_canvas_with_images(self):
+        rows = self._create_rows()
+        self._create_image_canvas()
+        rows = self._merge_img_in_rows(rows)
+        for i, image in enumerate(rows):
+            if image.shape[1] > self._img_array.shape[1]:
+                image = image[:, : self._img_array.shape[1] - self._gap]
 
-        return grid
+            row_start = i * (self._row_height + self._gap) + self._gap
+            row_end = row_start + self._row_height
+            column_start = self._gap
+            column_end = self._img_array.shape[1]
+
+            self._img_array[row_start:row_end, column_start:column_end] = image
+
+    def _create_rows(self):
+        num_images = len(self.np_images)
+        image_widths = [image.shape[1] for image in self.np_images]
+
+        one_big_row_width = sum(image_widths) + (num_images - 1) * self._gap
+        self._row_width = one_big_row_width // self._rows
+
+        rows = []
+        row_images = []
+        current_width = 0
+
+        for image, width in zip(self.np_images, image_widths):
+            if current_width + width > self._row_width:
+                row_images.append(image)
+                rows.append(row_images)
+
+                row_images = []
+                current_width = 0
+
+            row_images.append(image)
+            current_width += width + self._gap
+
+        if len(rows) == self._rows:
+            return rows
+        return rows
+
+    def _merge_img_in_rows(self, rows):
+        combined_rows = []
+        separator = np.ones((self._row_height, 15, 3), dtype=np.uint8) * 255
+        for row in rows:
+            combined_images = []
+
+            for image in row:
+                combined_images.append(image)
+                combined_images.append(separator)
+            combined_images.pop()
+            combined_image = np.hstack(combined_images)
+            combined_rows.append(combined_image)
+
+        return combined_rows
+
+    def _resize_image(self, image):
+        img_h, img_w = image.shape[:2]
+        img_aspect_ratio = self._row_height / img_h
+        img_h = int(self._row_height)
+        img_w = int(img_aspect_ratio * img_w)
+
+        image = sly.image.resize(image, (img_h, img_w))
+
+        return image
+
+    def _add_overlay_with_logo(self):
+        image2 = cv2.imread(self._side_overlay_path, cv2.IMREAD_UNCHANGED)
+        image2 = cv2.cvtColor(image2, cv2.COLOR_BGRA2RGBA)
+
+        _, width1 = self._img_array.shape[:2]
+        height2, width2 = image2.shape[:2]
+
+        alpha_channel = image2[:, :, 3] / 255.0
+
+        x = width1 - width2
+
+        region = self._img_array[:height2, x : x + width2]
+        self._img_array[:height2, x : x + width2, :3] = (
+            1 - alpha_channel[:, :, np.newaxis]
+        ) * region + alpha_channel[:, :, np.newaxis] * image2[:, :, :3]

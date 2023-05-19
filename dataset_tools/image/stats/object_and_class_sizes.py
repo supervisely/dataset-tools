@@ -9,6 +9,7 @@ from dataset_tools.image.stats.basestats import BaseStats
 class ObjectSizes(BaseStats):
     """
     Columns:
+        Object ID
         Class
         Dataset ID
         Image name
@@ -17,7 +18,6 @@ class ObjectSizes(BaseStats):
         Height %
         Width px
         Width %
-        Area px
         Area %
     """
 
@@ -27,11 +27,7 @@ class ObjectSizes(BaseStats):
         if datasets is not None:
             self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
         self._stats = []
-
-        self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
-        self._counters = defaultdict(int)
-        for class_title in self._class_titles:
-            self._counters[class_title] = 1
+        self._object_id = 1
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         image_height, image_width = ann.img_size
@@ -40,12 +36,12 @@ class ObjectSizes(BaseStats):
             if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
                 continue
 
-            class_title = label.obj_class.name
-            object_number = self._counters[class_title]
-            self._counters[class_title] += 1
+            object_id = self._object_id
+            self._object_id += 1
 
             object_data = {
-                "object_name": f"{class_title} #{object_number}",
+                "object_id": object_id,
+                "class": label.obj_class.name,
                 "image_name": image.name,
             }
 
@@ -59,11 +55,17 @@ class ObjectSizes(BaseStats):
 
             object_data = list(object_data.values())
 
-            self._stats.append(object_data)
+            self._stats.append((object_data, [image.id]))
 
     def to_json(self) -> Dict:
+        options = {
+            "fixColumns": 2,
+            "sort": {"columnIndex": 0, "order": "asc"},
+        }
+
         columns = [
-            "Object",
+            "Object ID",
+            "Class",
             "Image name",
             "Image size",
             "Height",
@@ -71,34 +73,37 @@ class ObjectSizes(BaseStats):
             "Width",
             "Width",
             "Area",
-            "Area",
         ]
 
         columns_options = [
-            {},
-            {},
-            {},
+            {"tooltip": "ID of the object in instance"},
+            {"type": "class"},
+            {"subtitle": "click row to open the image"},
+            {"subtitle": "height x width"},
             {"postfix": "px"},
             {"postfix": "%"},
             {"postfix": "px"},
             {"postfix": "%"},
-            {"postfix": "px"},
             {"postfix": "%"},
         ]
 
         if self._dataset_id_to_name:
-            columns.insert(2, "Split")
+            columns.insert(3, "Split")
             columns_options.insert(
-                2,
+                3,
                 {
                     "subtitle": "folder name",
                 },
             )
 
+        data, references_row = zip(*self._stats)
+
         res = {
             "columns": columns,
             "columnsOptions": columns_options,
-            "data": self._stats,
+            "data": data,
+            "options": options,
+            "referencesRow": references_row,
         }
 
         return res
@@ -236,23 +241,23 @@ class ClassSizes(BaseStats):
                 "Avg area",
             ],
             "columnsOptions": [
+                {"type": "class"},
                 {},
-                {},
                 {"postfix": "px"},
-                {"postfix": "%"},
+                {"postfix": "%", "tooltip": "Minimum object height in percents of image height."},
                 {"postfix": "px"},
-                {"postfix": "%"},
+                {"postfix": "%", "tooltip": "Maximum object height in percents of image height."},
                 {"postfix": "px"},
-                {"postfix": "%"},
+                {"postfix": "%", "tooltip": "Average object height in percents of image height."},
                 {"postfix": "px"},
-                {"postfix": "%"},
+                {"postfix": "%", "tooltip": "Minimum object width in percents of image width."},
                 {"postfix": "px"},
-                {"postfix": "%"},
+                {"postfix": "%", "tooltip": "Maximum object width in percents of image width."},
                 {"postfix": "px"},
-                {"postfix": "%"},
-                {"postfix": "%"},
-                {"postfix": "%"},
-                {"postfix": "%"},
+                {"postfix": "%", "tooltip": "Average object width in percents of image width."},
+                {"postfix": "%", "tooltip": "Minimum object area in percents of all image."},
+                {"postfix": "%", "tooltip": "Maximum object area in percents of all image."},
+                {"postfix": "%", "tooltip": "Average object area in percents of all image."},
             ],
             "data": stats,
             "options": options,
@@ -280,6 +285,5 @@ def calculate_obj_sizes(label: sly.Label, image_height: int, image_width: int) -
         "height_pc": height_pc,
         "width_px": width_px,
         "width_pc": width_pc,
-        "area_px": area_px,
         "area_pc": area_pc,
     }
