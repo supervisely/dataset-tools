@@ -49,7 +49,7 @@ class ObjectSizes(BaseStats):
                 dataset_name = self._dataset_id_to_name[image.dataset_id]
                 object_data["dataset_name"] = dataset_name
 
-            object_data["image_size_hw"] = f"{image_height}x{image_width}"
+            object_data["image_size_hw"] = f"{image_height} x {image_width}"
 
             object_data.update(calculate_obj_sizes(label, image_height, image_width))
 
@@ -78,7 +78,7 @@ class ObjectSizes(BaseStats):
         columns_options = [
             {"tooltip": "ID of the object in instance"},
             {"type": "class"},
-            {"subtitle": "click row to open the image"},
+            {"subtitle": "click row to open"},
             {"subtitle": "height x width"},
             {"postfix": "px"},
             {"postfix": "%"},
@@ -184,7 +184,6 @@ class ClassSizes(BaseStats):
                 "max_height_pc": max(class_heights_pc[class_title]),
                 "avg_height_px": round(
                     sum(class_heights_px[class_title]) / len(class_heights_px[class_title]),
-                    2,
                 ),
                 "avg_height_pc": round(
                     sum(class_heights_pc[class_title]) / len(class_heights_pc[class_title]),
@@ -196,7 +195,6 @@ class ClassSizes(BaseStats):
                 "max_width_pc": max(class_widths_pc[class_title]),
                 "avg_width_px": round(
                     sum(class_widths_px[class_title]) / len(class_widths_px[class_title]),
-                    2,
                 ),
                 "avg_width_pc": round(
                     sum(class_widths_pc[class_title]) / len(class_widths_pc[class_title]),
@@ -242,7 +240,7 @@ class ClassSizes(BaseStats):
             ],
             "columnsOptions": [
                 {"type": "class"},
-                {},
+                {"maxValue": max([class_data[1] for class_data in stats])},
                 {"postfix": "px"},
                 {"postfix": "%", "tooltip": "Minimum object height in percents of image height."},
                 {"postfix": "px"},
