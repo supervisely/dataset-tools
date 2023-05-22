@@ -23,7 +23,7 @@ class HorizontalGrid:
     ):
         self.project_meta = project_meta
 
-        self._img_height = 1080
+        self._img_height = 1920
         self._rows = rows
         self._cols = cols
         self._gap = 15
@@ -168,38 +168,40 @@ class HorizontalGrid:
         if height1 != height2:
             scale_factor = height1 / height2
             height2, width2 = height1, int(scale_factor * width2)
-            image2 = sly.image.resize(image, (height2, width2))
+            image2 = sly.image.resize(image2, (height2, width2))
         alpha_channel = image2[:, :, 3] / 255.0
 
         x = width1 - width2
 
         region = image[:height2, x : x + width2]
-        image[:height2, x : x + width2, :3] = (
-            1 - alpha_channel[:, :, np.newaxis]
-        ) * region + alpha_channel[:, :, np.newaxis] * image2[:, :, :3]
+        image[:height2, x : x + width2, :3] = (1 - alpha_channel[:, :, np.newaxis]) * region[
+            :, :, :3
+        ] + alpha_channel[:, :, np.newaxis] * image2[:, :, :3]
 
-    def to_gif(self, path: str = None):
+    def animate(self, path: str = None):
         bg = self._merge_canvas_with_images(self.np_frames, 4)
-        bg = self._resize_image(bg, bg.shape[0] // 2)
         ann = self._merge_canvas_with_images(self.np_anns, 4)
         ann[:, :, 3] = np.where(np.all(ann == 255, axis=-1), 0, 255).astype(np.uint8)
-        ann = self._resize_image(ann, ann.shape[0] // 2)
 
-        duration = 0.5
-        num_frames = int(duration * 15)
-
-        frames = [Image.fromarray(bg)]
-
+        duration = 1.1
+        fps = 15
+        num_frames = int(duration * fps)
+        frames = []
         for i in list(range(1, num_frames + 1)) + list(range(num_frames, 0, -1)):
             alpha = i / num_frames
-            blended_image = self._overlay_images(bg, ann, alpha)
-            frames.append(Image.fromarray(blended_image))
+            frame = self._overlay_images(bg, ann, alpha)
+            self._add_overlay_with_logo(frame)
+            frame = self._resize_image(frame, frame.shape[0] // 2)
+            frame = Image.fromarray(frame)
+            frames.append(frame)
+            if i == num_frames:
+                frames.extend([frame] * (fps // 2))
 
-        frames[0].save(path, save_all=True, optimize=True, append_images=frames[1:], loop=0)
+        frames[0].save(path, save_all=True, append_images=frames[1:])
         # import imageio
         # imageio.mimsave(path, frames)
 
-        sly.logger.info(f"Gif animation saved to: {path}")
+        sly.logger.info(f"Animation saved to: {path}")
 
     def _overlay_images(self, bg, overlay, opacity):
         alpha = overlay[..., 3] * opacity / 255.0
