@@ -1,3 +1,4 @@
+import cv2
 import os
 import random
 from typing import Union
@@ -148,8 +149,10 @@ class VerticalGrid:
 
         return image
 
-    def _add_footer_with_logo(self, image, channhels: int = 3):
-        image2 = sly.image.read(self._footer_path, remove_alpha_channel=False)
+    def _add_footer_with_logo(self, image):
+        # image2 = sly.image.read(self._footer_path, remove_alpha_channel=False)
+        image2 = cv2.imread(self._footer_path, cv2.IMREAD_UNCHANGED)
+        image2 = cv2.cvtColor(image2, cv2.COLOR_BGRA2RGBA)
 
         height1, width1 = image.shape[:2]
         height2, width2 = image2.shape[:2]
@@ -157,7 +160,7 @@ class VerticalGrid:
         if width1 != width2:
             scale_factor = width1 / width2
             height2, width2 = int(scale_factor * height2), width1
-            image2 = sly.image.resize(image, (height2, width2))
+            image2 = sly.image.resize(image2, (height2, width2))
 
         alpha_channel = image2[:, :, 3] / 255.0
 
@@ -165,33 +168,35 @@ class VerticalGrid:
         y = height1 - height2
 
         region = image[y:height1, x : x + width2]
-        image[y:height1, x : x + width2, :channhels] = (
-            1 - alpha_channel[:, :, np.newaxis]
-        ) * region + alpha_channel[:, :, np.newaxis] * image2[:, :, :channhels]
+        image[y:height1, x : x + width2, :3] = (1 - alpha_channel[:, :, np.newaxis]) * region[
+            :, :, :3
+        ] + alpha_channel[:, :, np.newaxis] * image2[:, :, :3]
 
-    def to_gif(self, path: str = None):
-        import imageio
-
+    def animate(self, path: str = None):
         bg = self._merge_canvas_with_images(self.np_frames, 4)
-        bg = self._resize_image(bg, bg.shape[0] // 2)
         ann = self._merge_canvas_with_images(self.np_anns, 4)
         ann[:, :, 3] = np.where(np.all(ann == 255, axis=-1), 0, 255).astype(np.uint8)
-        ann = self._resize_image(ann, ann.shape[0] // 2)
 
-        duration = 0.4
-        num_frames = int(duration * 15)
-
-        frames = [Image.fromarray(bg)]
-
+        duration = 1.1
+        fps = 15
+        num_frames = int(duration * fps)
+        frames = []
         for i in list(range(1, num_frames + 1)) + list(range(num_frames, 0, -1)):
             alpha = i / num_frames
-            blended_image = Image.fromarray(self._overlay_images(bg, ann, alpha))
-            frames.append(blended_image)
+            frame = self._overlay_images(bg, ann, alpha)
+            self._add_footer_with_logo(frame)
+            frame = self._resize_image(frame, frame.shape[1] // 2)
+            frame = Image.fromarray(frame)
+            frames.append(frame)
+            if i == num_frames:
+                frames.extend([frame] * (fps // 2))
 
-        # frames[0].save(path, save_all=True, optimize=True, append_images=frames[1:], loop=0)
-        imageio.mimsave(path, frames)
+        frames[0].save(path, save_all=True, append_images=frames[1:])
 
-        sly.logger.info(f"Gif animation saved to: {path}")
+        # import imageio
+        # imageio.mimsave(path, frames)
+
+        sly.logger.info(f"Animation saved to: {path}")
 
     def _overlay_images(self, bg, overlay, opacity):
         alpha = overlay[..., 3] * opacity / 255.0
