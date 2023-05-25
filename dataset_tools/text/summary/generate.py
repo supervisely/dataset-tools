@@ -152,7 +152,7 @@ def generate_summary_content(data:Dict, gif_path:str):
         f"The dataset was released in {release_year} by [{organization}]({organization_link}).\n"
     )
     content += f"\nHere are the visualized examples for each of {totals.get('total_classes', 0)} classes:\n\n"
-    # content += f"**![Dataset classes](https://raw.githubusercontent.com/{gif_path})**"
+    content += f"**![Dataset classes](https://raw.githubusercontent.com/{gif_path})**"
     content += f"\n# Expert Commentary \n\n {get_expert_commentary()}"
 
     return content
