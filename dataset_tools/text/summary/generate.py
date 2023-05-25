@@ -1,4 +1,5 @@
 import os
+import re
 
 from dotenv import load_dotenv
 import operator
@@ -39,6 +40,9 @@ def list2sentence(lst:List[str], anytail:str = ""):
 
     return sentence.strip()
 
+def standardize(text:str):
+    return re.sub(r'[_-]', ' ', text).strip()
+
 def get_expert_commentary():
     content = "This is a very good dataset. I enjoy it every day in my life.\n\n"
     
@@ -52,64 +56,6 @@ def get_expert_commentary():
         1. majority of non-iconic images (allowing easy deployment to real-world environments)
     """)
     
-    return content
-
-def generate_summary_content(data:Dict):
-    name = data.get("name")
-    fullname = data.get("fullname")
-    industries = data.get("industry")
-    modality = data.get("modality")
-    totals = data.get("totals", {})
-    top_classes = totals.get("top_classes", [])
-
-    cv_tasks = data.get("cv_tasks", [])
-    annotations = []
-    for cv_task in cv_tasks:
-        if cv_task == "semantic segmentation" and cv_task == "instance segmentation":
-            annotations.append("pixel-level semantic and instance segmentation annotations")
-        else:
-            if cv_task == "semantic segmentation":
-                annotations.append("pixel-level semantic segmentation annotations")
-            if cv_task == "instance segmentation":
-                annotations.append("pixel-level instance segmentation annotations")
-        if cv_task == "object detection":
-            annotations.append("bounding box annotations")
-    if "instance segmentation" in cv_tasks and "object detection" not in cv_tasks:
-        annotations.append("bounding box annotations")
-    annotations = " annotations,".join(annotations)
-
-    unlabeled_assets_num = data.get("unlabeled_assets_num")
-    unlabeled_assets_percent = data.get("unlabeled_assets_percent")
-    release_year = data.get("release_year")
-    organization = data.get("organization")
-    organization_link = data.get("organization_link")
-
-    splits = [f'*{split["name"]}* ({split["split_size"]} {modality})' for split in data.get("splits", [])]
-
-    content = f"# {name} dataset summary\n\n"
-    content += f"**{name}** ({fullname}) is a dataset for {list2sentence(cv_tasks, 'tasks')}. "
-
-    content += (
-        f"It is used in {list2sentence(industries, 'industries')}. "
-        if industries is not None
-        else "It is applicable or relevant across various domains. "
-    )
-    # "Here you can see classes presented in descending order based on the number of objects within each class"
-    content += textwrap.dedent(f"""
-        The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)}
-        labeled objects belonging to {totals.get('total_classes', 0)} different classes
-        including *{', '.join(top_classes[:3])}*,
-        and other: *{list2sentence(top_classes[3:])}*.\n\n
-    """)
-    content += f"Each {p.singular_noun(modality)} in {name} dataset has {annotations}. "
-    content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations).\n"
-    content += f"There are {len(splits)} splits in the dataset: {list2sentence(splits)}. "
-    content += (
-        f"The dataset was released in {release_year} by [{organization}]({organization_link}).\n"
-    )
-    content += f"\nHere are the visualized examples for each of {totals.get('total_classes', 0)} classes in:\n\n**pic.png**"
-    content += f"\n# Expert Commentary \n\n {get_expert_commentary()}"
-
     return content
 
 def get_summary_data(name:str, fullname:str, cv_tasks:List[str], release_year:str, organization:str, organization_link:str, industry:str=None):
@@ -151,6 +97,66 @@ def get_summary_data(name:str, fullname:str, cv_tasks:List[str], release_year:st
         fields['industry'] = industry
 
     return fields
+
+def generate_summary_content(data:Dict, gif_path:str):
+    name = data.get("name")
+    fullname = data.get("fullname")
+    industries = data.get("industry")
+    modality = data.get("modality")
+    totals = data.get("totals", {})
+    top_classes = totals.get("top_classes", [])
+
+    cv_tasks = [standardize(cv_task) for cv_task in data.get("cv_tasks", [])]
+    annotations = []
+    if "semantic segmentation" in cv_tasks and "instance segmentation" in cv_tasks:
+        annotations.append(" pixel-level semantic and instance segmentation")
+    else:
+        if "semantic segmentation" in cv_tasks:
+            annotations.append(" pixel-level semantic segmentation")
+        if "instance segmentation" in cv_tasks:
+            annotations.append(" pixel-level instance segmentation")
+    if "object detection" in cv_tasks:
+        annotations.append(" bounding box")
+    else:
+        if "instance segmentation" in cv_tasks:
+            annotations.append(" bounding box")
+    annotations = " annotations,".join(annotations) + " annotations"
+
+    unlabeled_assets_num = data.get("unlabeled_assets_num")
+    unlabeled_assets_percent = data.get("unlabeled_assets_percent")
+    release_year = data.get("release_year")
+    organization = data.get("organization")
+    organization_link = data.get("organization_link")
+
+    splits = [f'*{split["name"]}* ({split["split_size"]} {modality})' for split in data.get("splits", [])]
+
+    content = f"# {name} dataset summary\n\n"
+    content += f"**{name}** ({fullname}) is a dataset for {list2sentence(cv_tasks, 'tasks')}. "
+
+    content += (
+        f"It is used in {list2sentence(industries, 'industries')}. "
+        if industries is not None
+        else "It is applicable or relevant across various domains. "
+    )
+    # "Here you can see classes presented in descending order based on the number of objects within each class"
+    content += textwrap.dedent(f"""
+        The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)}
+        labeled objects belonging to {totals.get('total_classes', 0)} different classes
+        including *{', '.join(top_classes[:3])}*,
+        and other: *{list2sentence(top_classes[3:])}*.\n\n
+    """)
+    content += f"Each {p.singular_noun(modality)} in {name} dataset has{annotations}. "
+    content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations).\n"
+    content += f"There are {len(splits)} splits in the dataset: {list2sentence(splits)}. "
+    content += (
+        f"The dataset was released in {release_year} by [{organization}]({organization_link}).\n"
+    )
+    content += f"\nHere are the visualized examples for each of {totals.get('total_classes', 0)} classes:\n\n"
+    # content += f"**![Dataset classes](https://raw.githubusercontent.com/{gif_path})**"
+    content += f"\n# Expert Commentary \n\n {get_expert_commentary()}"
+
+    return content
+
 
 # def generate_meta_from_local():
 
