@@ -75,7 +75,12 @@ class ObjectsDistribution(BaseStats):
                 else:
                     references[class_title] = reference
 
-        hmp = HeatmapChart(title="Objects Distribution")
+        hmp = HeatmapChart(
+            title="Objects on images - distribution for every class",
+            xaxis_title="Number of objects on image",
+            color_range="row",
+            tooltip="There are {y} images with {x} objects of class {series_name}",
+        )
         hmp.add_series_batch(series)
 
         res = hmp.get_json_data()
