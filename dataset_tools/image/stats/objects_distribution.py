@@ -79,7 +79,7 @@ class ObjectsDistribution(BaseStats):
             title="Objects on images - distribution for every class",
             xaxis_title="Number of objects on image",
             color_range="row",
-            tooltip="There are {y} images with {x} objects of class {series_name}",
+            tooltip="Click to preview {y} images with {x} objects of class {series_name}",
         )
         hmp.add_series_batch(series)
 
