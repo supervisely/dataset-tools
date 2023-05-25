@@ -17,6 +17,7 @@ api = sly.Api.from_env()
 project_id = sly.env.project_id()
 project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 datasets = api.dataset.get_list(project_id)
+project = api.project.get_info_by_id(project_id)
 
 # 2. localdir way
 # project_path = os.environ["LOCAL_DATA_DIR"]
@@ -33,12 +34,13 @@ def main():
         dtools.ObjectSizes(project_meta),
         dtools.ClassSizes(project_meta),
     ]
-    vstats = [dtools.ClassesHeatmaps(project_meta)]
+    imstats = [dtools.ClassesHeatmaps(project_meta)]
+    vstats = [dtools.ClassesPreview(project_meta, project.name)]
 
     # pass project_id or project_path as a first argument
     dtools.count_stats(
         project_id,
-        stats=stats + vstats,
+        stats=stats + imstats + vstats,
         sample_rate=0.01,
     )
     print("Saving stats...")
@@ -46,8 +48,10 @@ def main():
         with open(f"./stats/{stat.basename_stem}.json", "w") as f:
             json.dump(stat.to_json(), f)
         stat.to_image(f"./stats/{stat.basename_stem}.png")
-    for vis in vstats:
-        vis.to_image(f"./stats/{vis.basename_stem}.png", draw_style="outside_black")
+    for imstat in imstats:
+        imstat.to_image(f"./stats/{imstat.basename_stem}.png", draw_style="outside_black")
+    for vstat in vstats:
+        vstat.animate(f"./stats/{vstat.basename_stem}.webm")
     print("Done.")
 
 
