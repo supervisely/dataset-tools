@@ -4,6 +4,7 @@ from dataset_tools.image.stats.class_cooccurrence import ClassCooccurrence
 
 from dataset_tools.image.stats.classes_per_image import ClassesPerImage
 from dataset_tools.image.stats.heatmaps_for_classes import ClassesHeatmaps
+from dataset_tools.image.stats.preview_for_classes import ClassesPreview
 
 from dataset_tools.image.stats.objects_distribution import ObjectsDistribution
 from dataset_tools.image.stats.object_and_class_sizes import ObjectSizes, ClassSizes
