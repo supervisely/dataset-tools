@@ -1,4 +1,4 @@
-from dataset_tools.download import prepare_download_link
+from dataset_tools.download import prepare_download_link, update_links_dict
 
 from dataset_tools.image.stats.class_balance import ClassBalance
 from dataset_tools.image.stats.class_cooccurrence import ClassCooccurrence
