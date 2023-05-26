@@ -159,8 +159,8 @@ def generate_summary_content(data: Dict, gif_path: str):
         f'*{split["name"]}* ({split["split_size"]} {modality})' for split in data.get("splits", [])
     ]
 
-    content = f"# {name} dataset summary\n\n"
-    content += f"**{name}** ({fullname}) is a dataset for {list2sentence(cv_tasks, 'tasks', keeptail=True)}. "
+    # content = f"# {name} dataset summary\n\n"
+    content = f"**{name}** ({fullname}) is a dataset for {list2sentence(cv_tasks, 'tasks', keeptail=True)}. "
 
     content += (
         f"It is used in {list2sentence(industries, 'industries')}."
@@ -182,7 +182,7 @@ def generate_summary_content(data: Dict, gif_path: str):
     content += f"The dataset was released in {release_year} by the [{organization}]({organization_link}).\n"
     content += f"\nHere are the visualized examples for each of the {totals.get('total_classes', 0)} classes:\n\n"
     content += f"**![Dataset classes](https://raw.githubusercontent.com/{gif_path})**"
-    content += f"\n# Expert Commentary \n\n {get_expert_commentary()}"
+    # content += f"\n## Expert Commentary \n\n {get_expert_commentary()}"
 
     return content
 
