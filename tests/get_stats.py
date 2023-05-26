@@ -34,8 +34,12 @@ def main():
         dtools.ObjectSizes(project_meta),
         dtools.ClassSizes(project_meta),
     ]
-    imstats = [dtools.ClassesHeatmaps(project_meta)]
-    vstats = [dtools.ClassesPreview(project_meta, project.name)]
+    imstats = [
+        dtools.ClassesHeatmaps(project_meta),
+    ]
+    vstats = [
+        dtools.ClassesPreview(project_meta, project.name),
+    ]
 
     # pass project_id or project_path as a first argument
     dtools.count_stats(
@@ -51,7 +55,9 @@ def main():
     for imstat in imstats:
         imstat.to_image(f"./stats/{imstat.basename_stem}.png", draw_style="outside_black")
     for vstat in vstats:
-        vstat.animate(f"./stats/{vstat.basename_stem}.webm")
+        vstat.animate(f"./render_results/originals/{vstat.basename_stem}.mp4")
+    print("Converting files...")
+    dtools.convert_all("render_results/originals")
     print("Done.")
 
 
