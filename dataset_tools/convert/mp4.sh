@@ -1,0 +1,1 @@
+ffmpeg -y -i "$1" -vf "scale='min(1600,iw)':-2" -vcodec libx264 -pix_fmt yuv420p -profile:v main -level 3 -crf 26 -threads 0 -an "$2" < /dev/null

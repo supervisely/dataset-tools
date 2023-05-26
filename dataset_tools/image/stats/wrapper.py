@@ -120,13 +120,15 @@ def count_stats(
         for dataset, images in samples:
             for batch in sly.batched(images):
                 image_ids = [image.id for image in batch]
+                image_names = [image.name for image in batch]
 
-                janns = api.annotation.download_json_batch(
-                    (dataset.id if isinstance(project, int) else batch[0].dataset_id), image_ids
-                )
+                if isinstance(project, int):
+                    janns = api.annotation.download_json_batch(dataset.id, [id for id in image_ids])
+                    anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in janns]
+                else:
+                    anns = [dataset.get_ann(name, project_meta) for name in image_names]
 
-                for img, jann in zip(batch, janns):
-                    ann = sly.Annotation.from_json(jann, project_meta)
+                for img, ann in zip(batch, anns):
                     for stat in stats:
                         stat.update(img, ann)
                     pbar.update(1)

@@ -46,11 +46,8 @@ class ObjectsDistribution(BaseStats):
                 self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
                 self._stats[class_title][count]["count"] += 1
 
-        columns = set()
-        for class_title, class_data in self._stats.items():
-            columns.update(class_data.keys())
-
-        columns = sorted(list(columns))
+        max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
+        columns = [i for i in range(max_column + 1)]
 
         series = list()
         for class_title, class_data in self._stats.items():
