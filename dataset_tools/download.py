@@ -8,21 +8,21 @@ from tqdm import tqdm
 import supervisely as sly
 
 
-if sly.is_development():
-    load_dotenv(os.path.expanduser("~/ninja.env"))
-    load_dotenv("local.env")
+# if sly.is_development():
+#     load_dotenv(os.path.expanduser("~/ninja.env"))
+#     load_dotenv("local.env")
 
-api = sly.Api.from_env()
-data_dir = sly.app.get_data_dir()
-# task_id = sly.env.task_id()
-team_id = sly.env.team_id()
+# api = sly.Api.from_env()
+# data_dir = sly.app.get_data_dir()
+# # task_id = sly.env.task_id()
+# team_id = sly.env.team_id()
 
-batch_size = 10
+# batch_size = 10
 
-team_id = sly.env.team_id()
-workspace_id = sly.env.workspace_id()
-# agent_id = sly.env.agent_id()
-agent_id = 1
+# team_id = sly.env.team_id()
+# workspace_id = sly.env.workspace_id()
+# # agent_id = sly.env.agent_id()
+# agent_id = 1
 # project_id = sly.env.project_id()
 
 
