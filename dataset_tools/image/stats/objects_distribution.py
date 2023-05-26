@@ -46,11 +46,8 @@ class ObjectsDistribution(BaseStats):
                 self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
                 self._stats[class_title][count]["count"] += 1
 
-        columns = set()
-        for class_title, class_data in self._stats.items():
-            columns.update(class_data.keys())
-
-        columns = sorted(list(columns))
+        max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
+        columns = [i for i in range(max_column + 1)]
 
         series = list()
         for class_title, class_data in self._stats.items():
@@ -75,7 +72,12 @@ class ObjectsDistribution(BaseStats):
                 else:
                     references[class_title] = reference
 
-        hmp = HeatmapChart(title="Objects Distribution")
+        hmp = HeatmapChart(
+            title="Objects on images - distribution for every class",
+            xaxis_title="Number of objects on image",
+            color_range="row",
+            tooltip="Click to preview {y} images with {x} objects of class {series_name}",
+        )
         hmp.add_series_batch(series)
 
         res = hmp.get_json_data()

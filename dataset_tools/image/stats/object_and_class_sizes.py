@@ -59,7 +59,6 @@ class ObjectSizes(BaseStats):
 
     def to_json(self) -> Dict:
         options = {
-            "fixColumns": 2,
             "sort": {"columnIndex": 0, "order": "asc"},
         }
 
@@ -178,6 +177,12 @@ class ClassSizes(BaseStats):
             class_data = {
                 "class_name": class_title,
                 "object_count": object_count,
+                "avg_area_pc": round(
+                    sum(class_areas_pc[class_title]) / len(class_areas_pc[class_title]),
+                    2,
+                ),
+                "max_area_pc": max(class_areas_pc[class_title]),
+                "min_area_pc": min(class_areas_pc[class_title]),
                 "min_height_px": min(class_heights_px[class_title]),
                 "min_height_pc": min(class_heights_pc[class_title]),
                 "max_height_px": max(class_heights_px[class_title]),
@@ -200,12 +205,6 @@ class ClassSizes(BaseStats):
                     sum(class_widths_pc[class_title]) / len(class_widths_pc[class_title]),
                     2,
                 ),
-                "min_area_pc": min(class_areas_pc[class_title]),
-                "max_area_pc": max(class_areas_pc[class_title]),
-                "avg_area_pc": round(
-                    sum(class_areas_pc[class_title]) / len(class_areas_pc[class_title]),
-                    2,
-                ),
             }
 
             class_data = list(class_data.values())
@@ -222,25 +221,28 @@ class ClassSizes(BaseStats):
             "columns": [
                 "Class",
                 "Object count",
-                "Min height",
-                "Min height",
-                "Max height",
-                "Max height",
-                "Avg height",
-                "Avg height",
-                "Min width",
-                "Min width",
-                "Max width",
-                "Max width",
-                "Avg width",
-                "Avg width",
-                "Min area",
-                "Max area",
                 "Avg area",
+                "Max area",
+                "Min area",
+                "Min height",
+                "Min height",
+                "Max height",
+                "Max height",
+                "Avg height",
+                "Avg height",
+                "Min width",
+                "Min width",
+                "Max width",
+                "Max width",
+                "Avg width",
+                "Avg width",
             ],
             "columnsOptions": [
                 {"type": "class"},
                 {"maxValue": max([class_data[1] for class_data in stats])},
+                {"postfix": "%", "tooltip": "Average object area in percents of all image."},
+                {"postfix": "%", "tooltip": "Maximum object area in percents of all image."},
+                {"postfix": "%", "tooltip": "Minimum object area in percents of all image."},
                 {"postfix": "px"},
                 {"postfix": "%", "tooltip": "Minimum object height in percents of image height."},
                 {"postfix": "px"},
@@ -253,9 +255,6 @@ class ClassSizes(BaseStats):
                 {"postfix": "%", "tooltip": "Maximum object width in percents of image width."},
                 {"postfix": "px"},
                 {"postfix": "%", "tooltip": "Average object width in percents of image width."},
-                {"postfix": "%", "tooltip": "Minimum object area in percents of all image."},
-                {"postfix": "%", "tooltip": "Maximum object area in percents of all image."},
-                {"postfix": "%", "tooltip": "Average object area in percents of all image."},
             ],
             "data": stats,
             "options": options,
