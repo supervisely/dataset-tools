@@ -9,7 +9,6 @@ import numpy as np
 from tqdm import tqdm
 
 import supervisely as sly
-from dataset_tools.convert.convert import from_mp4_to_webm
 from dataset_tools.image.stats.basestats import BaseVisual
 from supervisely.imaging import font as sly_font
 
@@ -55,6 +54,8 @@ class ClassesPreview(BaseVisual):
             self._classname2images[class_name].append((image, ann))
 
     def animate(self, path: str = None):
+        dirname = os.path.dirname(path)
+        os.makedirs(dirname, exist_ok=True)
         self._collect_images()
         canvas, masks, texts = self._prepare_layouts()
 
@@ -78,10 +79,8 @@ class ClassesPreview(BaseVisual):
             frame = self._draw_title(frame, self._title)
             frames.append(frame)
 
-        videopath = self._save_video(path, frames)
-        from_mp4_to_webm(videopath, path)
-        sly.logger.info(f"Animation saved to: {path}")
-        sly.fs.silent_remove(videopath)
+        self._save_video(path, frames)
+        sly.logger.info(f"Video file saved to: {path}")
 
     def _prepare_layouts(self):
         canvas = self._create_grid(list(self._np_images.values()))
@@ -330,8 +329,9 @@ class ClassesPreview(BaseVisual):
         img[top:bottom, left:right, :3] = im
         return img
 
-    def _save_video(self, path, frames):
-        videopath = f"{os.path.splitext(path)[0]}.mp4"
+    def _save_video(self, videopath: str, frames):
+        if not videopath.endswith(".mp4"):
+            videopath = f"{os.path.splitext(videopath)[0]}.mp4"
         fourcc = cv2.VideoWriter_fourcc(*"VP90")
         height, width = frames[0].shape[:2]
         video_writer = cv2.VideoWriter(videopath, fourcc, 15, (width, height))
@@ -344,5 +344,3 @@ class ClassesPreview(BaseVisual):
                 video_writer.write(frame)
                 vid_pbar.update(1)
         video_writer.release()
-
-        return videopath
