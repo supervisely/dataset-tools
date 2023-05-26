@@ -12,7 +12,7 @@ import supervisely as sly
 #     load_dotenv(os.path.expanduser("~/ninja.env"))
 #     load_dotenv("local.env")
 
-# api = sly.Api.from_env()
+
 # data_dir = sly.app.get_data_dir()
 # # task_id = sly.env.task_id()
 # team_id = sly.env.team_id()
@@ -27,6 +27,8 @@ import supervisely as sly
 
 
 def prepare_download_link(project):
+    api = sly.Api.from_env()
+
     app_slug = f"supervisely-ecosystem/export-to-supervisely-format"
 
     module_id = api.app.get_ecosystem_module_id(app_slug)

@@ -14,7 +14,6 @@ if sly.is_development():
     load_dotenv(os.path.expanduser("~/ninja.env"))
     load_dotenv("local.env")
 
-api = sly.Api.from_env()
 
 p = (
     inflect.engine()
@@ -80,6 +79,7 @@ def get_summary_data(
     organization_link: str,
     industry: str = None,
 ) -> str:
+    api = sly.Api.from_env()
     project_id = sly.env.project_id()
     project_info = api.project.get_info_by_id(project_id)
 
