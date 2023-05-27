@@ -52,32 +52,16 @@ def standardize(text: str):
     return re.sub(r"[_-]", " ", text).strip()
 
 
-def get_expert_commentary():
-    content = "This is a very good dataset. I enjoy it every day of my life.\n\n"
-
-    content += textwrap.dedent(
-        """
-        ![Cooking at 3am](https://raw.githubusercontent.com/dataset-ninja/pascal-voc-2012/main/gordon-ramsay.jpg?v=1)
-
-        Some features of this dataset are:
-
-        1. high quality images and annotations (~4.6 bounding boxes per image)
-        1. real-life images unlike any current such dataset
-        1. majority of non-iconic images (allowing easy deployment to real-world environments)
-    """
-    )
-
-    return content
-
-
 def get_summary_data(
     name: str,
     fullname: str,
     cv_tasks: List[str],
+    annotation_types: List[str],
     release_year: str,
     organization: str,
     organization_link: str,
     industry: str = None,
+    **kwargs
 ) -> str:
     api = sly.Api.from_env()
     project_id = sly.env.project_id()
@@ -109,6 +93,7 @@ def get_summary_data(
         "name": name,
         "fullname": fullname,
         "cv_tasks": cv_tasks,
+        "annotation_types": annotation_types,
         "modality": project_info.type,
         "release_year": release_year,
         "organization": organization,
@@ -125,7 +110,7 @@ def get_summary_data(
     return fields
 
 
-def generate_summary_content(data: Dict, gif_path: str):
+def generate_summary_content(data: Dict, gif_url: str):
     name = data.get("name")
     fullname = data.get("fullname")
     industries = data.get("industry")
@@ -134,20 +119,25 @@ def generate_summary_content(data: Dict, gif_path: str):
     top_classes = totals.get("top_classes", [])
 
     cv_tasks = [standardize(cv_task) for cv_task in data.get("cv_tasks", [])]
+    annotation_types = [standardize(ann_type) for ann_type in data.get("annotation_types", [])]
+
     annotations = []
-    if "semantic segmentation" in cv_tasks and "instance segmentation" in cv_tasks:
-        annotations.append(" pixel-level semantic and instance segmentation")
+    if "instance segmentation" in annotation_types:
+        if "semantic segmentation" not in annotation_types and "object detection" not in annotation_types:
+            annotations.append(" pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into semantic segmentation (only one mask for every class) or object detection (bounding boxes for every object) tasks")
+        elif "semantic segmentation" in annotation_types and "object detection" not in annotation_types:
+            annotations.append(" pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into object detection (bounding boxes for every object) task")
+        elif "semantic segmentation" not in annotation_types and "object detection" in annotation_types:
+            annotations.append(" pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into semantic segmentation task (only one mask for every class)")
+        else:
+            annotations.append(" pixel-level instance segmentation annotations")
     else:
-        if "semantic segmentation" in cv_tasks:
-            annotations.append(" pixel-level semantic segmentation")
-        if "instance segmentation" in cv_tasks:
-            annotations.append(" pixel-level instance segmentation")
-    if "object detection" in cv_tasks:
-        annotations.append(" bounding box")
-    else:
-        if "instance segmentation" in cv_tasks:
-            annotations.append(" bounding box")
-    annotations = (" annotations,".join(annotations) + " annotations").strip()
+        if "semantic segmentation" in annotation_types:
+            annotations.append(" pixel-level semantic segmentation annotations")
+        if "object detection" in annotation_types:
+            annotations.append(" bounding boxes annotations")
+
+    annotations = ",".join(annotations).strip()
 
     unlabeled_assets_num = data.get("unlabeled_assets_num")
     unlabeled_assets_percent = data.get("unlabeled_assets_percent")
@@ -168,21 +158,14 @@ def generate_summary_content(data: Dict, gif_path: str):
         else "It is applicable or relevant across various domains."
     )
     # "Here you can see classes presented in descending order based on the number of objects within each class"
-    content += textwrap.dedent(
-        f"""
-        The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)}
-        labeled objects belonging to {totals.get('total_classes', 0)} different classes
-        including *{', '.join(top_classes[:3])}*,
-        and other: *{list2sentence(top_classes[3:])}*.\n\n
-    """
-    )
-    content += f"Each {p.singular_noun(modality)} in the {name} dataset has {annotations}. "
-    content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations).\n"
+    content += "\n\n"
+    content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} different classes including *{', '.join(top_classes[:3])}*, and other: *{list2sentence(top_classes[3:])}*."
+    content += f"\n\nEach {p.singular_noun(modality)} in the {name} dataset has {annotations}. "
+    content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
     content += f"There are {len(splits)} splits in the dataset: {list2sentence(splits)}. "
     content += f"The dataset was released in {release_year} by the [{organization}]({organization_link}).\n"
     content += f"\nHere are the visualized examples for each of the {totals.get('total_classes', 0)} classes:\n\n"
-    content += f"**![Dataset classes](https://raw.githubusercontent.com/{gif_path})**"
-    # content += f"\n## Expert Commentary \n\n {get_expert_commentary()}"
+    content += f"[Dataset classes]({gif_url})\n"
 
     return content
 
