@@ -109,7 +109,7 @@ class Poster:
                 pbar.update(1)
 
         self._create_frame(np_images)
-        self._draw_text_and_bboxes()
+        self._draw_text_and_rectangles()
 
     def to_image(self, path: str = None):
         path_part, ext = os.path.splitext(path)
@@ -138,7 +138,7 @@ class Poster:
         rgba_image[:h, :w, :3] = image[:h, :w, :3]
         return rgba_image
 
-    def _draw_text_and_bboxes(self):
+    def _draw_text_and_rectangles(self):
         base_font_size = sly_font.get_readable_font_size(self._size)
         font_name_title = "FiraSans-Regular.ttf"
         font_name_subs = "FiraSans-Thin.ttf"
@@ -152,20 +152,19 @@ class Poster:
         bg_image = np.zeros((poster_h, poster_w, 3), dtype=np.uint8)
 
         title_bottom = self._draw_title(bg_image, font_title, title)
-
         sub_imgs = [self._draw_subtitles(font_subs, text, subs_height) for text in subs]
         logo = self._draw_logo(subs_height)
 
         image = np.hstack(sub_imgs)
-
         subs_h, subs_w = image.shape[:2]
         subs_x = (poster_w - subs_w - logo.shape[1]) // 2
         subs_y = title_bottom + self._GAP
 
         bg = bg_image[subs_y : subs_y + subs_h, subs_x : subs_x + subs_w, :3]
-        alpha_channel = image[:, :, 3]
+
+        alpha_channel = np.where(np.all(image == 0, axis=-1), 0, 255).astype(np.uint8)
         text_image_bw = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
-        _, text_mask = cv2.threshold(text_image_bw, 1, 255, cv2.THRESH_BINARY)
+        _, text_mask = cv2.threshold(text_image_bw, 255, 255, cv2.THRESH_BINARY)
         inverse_text_mask = cv2.bitwise_not(text_mask)
         background_masked = cv2.bitwise_and(bg, bg, mask=inverse_text_mask)
         text_image_alpha = cv2.merge(
@@ -190,7 +189,7 @@ class Poster:
         title_x, title_y = (poster_w - title_w) // 2, (poster_h - title_h) // 2
         left, top, right, bottom = title_x, title_y, title_x + title_w, title_y + title_h
 
-        image = self._gradient(image, title_x, 0, title_x + title_w, poster_h)
+        self._gradient(image, title_x, 0, title_x + title_w, poster_h)
         p = self._GAP // 3
         image[top + p : bottom - p, left + p : right - p] = 255
 
@@ -210,17 +209,17 @@ class Poster:
         _, t, r, _ = font.getbbox(text)
         pad = self._GAP // 4
         w = r + self._GAP
-        image = np.zeros((height, w, 4), dtype=np.uint8)
+        image = np.ones((height, w, 3), dtype=np.uint8) * 255
         sly.image.draw_text(
             image,
             text,
             (-t // 2, pad * 2),
             font=font,
             fill_background=False,
-            color=(255, 255, 255, 128),
         )
-        image[:, r + 3 * pad :, :3] = 255
-        return image
+        image[:, r + 3 * pad :, :3] = 0
+        image = np.dstack((image, np.ones((*image.shape[:2], 1), dtype=np.uint8) * 255))
+        return 255 -image
 
     def _draw_logo(self, height):
         logo = sly.image.read(self._logo_path)
