@@ -21,7 +21,8 @@ class ObjectSizes(BaseStats):
         Area %
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, datasets: List[sly.DatasetInfo] = None):
+    def __init__(self, project_meta: sly.ProjectMeta, datasets: List[sly.DatasetInfo] = None, force:bool = False):
+        self.force = force
         self.project_meta = project_meta
         self._dataset_id_to_name = None
         if datasets is not None:
@@ -133,7 +134,8 @@ class ClassSizes(BaseStats):
         Avg area %
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta):
+    def __init__(self, project_meta: sly.ProjectMeta, force:bool = False):
+        self.force = force
         self.project_meta = project_meta
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 

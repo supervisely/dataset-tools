@@ -25,10 +25,12 @@ class ClassesPerImage(BaseStats):
     """
 
     def __init__(
-        self, project_meta: sly.ProjectMeta, datasets: List[sly.DatasetInfo] = None
+        self, project_meta: sly.ProjectMeta, datasets: List[sly.DatasetInfo] = None, force:bool = False
     ) -> None:
         self._meta = project_meta
         self._stats = {}
+        self.force = force
+        
         self._dataset_id_to_name = None
         if datasets is not None:
             self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}

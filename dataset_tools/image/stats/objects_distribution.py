@@ -18,7 +18,9 @@ class ObjectsDistribution(BaseStats):
         etc.
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta):
+    def __init__(self, project_meta: sly.ProjectMeta, force:bool = False):
+        self.force = force
+
         self.project_meta = project_meta
         self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]

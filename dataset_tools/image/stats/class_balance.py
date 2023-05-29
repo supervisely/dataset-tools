@@ -18,9 +18,10 @@ class ClassBalance(BaseStats):
         Avg area per image
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta) -> None:
+    def __init__(self, project_meta: sly.ProjectMeta, force:bool=False) -> None:
         self._meta = project_meta
         self._stats = {}
+        self.force = force
 
         self._class_names = []
         class_colors = []
