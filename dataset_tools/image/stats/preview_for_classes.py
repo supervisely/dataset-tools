@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseVisual
+from dataset_tools.convert.convert import from_mp4_to_webm, process_mp4, process_png
 from supervisely.imaging import font as sly_font
 
 UNLABELED_COLOR = [0, 0, 0]
@@ -43,7 +44,7 @@ class ClassesPreview(BaseVisual):
         self._np_anns = {}
         self._np_texts = {}
 
-        self._log_path = "logo.png"
+        self._logo_path = "logo.png"
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         for label in ann.labels:
@@ -79,8 +80,14 @@ class ClassesPreview(BaseVisual):
             frame = self._draw_title(frame, self._title)
             frames.append(frame)
 
-        self._save_video(path, frames)
-        sly.logger.info(f"Video file saved to: {path}")
+        tmp_video_path = f"{os.path.splitext(path)[0]}-o.mp4"
+        video_path = f"{os.path.splitext(path)[0]}.mp4"
+        self._save_video(tmp_video_path, frames)
+        from_mp4_to_webm(tmp_video_path, path)
+        process_mp4(tmp_video_path, video_path)
+        sly.fs.silent_remove(tmp_video_path)
+
+        sly.logger.info(f"Animation saved to: {path}, {video_path}")
 
     def _prepare_layouts(self):
         canvas = self._create_grid(list(self._np_images.values()))
@@ -206,14 +213,14 @@ class ClassesPreview(BaseVisual):
         return (rows, cols)
 
     def _merge_img_in_rows(self, rows: List[np.ndarray], channels: int = 3) -> List[np.ndarray]:
-        row_widths = 0
+        max_row_width = 0
         img_widths = []
         for row in rows:
             sum_widths = sum([img.shape[1] for img in row])
             img_widths.append(sum_widths)
             min_gap = self._gap * (len(row) + 1)
-            row_widths = max(row_widths, sum_widths + min_gap)
-        self._row_width = row_widths
+            max_row_width = max(max_row_width, sum_widths + min_gap)
+        self._row_width = max_row_width
 
         combined_rows = []
         for row, width in zip(rows, img_widths):
@@ -279,7 +286,7 @@ class ClassesPreview(BaseVisual):
 
     def _add_logo(self, image):
         height = max(self._row_height // 5, 80)
-        image2 = cv2.imread(self._log_path, cv2.IMREAD_UNCHANGED)
+        image2 = cv2.imread(self._logo_path, cv2.IMREAD_UNCHANGED)
         image2 = cv2.cvtColor(image2, cv2.COLOR_BGRA2RGBA)
         image2 = self._resize_image(image2, height)
 
@@ -330,8 +337,6 @@ class ClassesPreview(BaseVisual):
         return img
 
     def _save_video(self, videopath: str, frames):
-        if not videopath.endswith(".mp4"):
-            videopath = f"{os.path.splitext(videopath)[0]}.mp4"
         fourcc = cv2.VideoWriter_fourcc(*"VP90")
         height, width = frames[0].shape[:2]
         video_writer = cv2.VideoWriter(videopath, fourcc, 15, (width, height))
