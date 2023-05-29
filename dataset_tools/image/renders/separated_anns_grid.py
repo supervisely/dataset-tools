@@ -7,6 +7,7 @@ import numpy as np
 from tqdm import tqdm
 
 import supervisely as sly
+from dataset_tools.convert.convert import process_png
 
 
 class SideAnnotationsGrid:
@@ -72,12 +73,18 @@ class SideAnnotationsGrid:
         return mask_img
 
     def to_image(self, path: str = None):
+        path_part, ext = os.path.splitext(path)
+        tmp_path = f"{path_part}-o{ext}"
         if path is None:
             storage_dir = sly.app.get_data_dir()
             path = os.path.join(storage_dir, "horizontal_grid.png")
+
         self._merge_canvas_with_images()
         self._add_overlay_with_logo()
-        sly.image.write(path, self._img_array)
+
+        sly.image.write(tmp_path, self._img_array)
+        process_png(tmp_path, path)
+        sly.fs.silent_remove(tmp_path)
         sly.logger.info(f"Result grid saved to: {path}")
 
     def _create_image_canvas(self):

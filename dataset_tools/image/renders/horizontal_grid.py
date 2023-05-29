@@ -5,10 +5,9 @@ from typing import Union
 import cv2
 import numpy as np
 from tqdm import tqdm
-from PIL import Image
 
 import supervisely as sly
-from supervisely.imaging import font as sly_font
+from dataset_tools.convert.convert import from_mp4_to_webm, process_mp4, process_png
 
 
 class HorizontalGrid:
@@ -19,7 +18,6 @@ class HorizontalGrid:
         api: sly.Api = None,
         rows: int = 3,
         cols: int = 6,
-        side_overlay_path: str = "side_logo_overlay.png",
     ):
         self.project_meta = project_meta
 
@@ -28,7 +26,7 @@ class HorizontalGrid:
         self._cols = cols
         self._gap = 15
         self._row_width = 0
-        self._side_overlay_path = side_overlay_path
+        self._logo_path = "logo.png"
 
         self.np_images = []  # for grid
         self.np_anns = []  # for gif
@@ -64,34 +62,50 @@ class HorizontalGrid:
                 self.np_anns.append(self._resize_image(ann_mask, self._row_height))  # for gif
 
                 ann.draw_pretty(img, thickness=0, opacity=0.7)  # for grid
-                for label in ann.labels:
-                    if label.obj_class.name == "neutral":
-                        continue
-                    bbox = label.geometry.to_bbox()
-                    cv2.rectangle(
-                        img,
-                        (bbox.left, bbox.top),
-                        (bbox.right, bbox.bottom),
-                        color=label.obj_class.color,
-                        thickness=2,
-                    )
-                    font_size = int(sly_font.get_readable_font_size(img.shape[:2]) * 1.4)
-                    font = sly_font.get_font(font_size=font_size)
-                    _, _, _, bottom = font.getbbox(label.obj_class.name)
-                    anchor = (bbox.top - bottom, bbox.left)
-                    sly.image.draw_text(img, label.obj_class.name, anchor, font=font)
                 img = self._resize_image(img, self._row_height)
                 self.np_images.append(img)
 
     def to_image(self, path: str = None):
+        path_part, ext = os.path.splitext(path)
+        tmp_path = f"{path_part}-o{ext}"
         if path is None:
             storage_dir = sly.app.get_data_dir()
             path = os.path.join(storage_dir, "horizontal_grid.png")
 
         self._img_array = self._merge_canvas_with_images(self.np_images)
-        self._add_overlay_with_logo(self._img_array)
-        sly.image.write(path, self._img_array)
+        self._add_logo(self._img_array)
+
+        sly.image.write(tmp_path, self._img_array)
+        process_png(tmp_path, path)
+        sly.fs.silent_remove(tmp_path)
         sly.logger.info(f"Result grid saved to: {path}")
+
+    def animate(self, path: str = None):
+        bg = self._merge_canvas_with_images(self.np_frames, 4)
+        ann = self._merge_canvas_with_images(self.np_anns, 4)
+        ann[:, :, 3] = np.where(np.all(ann == 255, axis=-1), 0, 255).astype(np.uint8)
+
+        duration = 1.1
+        fps = 15
+        num_frames = int(duration * fps)
+        frames = []
+        for i in list(range(1, num_frames + 1)) + list(range(num_frames, 0, -1)):
+            alpha = i / num_frames
+            frame = self._overlay_images(bg, ann, alpha)
+            self._add_logo(frame)
+            frame = self._resize_image(frame, frame.shape[0] // 2)
+            frames.append(frame)
+            if i == num_frames:
+                frames.extend([frame] * (fps // 2))
+
+        tmp_video_path = f"{os.path.splitext(path)[0]}-o.mp4"
+        video_path = f"{os.path.splitext(path)[0]}.mp4"
+        self._save_video(tmp_video_path, frames)
+        from_mp4_to_webm(tmp_video_path, path)
+        process_mp4(tmp_video_path, video_path)
+        sly.fs.silent_remove(tmp_video_path)
+
+        sly.logger.info(f"Animation saved to: {path}, {video_path}")
 
     def _merge_canvas_with_images(self, images, channels: int = 3):
         rows = self._create_rows(images)
@@ -99,14 +113,16 @@ class HorizontalGrid:
 
         canvas = np.ones([self._img_height, self._row_width, channels], dtype=np.uint8) * 255
         for i, image in enumerate(rows):
-            if image.shape[1] > canvas.shape[1] - self._gap:
-                image = image[:, : canvas.shape[1] - self._gap]
+            if image.shape[1] > canvas.shape[1] - self._gap * 2:
+                image = image[:, : canvas.shape[1] - self._gap * 2]
 
             row_start = i * (self._row_height + self._gap) + self._gap
             row_end = row_start + self._row_height
             column_start = self._gap
-            column_end = canvas.shape[1]
+            column_end = image.shape[1] + self._gap
 
+            if row_end > canvas.shape[0]:
+                continue
             canvas[row_start:row_end, column_start:column_end] = image
         return canvas
 
@@ -121,23 +137,32 @@ class HorizontalGrid:
         row_images = []
         current_width = 0
 
-        for image, width in zip(images, image_widths):
-            row_images.append(image)
-            current_width += width + self._gap
-            if current_width > self._row_width:
+        for idx, (image, width) in enumerate(zip(images, image_widths)):
+            if current_width + width > self._row_width or idx == len(images) - 1:
                 rows.append(row_images)
 
                 row_images = []
                 current_width = 0
+            row_images.append(image)
+            current_width += width + self._gap
 
-        if len(rows) == self._rows:
-            return rows
         return rows
 
     def _merge_img_in_rows(self, rows, channels: int = 3):
-        combined_rows = []
-        separator = np.ones((self._row_height, 15, channels), dtype=np.uint8) * 255
+        max_width = 0
+        img_widths = []
         for row in rows:
+            sum_widths = sum([img.shape[1] for img in row])
+            img_widths.append(sum_widths)
+            min_gap = self._gap * (len(row) + 1)
+            max_width = max(max_width, sum_widths + min_gap)
+        self._row_width = max_width
+
+        combined_rows = []
+
+        for row, width in zip(rows, img_widths):
+            gap = (self._row_width - width) // max((len(row) - 1), 1)
+            separator = np.ones((self._row_height, gap, channels), dtype=np.uint8) * 255
             combined_images = []
 
             for image in row:
@@ -159,49 +184,22 @@ class HorizontalGrid:
 
         return image
 
-    def _add_overlay_with_logo(self, image):
-        image2 = cv2.imread(self._side_overlay_path, cv2.IMREAD_UNCHANGED)
+    def _add_logo(self, image):
+        height = max(self._row_height // 5, 80)
+        image2 = cv2.imread(self._logo_path, cv2.IMREAD_UNCHANGED)
         image2 = cv2.cvtColor(image2, cv2.COLOR_BGRA2RGBA)
+        image2 = self._resize_image(image2, height)
 
-        height1, width1 = image.shape[:2]
-        height2, width2 = image2.shape[:2]
-        if height1 != height2:
-            scale_factor = height1 / height2
-            height2, width2 = height1, int(scale_factor * width2)
-            image2 = sly.image.resize(image2, (height2, width2))
-        alpha_channel = image2[:, :, 3] / 255.0
+        h1, w1 = image.shape[:2]
+        h2, w2 = image2.shape[:2]
+        x = w1 - w2 - self._gap * 2
+        y = h1 - h2 - self._gap * 2
+        alpha = image2[:, :, 3] / 255.0
 
-        x = width1 - width2
-
-        region = image[:height2, x : x + width2]
-        image[:height2, x : x + width2, :3] = (1 - alpha_channel[:, :, np.newaxis]) * region[
-            :, :, :3
-        ] + alpha_channel[:, :, np.newaxis] * image2[:, :, :3]
-
-    def animate(self, path: str = None):
-        bg = self._merge_canvas_with_images(self.np_frames, 4)
-        ann = self._merge_canvas_with_images(self.np_anns, 4)
-        ann[:, :, 3] = np.where(np.all(ann == 255, axis=-1), 0, 255).astype(np.uint8)
-
-        duration = 1.1
-        fps = 15
-        num_frames = int(duration * fps)
-        frames = []
-        for i in list(range(1, num_frames + 1)) + list(range(num_frames, 0, -1)):
-            alpha = i / num_frames
-            frame = self._overlay_images(bg, ann, alpha)
-            self._add_overlay_with_logo(frame)
-            frame = self._resize_image(frame, frame.shape[0] // 2)
-            frame = Image.fromarray(frame)
-            frames.append(frame)
-            if i == num_frames:
-                frames.extend([frame] * (fps // 2))
-
-        frames[0].save(path, save_all=True, append_images=frames[1:])
-        # import imageio
-        # imageio.mimsave(path, frames)
-
-        sly.logger.info(f"Animation saved to: {path}")
+        reg = image[y : y + h2, x : x + w2]
+        image[y : y + h2, x : x + w2, :3] = (1 - alpha[:, :, np.newaxis]) * reg[:, :, :3] + alpha[
+            :, :, np.newaxis
+        ] * image2[:, :, :3]
 
     def _overlay_images(self, bg, overlay, opacity):
         alpha = overlay[..., 3] * opacity / 255.0
@@ -211,3 +209,17 @@ class HorizontalGrid:
         for c in range(3):
             result_image[..., c] = bg[..., c] * one_minus_alpha + overlay[..., c] * alpha
         return result_image
+
+    def _save_video(self, videopath: str, frames):
+        fourcc = cv2.VideoWriter_fourcc(*"VP90")
+        height, width = frames[0].shape[:2]
+        video_writer = cv2.VideoWriter(videopath, fourcc, 15, (width, height))
+
+        with tqdm(desc="Saving video...", total=len(frames)) as vid_pbar:
+            for frame in frames:
+                if frame.shape[:2] != (height, width):
+                    raise Exception("Not all frame sizes are not equal to each other.")
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+                video_writer.write(frame)
+                vid_pbar.update(1)
+        video_writer.release()
