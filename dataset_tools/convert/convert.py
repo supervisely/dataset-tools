@@ -1,26 +1,80 @@
-import os
-from pathlib import Path
-import subprocess
-from supervisely.sly_logger import logger
+import subprocess, os
+from subprocess import PIPE
 
 
-def convert_all(directory: str):
-    current_dir = Path(__file__).parent.absolute()
-    parent_dir = Path(__file__).parent.parent.parent.absolute()
-    script_path = os.path.join(current_dir, "convert.sh")
-    if not directory.startswith(str(parent_dir)):
-        directory = os.path.join(parent_dir, directory)
-    if not os.path.isdir(directory):
-        raise("No such directory. Check the given path.")
-
-    process = subprocess.run(
-        ["bash", script_path, directory],
-        check=True,
-        capture_output=True,
-        text=True,
+def from_mp4_to_webm(src_path, dst_path, quality: int = 35):
+    session = subprocess.Popen(
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            f"{src_path}",
+            "-vf",
+            "scale='min(1600,iw)':-2",
+            "-vcodec",
+            "libvpx-vp9",
+            "-crf",
+            f"{quality}",
+            "-b:v",
+            "0",
+            "-threads",
+            "4",
+            "-cpu-used",
+            "4",
+            "-pix_fmt",
+            "yuv420p",
+            "-an",
+            f"{dst_path}",
+        ],
+        stdout=PIPE,
+        stderr=PIPE,
     )
-    try:
-        process.check_returncode()
-        logger.info(f"Files successfully converted.")
-    except subprocess.CalledProcessError as e:
-        print(e.stdout)
+    stdout, stderr = session.communicate()
+    return dst_path
+
+
+def process_mp4(src_path, dst_path, quality: int = 35):
+    session = subprocess.Popen(
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            f"{src_path}",
+            "-vf",
+            "scale='min(1600,iw)':-2",
+            "-c:v",
+            "libvpx-vp9",
+            "-crf",
+            f"{quality}",
+            "-b:v",
+            "0",
+            "-pix_fmt",
+            "yuv420p",
+            "-an",
+            f"{dst_path}",
+        ],
+        stdout=PIPE,
+        stderr=PIPE,
+    )
+    stdout, stderr = session.communicate()
+    return dst_path
+
+
+def process_png(src_path, dst_path, resolution: int = 720):
+    session = subprocess.Popen(
+        [
+            "ffmpeg",
+            "-y",
+            "-ss",
+            "0",
+            "-i",
+            f"{src_path}",
+            "-filter:v",
+            f"scale=-2:{resolution}",
+            f"{dst_path}",
+        ],
+        stdout=PIPE,
+        stderr=PIPE,
+    )
+    stdout, stderr = session.communicate()
+    return dst_path
