@@ -53,16 +53,26 @@ def standardize(text: str):
 
 
 def get_summary_data(
-    name: str,
-    fullname: str,
-    cv_tasks: List[str],
-    annotation_types: List[str],
-    release_year: str,
-    organization: str,
-    organization_link: str,
-    industry: str = None,
+    name:str,
+    fullname:str,
+    cv_tasks:List[str],
+    annotation_types:List[str],
+    industries: str,
+    release_year:int,
+    homepage_url:str,
+    license:str,
+    license_url:str,
+    preview_image_id:int,
+    github_url:str,
+    citation_url:str,
+    download_sly_url:str,
+    download_original_url:str = None,
+    paper:str = None,
+    organization_name:str = None,
+    organization_url:str = None,
+    tags:List[str] = None,
     **kwargs
-) -> str:
+) -> Dict:
     api = sly.Api.from_env()
     project_id = sly.env.project_id()
     project_info = api.project.get_info_by_id(project_id)
@@ -90,37 +100,79 @@ def get_summary_data(
     ]
 
     fields = {
+        # preset fields
         "name": name,
         "fullname": fullname,
         "cv_tasks": cv_tasks,
         "annotation_types": annotation_types,
-        "modality": project_info.type,
+        "industries": industries,
         "release_year": release_year,
-        "organization": organization,
-        "organization_link": organization_link,
+        "homepage_url": homepage_url,
+        "license": license,
+        "license_url": license_url,
+        "preview_image_id": preview_image_id,
+        "github_url": github_url,
+        "citation_url": citation_url,
+        "download_sly_url": download_sly_url,
+
+        # from supervisely
+        "modality": project_info.type,
         "totals": totals_dct,
         "unlabeled_assets_num": unlabeled_num,
         "unlabeled_assets_percent": unlabeled_percent,
         "splits": splits_list,
     }
 
-    if industry is not None:
-        fields["industry"] = industry
+    def get_variable_name(variable) -> str:
+        for name, value in locals().items():
+            if value is variable:
+                return name
+            
+    # optional fields
+    for key, value in zip(['download_original_url', 'paper', 'organization_name', 'organization_url', 'tags'], [download_original_url, paper, organization_name, organization_url, tags]):
+        if value is not None:
+            fields[key] = value
 
     return fields
 
 
-def generate_summary_content(data: Dict, gif_url: str):
-    name = data.get("name")
-    fullname = data.get("fullname")
-    industries = data.get("industry")
+def generate_summary_content(data: Dict, vis_url: str) -> str:
+
+    # preset fields
+    # required
+    name = data.get("name", None)
+    fullname = data.get("fullname", None)
+    cv_tasks = [standardize(cv_task) for cv_task in data.get("cv_tasks", [])]
+    annotation_types = [standardize(ann_type) for ann_type in data.get("annotation_types", [])]
+    industries = data.get("industries", None)
+    release_year = data.get("release_year", None)
+    homepage_url = data.get("homepage_url", None)
+    license = data.get("license", None)
+    license_url = data.get("license_url", None)  
+    preview_image_id = data.get("preview_image_id", None)
+    github_url = data.get("github_url", None)
+    citation_url = data.get("citation_url", None)
+    download_sly_url = data.get("download_sly_url", None)
+
+    # optional
+    download_original_url = data.get("download_original_url", None)
+    paper = data.get("paper", None) 
+    organization_name = data.get("organization_name", None)
+    organization_url = data.get("organization_url", None)
+    tags = data.get("tags", []),
+
+    # from supervisely
+    # required
     modality = data.get("modality")
     totals = data.get("totals", {})
     top_classes = totals.get("top_classes", [])
+    unlabeled_assets_num = data.get("unlabeled_assets_num", None)
+    unlabeled_assets_percent = data.get("unlabeled_assets_percent", None)
+    splits = [
+        f'*{split["name"]}* ({split["split_size"]} {modality})' for split in data.get("splits", [])
+    ]
 
-    cv_tasks = [standardize(cv_task) for cv_task in data.get("cv_tasks", [])]
-    annotation_types = [standardize(ann_type) for ann_type in data.get("annotation_types", [])]
-
+    # prepare data
     annotations = []
     if "instance segmentation" in annotation_types:
         if "semantic segmentation" not in annotation_types and "object detection" not in annotation_types:
@@ -139,33 +191,32 @@ def generate_summary_content(data: Dict, gif_url: str):
 
     annotations = ",".join(annotations).strip()
 
-    unlabeled_assets_num = data.get("unlabeled_assets_num")
-    unlabeled_assets_percent = data.get("unlabeled_assets_percent")
-    release_year = data.get("release_year")
-    organization = data.get("organization")
-    organization_link = data.get("organization_link")
 
-    splits = [
-        f'*{split["name"]}* ({split["split_size"]} {modality})' for split in data.get("splits", [])
-    ]
-
-    # content = f"# {name} dataset summary\n\n"
+    # collect content
     content = f"**{name}** ({fullname}) is a dataset for {list2sentence(cv_tasks, 'tasks', keeptail=True)}. "
 
-    content += (
-        f"It is used in {list2sentence(industries, 'industries')}."
-        if industries is not None
-        else "It is applicable or relevant across various domains."
-    )
-    # "Here you can see classes presented in descending order based on the number of objects within each class"
+    if "general domain" in industries:
+        content += "It is applicable or relevant across various domains."
+        if len(industries)>1:
+            industries.pop("general domain")
+            content += f"Also, it is used in {list2sentence(industries, 'industries')}."
+    else:
+        content += f"It is used in {list2sentence(industries, 'industries')}."
+
     content += "\n\n"
     content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} different classes including *{', '.join(top_classes[:3])}*, and other: *{list2sentence(top_classes[3:])}*."
     content += f"\n\nEach {p.singular_noun(modality)} in the {name} dataset has {annotations}. "
     content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
     content += f"There are {len(splits)} splits in the dataset: {list2sentence(splits)}. "
-    content += f"The dataset was released in {release_year} by the [{organization}]({organization_link}).\n"
-    content += f"\nHere are the visualized examples for each of the {totals.get('total_classes', 0)} classes:\n\n"
-    content += f"[Dataset classes]({gif_url})\n"
+    if organization_name is not None and organization_url is not None:
+        content += f"The dataset was released in {release_year} by the [{organization_name}]({organization_url})."
+    elif organization_name is not None and organization_url is None:
+        content += f"The dataset was released in {release_year} by the {organization_name}."
+    elif organization_name is None and organization_url is None:
+        content += f"The dataset was released in {release_year}."
+
+    content += f"\n\nHere are the visualized examples for each of the {totals.get('total_classes', 0)} classes:\n\n"
+    content += f"[Dataset classes]({vis_url})\n"
 
     return content
 
