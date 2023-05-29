@@ -34,17 +34,14 @@ def main():
         dtools.ObjectSizes(project_meta),
         dtools.ClassSizes(project_meta),
     ]
-    imstats = [
-        dtools.ClassesHeatmaps(project_meta),
-    ]
-    vstats = [
-        dtools.ClassesPreview(project_meta, project.name),
-    ]
+    heatmaps = dtools.ClassesHeatmaps(project_meta)
+    classes_previews = dtools.ClassesPreview(project_meta, project.name)
+    vstats = [heatmaps, classes_previews]
 
     # pass project_id or project_path as a first argument
     dtools.count_stats(
         project_id,
-        stats=stats + imstats + vstats,
+        stats=stats + vstats,
         sample_rate=0.01,
     )
     print("Saving stats...")
@@ -52,12 +49,9 @@ def main():
         with open(f"./stats/{stat.basename_stem}.json", "w") as f:
             json.dump(stat.to_json(), f)
         stat.to_image(f"./stats/{stat.basename_stem}.png")
-    for imstat in imstats:
-        imstat.to_image(f"./stats/{imstat.basename_stem}.png", draw_style="outside_black")
-    for vstat in vstats:
-        vstat.animate(f"./render_results/originals/{vstat.basename_stem}.mp4")
-    print("Converting files...")
-    dtools.convert_all("render_results/originals")
+
+    heatmaps.to_image(f"./stats/{heatmaps.basename_stem}.png", draw_style="outside_black")
+    classes_previews.animate(f"./stats/{classes_previews.basename_stem}.webm")
     print("Done.")
 
 
