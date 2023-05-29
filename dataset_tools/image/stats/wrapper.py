@@ -99,6 +99,9 @@ def count_stats(
             stat.to_image(f"./stats/{stat.basename_stem}.png")
         print("Done")
     """
+    if len(stats) == 0:
+        print("Passed 'stats' parameter is empty. Enable 'force' flag to overwrite statistics output file. Skipping statistics counting...")
+        return
     if sample_rate <= 0 or sample_rate > 1:
         raise ValueError("Sample rate has to be in range (0, 1]")
     if api is None:

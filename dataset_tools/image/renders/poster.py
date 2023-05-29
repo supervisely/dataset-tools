@@ -17,7 +17,9 @@ class Poster:
         project: Union[str, int],
         project_meta: sly.ProjectMeta,
         api: sly.Api = None,
+        force:bool = False,
     ) -> None:
+        self.force = force
         self._project_meta = project_meta
         self._api = api if api is not None else sly.Api.from_env()  # ?
         self._project = None

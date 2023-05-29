@@ -54,6 +54,9 @@ def sample_images(
 def prepare_renders(
     project: Union[int, str], renderers: list, sample_cnt: int = 25, api: sly.Api = None
 ) -> None:
+    if len(renderers) == 0:
+        print("Passed 'renderers' parameter is empty. Enable 'force' flag to overwrite renderers output file. Skipping renderers preparation...")
+        return
     if api is None:
         api = sly.Api.from_env()
     if isinstance(project, int):

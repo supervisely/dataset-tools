@@ -19,7 +19,9 @@ class SideAnnotationsGrid:
         rows: int = 3,
         cols: int = 3,
         side_overlay_path: str = "side_logo_overlay.png",
+        force:bool = False,
     ):
+        self.force = force
         self.project_meta = project_meta
 
         self._img_height = 1080

@@ -122,11 +122,6 @@ def get_summary_data(
         "unlabeled_assets_percent": unlabeled_percent,
         "splits": splits_list,
     }
-
-    def get_variable_name(variable) -> str:
-        for name, value in locals().items():
-            if value is variable:
-                return name
             
     # optional fields
     for key, value in zip(['download_original_url', 'paper', 'organization_name', 'organization_url', 'tags'], [download_original_url, paper, organization_name, organization_url, tags]):
@@ -197,14 +192,14 @@ def generate_summary_content(data: Dict, vis_url: str) -> str:
 
     if "general domain" in industries:
         content += "It is applicable or relevant across various domains."
-        if len(industries)>1:
+        if len(industries) > 1:
             industries.pop("general domain")
             content += f"Also, it is used in {list2sentence(industries, 'industries')}."
     else:
         content += f"It is used in {list2sentence(industries, 'industries')}."
 
     content += "\n\n"
-    content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} different classes including *{', '.join(top_classes[:3])}*, and other: *{list2sentence(top_classes[3:])}*."
+    content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} different classes including *{'*, *'.join(top_classes[:3])},* and other: *{list2sentence(top_classes[3:], )}*."
     content += f"\n\nEach {p.singular_noun(modality)} in the {name} dataset has {annotations}. "
     content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
     content += f"There are {len(splits)} splits in the dataset: {list2sentence(splits)}. "

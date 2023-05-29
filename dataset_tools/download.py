@@ -1,26 +1,9 @@
 import os
-import re
 import json
 
 from urllib.parse import urljoin
-from dotenv import load_dotenv
-from tqdm import tqdm
 
 import supervisely as sly
-
-
-# if sly.is_development():
-#     load_dotenv(os.path.expanduser("~/ninja.env"))
-#     load_dotenv("local.env")
-
-
-# data_dir = sly.app.get_data_dir()
-# # task_id = sly.env.task_id()
-# team_id = sly.env.team_id()
-
-# batch_size = 10
-
-
 
 
 def prepare_download_link(project):
@@ -78,10 +61,8 @@ def prepare_download_link(project):
         )
 
 
+def update_sly_url_dict(new_dict: dict) -> None:
 
-def update_sly_url_dict(new_dict: dict):
-
-    # src = "/cache/download_links.json"
     src = os.environ["DOWNLOADS_DICT"]
     dst = os.path.join(sly.app.get_data_dir(), "download_links.json")
 

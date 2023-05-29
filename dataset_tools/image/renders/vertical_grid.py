@@ -19,7 +19,9 @@ class VerticalGrid:
         rows: int = 6,
         cols: int = 3,
         footer_path: str = "dninja_footer.png",
+        force:bool = False,
     ):
+        self.force = force
         self.project_meta = project_meta
 
         self._img_width = 1920

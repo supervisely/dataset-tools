@@ -14,7 +14,9 @@ class ClassesHeatmaps(BaseVisual):
     Get heatmaps of visual density of aggregated annotations for every class in the dataset
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, heatmap_img_size: tuple = None):
+    def __init__(self, project_meta: sly.ProjectMeta, heatmap_img_size: tuple = None, force=False):
+
+        self.force = force
         self._meta = project_meta
         self.classname_heatmap = {}
         self._ds_image_sizes = []

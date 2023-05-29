@@ -26,7 +26,9 @@ class ClassesPreview(BaseVisual):
         project_name: str,
         api: sly.Api = None,
         row_height: int = None,
+        force:bool = False
     ):
+        self.force = force
         self._meta = project_meta
         self._project_name = project_name
         self._title = f"{self._project_name} · {len(self._meta.obj_classes)} classes"

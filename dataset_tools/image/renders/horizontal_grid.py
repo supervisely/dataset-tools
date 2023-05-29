@@ -18,7 +18,9 @@ class HorizontalGrid:
         api: sly.Api = None,
         rows: int = 3,
         cols: int = 6,
-    ):
+        force:bool = False,
+    ):  
+        self.force = force
         self.project_meta = project_meta
 
         self._img_height = 1920
