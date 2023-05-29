@@ -1,14 +1,13 @@
-import cv2
 import os
 import random
 from typing import Union
 
+import cv2
 import numpy as np
 from tqdm import tqdm
-from PIL import Image
-
 
 import supervisely as sly
+from dataset_tools.convert.convert import from_mp4_to_webm, process_mp4, process_png
 
 
 class VerticalGrid:
@@ -71,13 +70,45 @@ class VerticalGrid:
                 p.update(1)
 
     def to_image(self, path: str = None):
+        path_part, ext = os.path.splitext(path)
+        tmp_path = f"{path_part}-o{ext}"
         if path is None:
             storage_dir = sly.app.get_data_dir()
             path = os.path.join(storage_dir, "vertical_grid.png")
         self._img_array = self._merge_canvas_with_images(self.np_images)
         self._add_footer_with_logo(self._img_array)
-        sly.image.write(path, self._img_array)
+
+        sly.image.write(tmp_path, self._img_array)
+        process_png(tmp_path, path, 1080)
+        sly.fs.silent_remove(tmp_path)
         sly.logger.info(f"Result grid saved to: {path}")
+
+    def animate(self, path: str = None):
+        bg = self._merge_canvas_with_images(self.np_frames, 4)
+        ann = self._merge_canvas_with_images(self.np_anns, 4)
+        ann[:, :, 3] = np.where(np.all(ann == 255, axis=-1), 0, 255).astype(np.uint8)
+
+        duration = 1.1
+        fps = 15
+        num_frames = int(duration * fps)
+        frames = []
+        for i in list(range(1, num_frames + 1)) + list(range(num_frames, 0, -1)):
+            alpha = i / num_frames
+            frame = self._overlay_images(bg, ann, alpha)
+            self._add_footer_with_logo(frame)
+            frame = self._resize_image(frame, frame.shape[1] // 2)
+            frames.append(frame)
+            if i == num_frames:
+                frames.extend([frame] * (fps // 2))
+
+        tmp_video_path = f"{os.path.splitext(path)[0]}-o.mp4"
+        video_path = f"{os.path.splitext(path)[0]}.mp4"
+        self._save_video(tmp_video_path, frames)
+        from_mp4_to_webm(tmp_video_path, path)
+        process_mp4(tmp_video_path, video_path)
+        sly.fs.silent_remove(tmp_video_path)
+
+        sly.logger.info(f"Animation saved to: {path}, {video_path}")
 
     def _merge_canvas_with_images(self, images, channels: int = 3):
         columns = self._create_columns(images)
@@ -150,7 +181,6 @@ class VerticalGrid:
         return image
 
     def _add_footer_with_logo(self, image):
-        # image2 = sly.image.read(self._footer_path, remove_alpha_channel=False)
         image2 = cv2.imread(self._footer_path, cv2.IMREAD_UNCHANGED)
         image2 = cv2.cvtColor(image2, cv2.COLOR_BGRA2RGBA)
 
@@ -172,32 +202,6 @@ class VerticalGrid:
             :, :, :3
         ] + alpha_channel[:, :, np.newaxis] * image2[:, :, :3]
 
-    def animate(self, path: str = None):
-        bg = self._merge_canvas_with_images(self.np_frames, 4)
-        ann = self._merge_canvas_with_images(self.np_anns, 4)
-        ann[:, :, 3] = np.where(np.all(ann == 255, axis=-1), 0, 255).astype(np.uint8)
-
-        duration = 1.1
-        fps = 15
-        num_frames = int(duration * fps)
-        frames = []
-        for i in list(range(1, num_frames + 1)) + list(range(num_frames, 0, -1)):
-            alpha = i / num_frames
-            frame = self._overlay_images(bg, ann, alpha)
-            self._add_footer_with_logo(frame)
-            frame = self._resize_image(frame, frame.shape[1] // 2)
-            frame = Image.fromarray(frame)
-            frames.append(frame)
-            if i == num_frames:
-                frames.extend([frame] * (fps // 2))
-
-        frames[0].save(path, save_all=True, append_images=frames[1:])
-
-        # import imageio
-        # imageio.mimsave(path, frames)
-
-        sly.logger.info(f"Animation saved to: {path}")
-
     def _overlay_images(self, bg, overlay, opacity):
         alpha = overlay[..., 3] * opacity / 255.0
         one_minus_alpha = 1 - alpha
@@ -206,3 +210,17 @@ class VerticalGrid:
         for c in range(3):
             result_image[..., c] = bg[..., c] * one_minus_alpha + overlay[..., c] * alpha
         return result_image
+
+    def _save_video(self, videopath: str, frames):
+        fourcc = cv2.VideoWriter_fourcc(*"VP90")
+        height, width = frames[0].shape[:2]
+        video_writer = cv2.VideoWriter(videopath, fourcc, 15, (width, height))
+
+        with tqdm(desc="Saving video...", total=len(frames)) as vid_pbar:
+            for frame in frames:
+                if frame.shape[:2] != (height, width):
+                    raise Exception("Not all frame sizes are not equal to each other.")
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+                video_writer.write(frame)
+                vid_pbar.update(1)
+        video_writer.release()

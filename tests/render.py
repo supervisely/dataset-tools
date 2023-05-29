@@ -42,7 +42,7 @@ def main():
     for r in renderers + animators:
         r.to_image(f"./render_results/{r.basename_stem}.png")
     for a in animators:
-        a.animate(f"./render_results/{a.basename_stem}.webp")
+        a.animate(f"./render_results/{a.basename_stem}.webm")
     print("Done.")
 
 
