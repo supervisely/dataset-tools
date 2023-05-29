@@ -7,6 +7,7 @@ import numpy as np
 from tqdm import tqdm
 
 import supervisely as sly
+from dataset_tools.convert.convert import process_png
 from supervisely.imaging import font as sly_font
 
 
@@ -111,11 +112,15 @@ class Poster:
         self._draw_text_and_bboxes()
 
     def to_image(self, path: str = None):
+        path_part, ext = os.path.splitext(path)
+        tmp_path = f"{path_part}-o{ext}"
         if path is None:
             storage_dir = sly.app.get_data_dir()
-            sly.fs.clean_dir(storage_dir)
-            path = os.path.join(storage_dir, "poster.jpeg")
-        sly.image.write(path, self._poster)
+            path = os.path.join(storage_dir, "horizontal_grid.png")
+
+        sly.image.write(tmp_path, self._poster)
+        process_png(tmp_path, path)
+        sly.fs.silent_remove(tmp_path)
         sly.logger.info(f"Poster saved to: {path}")
 
     def _resize_image(self, image: np.ndarray, image_num: int):
