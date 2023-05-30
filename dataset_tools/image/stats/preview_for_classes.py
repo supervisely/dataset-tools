@@ -226,6 +226,8 @@ class ClassesPreview(BaseVisual):
 
         combined_rows = []
         for row, width in zip(rows, img_widths):
+            if len(row) == 0:
+                continue
             gap = (self._row_width - width) // max((len(row) - 1), 1)
             separator = np.ones((self._row_height, gap, channels), dtype=np.uint8) * 255
             combined_images = []
@@ -312,7 +314,7 @@ class ClassesPreview(BaseVisual):
         font = sly_font.get_font(font_name, int(font_size * font_scale))
         l, t, r, b = font.getbbox(text)
         title_w, title_h = r - l + self._gap, b
-        while title_h > self._row_height * 0.3:
+        while title_h > self._row_height * 0.3 or title_w > image_w * 0.8:
             font = font.font_variant(size=int(font.size * 0.96))
             l, t, r, b = font.getbbox(text)
             title_w, title_h = r - l + self._gap, b
