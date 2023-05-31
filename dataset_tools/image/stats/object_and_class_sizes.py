@@ -2,6 +2,7 @@ from typing import Dict, List
 from collections import defaultdict
 
 import supervisely as sly
+from supervisely.app.widgets import TreemapChart
 
 from dataset_tools.image.stats.basestats import BaseStats
 
@@ -21,7 +22,12 @@ class ObjectSizes(BaseStats):
         Area %
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, datasets: List[sly.DatasetInfo] = None, force:bool = False):
+    def __init__(
+        self,
+        project_meta: sly.ProjectMeta,
+        datasets: List[sly.DatasetInfo] = None,
+        force: bool = False,
+    ):
         self.force = force
         self.project_meta = project_meta
         self._dataset_id_to_name = None
@@ -134,7 +140,7 @@ class ClassSizes(BaseStats):
         Avg area %
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, force:bool = False):
+    def __init__(self, project_meta: sly.ProjectMeta, force: bool = False):
         self.force = force
         self.project_meta = project_meta
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
@@ -263,6 +269,71 @@ class ClassSizes(BaseStats):
         }
 
         return res
+
+
+class ClassTreemap(BaseStats):
+    def __init__(self, project_meta: sly.ProjectMeta, force: bool = False):
+        self.force = force
+        self.project_meta = project_meta
+        self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
+        self._class_rgbs = [obj_class.color for obj_class in project_meta.obj_classes]
+        self._class_colors = [rgb_to_hex(rgb) for rgb in self._class_rgbs]
+
+        self._data = []
+
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
+        self._data.append(ann)
+
+    def to_json(self) -> Dict:
+        tooltip = "Average area of class objects on image is {y}%"
+        colors = self._class_colors
+        names = []
+        values = []
+
+        class_areas_pc = defaultdict(list)
+        class_object_counts = defaultdict(int)
+
+        for ann in self._data:
+            image_height, image_width = ann.img_size
+            for label in ann.labels:
+                if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
+                    continue
+
+                class_object_counts[label.obj_class.name] += 1
+
+                obj_sizes = calculate_obj_sizes(label, image_height, image_width)
+
+                class_areas_pc[label.obj_class.name].append(obj_sizes["area_pc"])
+
+        for class_title in self._class_titles:
+            object_count = class_object_counts[class_title]
+
+            if object_count < 1:
+                continue
+
+            names.append(class_title)
+            values.append(
+                round(
+                    sum(class_areas_pc[class_title]) / len(class_areas_pc[class_title]),
+                    2,
+                )
+            )
+
+        tc = TreemapChart(
+            title="Average area of class objects on image",
+            colors=colors,
+            tooltip=tooltip,
+        )
+
+        tc.set_series(names, values)
+
+        res = tc.get_json_data()
+
+        return res
+
+
+def rgb_to_hex(rgb: List[int]) -> str:
+    return "#{:02x}{:02x}{:02x}".format(*rgb)
 
 
 def calculate_obj_sizes(label: sly.Label, image_height: int, image_width: int) -> Dict:
