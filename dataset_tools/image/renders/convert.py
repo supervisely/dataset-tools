@@ -1,8 +1,8 @@
-import subprocess, os
+import subprocess
 from subprocess import PIPE
 
 
-def from_mp4_to_webm(src_path, dst_path, quality: int = 35):
+def from_mp4_to_webm(src_path, dst_path, compression_level: int = 35):
     session = subprocess.Popen(
         [
             "ffmpeg",
@@ -14,7 +14,7 @@ def from_mp4_to_webm(src_path, dst_path, quality: int = 35):
             "-vcodec",
             "libvpx-vp9",
             "-crf",
-            f"{quality}",
+            f"{compression_level}",
             "-b:v",
             "0",
             "-threads",
@@ -33,7 +33,7 @@ def from_mp4_to_webm(src_path, dst_path, quality: int = 35):
     return dst_path
 
 
-def process_mp4(src_path, dst_path, quality: int = 35):
+def compress_mp4(src_path, dst_path, compression_level: int = 35):
     session = subprocess.Popen(
         [
             "ffmpeg",
@@ -43,9 +43,9 @@ def process_mp4(src_path, dst_path, quality: int = 35):
             "-vf",
             "scale='min(1600,iw)':-2",
             "-c:v",
-            "libvpx-vp9",
+            "libx264",
             "-crf",
-            f"{quality}",
+            f"{compression_level}",
             "-b:v",
             "0",
             "-pix_fmt",
@@ -60,7 +60,7 @@ def process_mp4(src_path, dst_path, quality: int = 35):
     return dst_path
 
 
-def process_png(src_path, dst_path, resolution: int = 720):
+def compress_png(src_path, dst_path, resolution: int = 720):
     session = subprocess.Popen(
         [
             "ffmpeg",

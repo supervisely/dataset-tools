@@ -7,7 +7,7 @@ import numpy as np
 from tqdm import tqdm
 
 import supervisely as sly
-from dataset_tools.convert.convert import from_mp4_to_webm, process_mp4, process_png
+from dataset_tools.image.renders.convert import from_mp4_to_webm, compress_mp4, compress_png
 
 
 class VerticalGrid:
@@ -19,7 +19,7 @@ class VerticalGrid:
         rows: int = 6,
         cols: int = 3,
         footer_path: str = "dninja_footer.png",
-        force:bool = False,
+        force: bool = False,
     ):
         self.force = force
         self.project_meta = project_meta
@@ -81,7 +81,7 @@ class VerticalGrid:
         self._add_footer_with_logo(self._img_array)
 
         sly.image.write(tmp_path, self._img_array)
-        process_png(tmp_path, path, 1080)
+        compress_png(tmp_path, path, 1080)
         sly.fs.silent_remove(tmp_path)
         sly.logger.info(f"Result grid saved to: {path}")
 
@@ -107,7 +107,7 @@ class VerticalGrid:
         video_path = f"{os.path.splitext(path)[0]}.mp4"
         self._save_video(tmp_video_path, frames)
         from_mp4_to_webm(tmp_video_path, path)
-        process_mp4(tmp_video_path, video_path)
+        compress_mp4(tmp_video_path, video_path)
         sly.fs.silent_remove(tmp_video_path)
 
         sly.logger.info(f"Animation saved to: {path}, {video_path}")

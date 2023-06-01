@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseVisual
-from dataset_tools.convert.convert import from_mp4_to_webm, process_mp4, process_png
+from dataset_tools.image.renders.convert import from_mp4_to_webm, compress_mp4, compress_png
 from supervisely.imaging import font as sly_font
 
 UNLABELED_COLOR = [0, 0, 0]
@@ -26,7 +26,7 @@ class ClassesPreview(BaseVisual):
         project_name: str,
         api: sly.Api = None,
         row_height: int = None,
-        force:bool = False
+        force: bool = False,
     ):
         self.force = force
         self._meta = project_meta
@@ -86,7 +86,7 @@ class ClassesPreview(BaseVisual):
         video_path = f"{os.path.splitext(path)[0]}.mp4"
         self._save_video(tmp_video_path, frames)
         from_mp4_to_webm(tmp_video_path, path)
-        process_mp4(tmp_video_path, video_path)
+        compress_mp4(tmp_video_path, video_path)
         sly.fs.silent_remove(tmp_video_path)
 
         sly.logger.info(f"Animation saved to: {path}, {video_path}")

@@ -7,7 +7,7 @@ import numpy as np
 from tqdm import tqdm
 
 import supervisely as sly
-from dataset_tools.convert.convert import process_png
+from dataset_tools.image.renders.convert import compress_png
 
 
 class SideAnnotationsGrid:
@@ -19,7 +19,7 @@ class SideAnnotationsGrid:
         rows: int = 3,
         cols: int = 3,
         side_overlay_path: str = "side_logo_overlay.png",
-        force:bool = False,
+        force: bool = False,
     ):
         self.force = force
         self.project_meta = project_meta
@@ -85,7 +85,7 @@ class SideAnnotationsGrid:
         self._add_overlay_with_logo()
 
         sly.image.write(tmp_path, self._img_array)
-        process_png(tmp_path, path)
+        compress_png(tmp_path, path)
         sly.fs.silent_remove(tmp_path)
         sly.logger.info(f"Result grid saved to: {path}")
 

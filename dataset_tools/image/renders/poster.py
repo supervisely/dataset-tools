@@ -7,7 +7,7 @@ import numpy as np
 from tqdm import tqdm
 
 import supervisely as sly
-from dataset_tools.convert.convert import process_png
+from dataset_tools.image.renders.convert import compress_png
 from supervisely.imaging import font as sly_font
 
 
@@ -17,7 +17,7 @@ class Poster:
         project: Union[str, int],
         project_meta: sly.ProjectMeta,
         api: sly.Api = None,
-        force:bool = False,
+        force: bool = False,
     ) -> None:
         self.force = force
         self._project_meta = project_meta
@@ -121,7 +121,7 @@ class Poster:
             path = os.path.join(storage_dir, "horizontal_grid.png")
 
         sly.image.write(tmp_path, self._poster)
-        process_png(tmp_path, path)
+        compress_png(tmp_path, path)
         sly.fs.silent_remove(tmp_path)
         sly.logger.info(f"Poster saved to: {path}")
 
@@ -221,7 +221,7 @@ class Poster:
         )
         image[:, r + 3 * pad :, :3] = 0
         image = np.dstack((image, np.ones((*image.shape[:2], 1), dtype=np.uint8) * 255))
-        return 255 -image
+        return 255 - image
 
     def _draw_logo(self, height):
         logo = sly.image.read(self._logo_path)

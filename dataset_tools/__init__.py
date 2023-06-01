@@ -25,4 +25,4 @@ from dataset_tools.text.summary.generate import (
     get_summary_data_sly,
 )
 
-from dataset_tools.convert.convert import from_mp4_to_webm, process_mp4, process_png
+from dataset_tools.image.renders.convert import from_mp4_to_webm, compress_mp4, compress_png
