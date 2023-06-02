@@ -89,6 +89,7 @@ def get_split_idxs(num_imgs, percentage):
 
 
 def to_supervisely(input_path: str, output_path: str = None):
+    raise NotImplementedError("Function is not implemented yet")
     tag_metas = sly.TagMetaCollection()
     obj_classes = sly.ObjClassCollection()
     dataset_names = []
@@ -297,6 +298,7 @@ if splitter_coef > 1 or splitter_coef < 0:
 
 
 def from_supervisely(input_path: str, output_path: str = None) -> str:
+    raise NotImplementedError("Function is not implemented yet")
     api = sly.Api()
     PROJECT_ID = sly.env.project_id()
     # WORKSPACE_ID = sly.env.workspace_id()
