@@ -4,6 +4,8 @@ import json
 from collections import OrderedDict
 from shutil import copyfile
 
+from dataset_tools.convert import unpack_if_archive
+
 import numpy as np
 import lxml.etree as ET
 from PIL import Image
@@ -40,6 +42,7 @@ MASKS_EXTENSION = ".png"
 
 
 def to_supervisely(input_path: str, output_path: str = None):
+    input_path = unpack_if_archive(input_path)
     # Specific directory that must exist in input path.
     DIR_NAME = "VOCdevkit"
 
@@ -232,6 +235,7 @@ pascal_ann_ext = ".png"
 
 
 def from_supervisely(input_path: str, output_path: str = None):
+    input_path = unpack_if_archive(input_path)
     project_info = sly.Project(input_path, sly.OpenMode.READ)
     meta = project_info.meta
 
