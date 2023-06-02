@@ -155,11 +155,10 @@ def from_supervisely(
 
             if only_annotations is False:
                 if local:
-                    # src_paths = [dataset.get_img_path(img) for img in os.listdir(dataset.img_dir)]
-                    # dst_paths = [os.path.join(img_dir, img) for img in os.listdir(dataset.img_dir)]
-                    # for src_path, dst_path in zip(src_paths, dst_paths):
-                    #     shutil.copyfile(src_path, dst_path)
-                    shutil.copytree(dataset.img_dir, img_dir)
+                    src_paths = [dataset.get_img_path(info.name) for info in batch]
+                    dst_paths = [os.path.join(img_dir, info.name) for info in batch]
+                    for src_path, dst_path in zip(src_paths, dst_paths):
+                        shutil.copyfile(src_path, dst_path)
                 else:
                     image_paths = [
                         os.path.join(coco_dataset_dir, img_dir, image_info.name)
@@ -395,7 +394,7 @@ def get_categories_map_from_meta(meta):
 def create_coco_dataset(coco_dataset_dir):
     sly.fs.mkdir(os.path.join(coco_dataset_dir))
     img_dir = os.path.join(coco_dataset_dir, "images")
-    # sly.fs.mkdir(img_dir)
+    sly.fs.mkdir(img_dir)
     ann_dir = os.path.join(coco_dataset_dir, "annotations")
     sly.fs.mkdir(ann_dir)
     return img_dir, ann_dir
