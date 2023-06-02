@@ -512,13 +512,3 @@ def get_categories_from_meta(meta):
             )
         )
     return categories
-
-
-# to_supervisely(original_ds=["val2017"])
-project_path = "/private/tmp/sly_data_dir/COCO test2"
-# project = api.project.get_info_by_id(20649)
-# pr = tqdm(total=project.items_count)
-# sly.download(
-#     api, 20649, project_path, save_image_info=True, save_images=True, progress_cb=pr.update
-# )
-from_supervisely(project_path=project_path, only_annotations=False)
