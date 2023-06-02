@@ -1,2 +1,3 @@
 supervisely
 dataframe_image
+inflect
