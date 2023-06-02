@@ -4,6 +4,9 @@ import tarfile
 
 
 def unpack_if_archive(path: str) -> str:
+    if os.path.isdir(path):
+        return path
+
     extraction_path = os.path.splitext(path)[0]
 
     if zipfile.is_zipfile(path):
