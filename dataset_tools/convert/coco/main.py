@@ -1,17 +1,24 @@
-import json, os, shutil, requests
+import json
+import os
+import shutil
+from datetime import datetime
 from typing import List
-import supervisely as sly
-from pycocotools.coco import COCO
-import pycocotools.mask as mask_util
-from PIL import Image
+
 import numpy as np
-from tqdm import tqdm
+import pycocotools.mask as mask_util
+import requests
 from dotenv import load_dotenv
+from PIL import Image
+from pycocotools.coco import COCO
+from tqdm import tqdm
+
+import supervisely as sly
+from dataset_tools.convert import unpack_if_archive
 from supervisely.annotation.json_geometries_map import GET_GEOMETRY_FROM_STR
 
 if sly.is_development():
-    load_dotenv(os.path.expanduser("~/ninja.env"))
-    # load_dotenv(os.path.expanduser("~/supervisely.env"))
+    # load_dotenv(os.path.expanduser("~/ninja.env"))
+    load_dotenv(os.path.expanduser("~/supervisely.env"))
     load_dotenv("local.env")
 
 api = sly.Api.from_env()
@@ -31,6 +38,7 @@ annotations_links = {
 }
 
 data_dir = sly.app.get_data_dir()
+
 COCO_BASE_DIR = os.path.join(data_dir, "COCO")
 META = sly.ProjectMeta()
 img_dir = None
@@ -40,21 +48,24 @@ dst_img_dir = None
 
 
 def to_supervisely(
-    is_original: bool = True,
-    original_ds: List[str] = [],
-    custom_ds: str = None,
+    original_ds_names: List[str] = None,
+    custom_ds_paths: List[str] = None,
     dst_path: str = None,
 ):
     global img_dir, ann_dir, src_img_dir, dst_img_dir, META
-    if is_original:
-        coco_datasets = download_original_coco_dataset(original_ds)
-    else:
-        coco_datasets = list(os.listdir(custom_ds))
+    if original_ds_names is not None and custom_ds_paths is not None:
+        raise ValueError("Both original and custom arguments are given, but only one is allowed.")
+    is_original = True if original_ds_names is not None else False
+    dst_path = os.path.join(data_dir, "supervisely project") if dst_path is None else dst_path
 
-    if dst_path is None:
-        dst_path = os.path.join(data_dir, "supervisely")
-    for dataset in coco_datasets:
-        coco_dataset_dir = os.path.join(COCO_BASE_DIR, dataset)
+    if is_original:
+        coco_datasets_dirs = download_original_coco_dataset(original_ds_names)
+        coco_datasets_name = original_ds_names
+    else:
+        coco_datasets_dirs = custom_ds_paths
+        coco_datasets_name = [os.path.basename(ds) for ds in custom_ds_paths]
+
+    for dataset_name, coco_dataset_dir in zip(coco_datasets_name, coco_datasets_dirs):
         if not sly.fs.dir_exists(coco_dataset_dir):
             sly.logger.info(f"File {coco_dataset_dir} has been skipped.")
             continue
@@ -65,20 +76,19 @@ def to_supervisely(
             )
             continue
 
-        if check_dataset_for_annotation(dataset, coco_ann_dir, is_original):
-            coco_ann_path = get_ann_path(coco_ann_dir, dataset, is_original)
-
+        coco_ann_path = get_ann_path(coco_ann_dir, dataset_name, is_original)
+        if bool(os.path.exists(coco_ann_path) and os.path.isfile(coco_ann_path)):
             coco = COCO(annotation_file=coco_ann_path)
             categories = coco.loadCats(ids=coco.getCatIds())
             coco_images = coco.imgs
             coco_anns = coco.imgToAnns
 
-            sly_dataset_dir = create_sly_dataset_dir(dst_path, dataset_name=dataset)
+            sly_dataset_dir = create_sly_dataset_dir(dst_path, dataset_name=dataset_name)
             img_dir = os.path.join(sly_dataset_dir, "img")
             ann_dir = os.path.join(sly_dataset_dir, "ann")
-            meta = get_sly_meta_from_coco(META, dst_path, categories, dataset)
+            meta = get_sly_meta_from_coco(META, dst_path, categories, dataset_name)
 
-            ds_progress = tqdm(desc=f"Converting dataset: {dataset}", total=len(coco_images))
+            ds_progress = tqdm(desc=f"Converting dataset: {dataset_name}", total=len(coco_images))
 
             for img_id, img_info in coco_images.items():
                 img_ann = coco_anns[img_id]
@@ -89,44 +99,38 @@ def to_supervisely(
                     coco_ann=img_ann,
                     image_size=img_size,
                 )
-                move_trainvalds_to_sly_dataset(dataset=dataset, coco_image=img_info, ann=ann)
+                move_trainvalds_to_sly_dataset(
+                    dataset_dir=coco_dataset_dir, coco_image=img_info, ann=ann
+                )
                 ds_progress.update(1)
         else:
-            sly_dataset_dir = create_sly_dataset_dir(dst_path, dataset_name=dataset)
-            src_img_dir = os.path.join(COCO_BASE_DIR, dataset, "images")
+            sly_dataset_dir = create_sly_dataset_dir(dst_path, dataset_name=dataset_name)
+            src_img_dir = os.path.join(coco_dataset_dir, "images")
             dst_img_dir = os.path.join(sly_dataset_dir, "img")
             ann_dir = os.path.join(sly_dataset_dir, "ann")
-            move_testds_to_sly_dataset(dataset=dataset)
+            move_testds_to_sly_dataset(dataset=dataset_name)
 
+    if is_original:
+        sly.fs.remove_dir(COCO_BASE_DIR)
     sly.logger.info(f"COCO dataset converted to Supervisely project: {dst_path}")
     return dst_path
 
 
 def from_supervisely(
-    local: bool = True,
-    project_id: int = None,
-    project_path: str = None,
+    src_path: str,
+    dst_path: str = None,
     only_annotated_images: bool = True,
     only_annotations: bool = True,
 ):
-    if local is True and project_path is not None:
-        project = sly.Project(project_path, sly.OpenMode.READ)
-        meta = project.meta
-        datasets = project.datasets
-    elif local is False and project_id is not None:
-        api = sly.Api.from_env()
-        project = api.project.get_info_by_id(project_id)
-        meta_json = api.project.get_meta(project_id)
-        meta = sly.ProjectMeta.from_json(meta_json)
-        datasets = api.dataset.get_list(project_id)
-    else:
-        raise ValueError("If project is local set project path else ID.")
+    src_path = unpack_if_archive(src_path)
+    parent_dir = os.path.dirname(os.path.normpath(src_path))
+    coco_base_dir = os.path.join(parent_dir, "coco project") if dst_path is None else dst_path
+    project = sly.Project(src_path, sly.OpenMode.READ)
+    meta = project.meta
+    datasets = project.datasets
+
     meta = prepare_meta(meta)
     categories_mapping = get_categories_map_from_meta(meta)
-
-    coco_base_dir = os.path.join(data_dir, project.name)
-    if project_path.endswith(coco_base_dir):
-        coco_base_dir = f"{coco_base_dir}-exported"
     sly.fs.mkdir(coco_base_dir)
     label_id = 0
 
@@ -136,50 +140,36 @@ def from_supervisely(
         img_dir, ann_dir = create_coco_dataset(coco_dataset_dir)
 
         coco_ann = {}
-        if local:
-            dataset: sly.Dataset
-            images = [
-                dataset.get_image_info(sly.fs.get_file_name_with_ext(img))
-                for img in os.listdir(dataset.img_dir)
-            ]
-            images = images[:1]
-        else:
-            images = api.image.get_list(dataset.id)
-
-        if only_annotated_images is True:
-            images = [image for image in images if image.labels_count > 0 or len(image.tags) > 0]
+        images = os.listdir(dataset.img_dir)
 
         ds_progress = tqdm(desc=f"Converting dataset: {dataset.name}", total=len(images))
         for batch in sly.batched(images):
-            image_ids = [image_info.id for image_info in batch]
+            tmp_anns = [dataset.get_ann(name, meta) for name in batch]
+            image_names = []
+            anns = []
+            if only_annotated_images is True:
+                for ann, img_name in zip(tmp_anns, batch):
+                    if len(ann.labels) > 0:
+                        anns.append(ann)
+                        image_names.append(img_name)
+            else:
+                image_names.extend(batch)
+                anns.extend(tmp_anns)
 
             if only_annotations is False:
-                if local:
-                    src_paths = [dataset.get_img_path(info.name) for info in batch]
-                    dst_paths = [os.path.join(img_dir, info.name) for info in batch]
-                    for src_path, dst_path in zip(src_paths, dst_paths):
-                        shutil.copyfile(src_path, dst_path)
-                else:
-                    image_paths = [
-                        os.path.join(coco_dataset_dir, img_dir, image_info.name)
-                        for image_info in batch
-                    ]
-                    api.image.download_paths(dataset.id, image_ids, image_paths)
+                src_paths = [dataset.get_img_path(name) for name in image_names]
+                dst_paths = [os.path.join(img_dir, name) for name in image_names]
+                for src_path, dst in zip(src_paths, dst_paths):
+                    shutil.copyfile(src_path, dst)
 
-            if local:
-                anns = [dataset.get_ann(img, meta) for img in os.listdir(dataset.img_dir)]
-            else:
-                anns_json = api.annotation.download_json_batch(dataset.id, image_ids)
-                anns = [sly.Annotation.from_json(ann_json, meta) for ann_json in anns_json]
             anns = [convert_annotation(ann, meta) for ann in anns]
             user_name = "Supervisely"
             coco_ann, label_id = create_coco_annotation(
-                local,
                 meta,
                 categories_mapping,
                 dataset,
                 user_name,
-                batch,
+                image_names,
                 anns,
                 label_id,
                 coco_ann,
@@ -190,8 +180,11 @@ def from_supervisely(
 
         sly.logger.info(f"dataset {dataset.name} processed!")
 
+    return coco_base_dir
+
 
 def download_original_coco_dataset(datasets):
+    datasets_dirs = []
     for dataset in datasets:
         dataset_dir = os.path.join(COCO_BASE_DIR, dataset)
         sly.fs.mkdir(dataset_dir)
@@ -199,7 +192,8 @@ def download_original_coco_dataset(datasets):
         download_coco_images(dataset, archive_path, dataset_dir)
         if not dataset.startswith("test"):
             download_coco_annotations(dataset, archive_path, dataset_dir)
-    return datasets
+        datasets_dirs.append(dataset_dir)
+    return datasets_dirs
 
 
 def download_coco_images(dataset, archive_path, save_path):
@@ -231,14 +225,6 @@ def download_coco_annotations(dataset, archive_path, save_path):
         if file != f"instances_{dataset}.json":
             sly.fs.silent_remove(os.path.join(ann_dir, file))
     sly.fs.silent_remove(archive_path)
-
-
-def check_dataset_for_annotation(dataset_name, ann_dir, is_original):
-    if is_original:
-        ann_path = os.path.join(ann_dir, f"instances_{dataset_name}.json")
-    else:
-        ann_path = os.path.join(ann_dir, "instances.json")
-    return bool(os.path.exists(ann_path) and os.path.isfile(ann_path))
 
 
 def get_ann_path(ann_dir, dataset_name, is_original):
@@ -344,33 +330,29 @@ def convert_polygon_vertices(coco_ann):
         return sly.Polygon(exterior, [])
 
 
-def move_trainvalds_to_sly_dataset(dataset, coco_image, ann):
+def move_trainvalds_to_sly_dataset(dataset_dir, coco_image, ann):
     image_name = coco_image["file_name"]
     ann_json = ann.to_json()
     sly.json.dump_json_file(ann_json, os.path.join(ann_dir, f"{image_name}.json"))
-    coco_img_path = os.path.join(COCO_BASE_DIR, dataset, "images", image_name)
+    coco_img_path = os.path.join(dataset_dir, "images", image_name)
     sly_img_path = os.path.join(img_dir, image_name)
     if sly.fs.file_exists(os.path.join(coco_img_path)):
-        shutil.move(coco_img_path, sly_img_path)
+        shutil.copy(coco_img_path, sly_img_path)
 
 
 def move_testds_to_sly_dataset(dataset):
-    ds_progress = sly.Progress(
-        f"Converting dataset: {dataset}",
-        len(os.listdir(src_img_dir)),
-        min_report_percent=1,
-    )
+    ds_progress = tqdm(f"Converting dataset: {dataset}", len(os.listdir(src_img_dir)))
     for image in os.listdir(src_img_dir):
         src_image_path = os.path.join(src_img_dir, image)
         dst_image_path = os.path.join(dst_img_dir, image)
-        shutil.move(src_image_path, dst_image_path)
+        shutil.copy(src_image_path, dst_image_path)
         im = Image.open(dst_image_path)
         width, height = im.size
         img_size = (height, width)
         ann = sly.Annotation(img_size)
         ann_json = ann.to_json()
         sly.json.dump_json_file(ann_json, os.path.join(ann_dir, f"{image}.json"))
-        ds_progress.iter_done_report()
+        ds_progress.update(1)
 
 
 def prepare_meta(meta):
@@ -413,26 +395,26 @@ def convert_annotation(ann: sly.Annotation, dst_meta):
 
 
 def create_coco_annotation(
-    local,
     meta,
     categories_mapping,
     dataset,
     user_name,
-    image_infos,
+    image_names,
     anns,
     label_id,
     coco_ann,
     progress,
 ):
+    date_created = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     if len(coco_ann) == 0:
         coco_ann = dict(
             info=dict(
-                description=dataset.name if local else dataset.description,
+                description=dataset.name,
                 url="None",
                 version=str(1.0),
-                year=dataset.name[-4:] if local else int(dataset.created_at[:4]),
+                year=dataset.name[-4:],
                 contributor=user_name,
-                date_created=dataset.name[-4:] if local else dataset.created_at,
+                date_created=date_created,
             ),
             licenses=[dict(url="None", id=0, name="None")],
             images=[
@@ -445,16 +427,18 @@ def create_coco_annotation(
             categories=get_categories_from_meta(meta),  # supercategory, id, name
         )
 
-    for image_info, ann in zip(image_infos, anns):
+    for image_name, ann in zip(image_names, anns):
+        ann: sly.Annotation
+        height, width = ann.img_size
         coco_ann["images"].append(
             dict(
                 license="None",
-                file_name=image_info.name,
+                file_name=image_name,
                 url="None",  # image_info.full_storage_url,  # coco_url, flickr_url
-                height=image_info.height,
-                width=image_info.width,
-                date_captured=image_info.created_at,
-                id=image_info.id,
+                height=height,
+                width=width,
+                date_captured=date_created,
+                id=image_name,
             )
         )
 
@@ -473,7 +457,7 @@ def create_coco_annotation(
                     ],  # a list of polygon vertices around the object, but can also be a run-length-encoded (RLE) bit mask
                     area=label.geometry.area,  # Area is measured in pixels (e.g. a 10px by 20px box would have an area of 200)
                     iscrowd=0,  # Is Crowd specifies whether the segmentation is for a single object or for a group/cluster of objects
-                    image_id=image_info.id,  # The image id corresponds to a specific image in the dataset
+                    image_id=image_name,  # The image id corresponds to a specific image in the dataset
                     bbox=bbox,  # he COCO bounding box format is [top left x position, top left y position, width, height]
                     category_id=categories_mapping[
                         label.obj_class.name
