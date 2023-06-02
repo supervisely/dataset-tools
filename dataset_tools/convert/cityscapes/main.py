@@ -10,6 +10,9 @@ from PIL import Image
 from tqdm import tqdm
 from dotenv import load_dotenv
 
+from typing import Literal
+import shutil
+
 # my_app = sly.AppService()
 # TEAM_ID = int(os.environ["context.teamId"])
 # WORKSPACE_ID = int(os.environ["context.workspaceId"])
@@ -112,9 +115,9 @@ def to_supervisely(input_path: str, output_path: str = None):
     if not output_path:
         output_path = os.path.join(os.path.dirname(input_path), "CITYSCAPES_TO_SLY")
 
-    import shutil
+    # import shutil
 
-    shutil.rmtree(output_path)
+    # shutil.rmtree(output_path)
 
     # if os.path.isdir(input_path):
     #     cur_files_path = input_path
@@ -168,7 +171,6 @@ def to_supervisely(input_path: str, output_path: str = None):
         raise Exception("Input cityscapes format not correct")
 
     samples_count = len(files_fine)
-    progress = sly.Progress("Importing images", samples_count)
     images_pathes_for_compare = []
     images_pathes = {}
     images_names = {}
@@ -177,83 +179,83 @@ def to_supervisely(input_path: str, output_path: str = None):
 
     if samples_count > 2:
         random_train_indexes = get_split_idxs(samples_count, samplePercent)
+    with tqdm(desc="Importing images", total=samples_count) as pbar:
+        for idx, orig_ann_path in enumerate(files_fine):
+            parent_dir, json_filename = os.path.split(os.path.abspath(orig_ann_path))
+            dataset_name = os.path.basename(parent_dir)
+            if dataset_name not in dataset_names:
+                dataset_names.append(dataset_name)
 
-    for idx, orig_ann_path in enumerate(files_fine):
-        parent_dir, json_filename = os.path.split(os.path.abspath(orig_ann_path))
-        dataset_name = os.path.basename(parent_dir)
-        if dataset_name not in dataset_names:
-            dataset_names.append(dataset_name)
+                ds = api.dataset.create(out_project.id, dataset_name, change_name_if_conflict=True)
+                # ds = out_project.create_dataset(dataset_name)
 
-            ds = api.dataset.create(out_project.id, dataset_name, change_name_if_conflict=True)
-            # ds = out_project.create_dataset(dataset_name)
-
-            ds_name_to_id[dataset_name] = ds.id
-            images_pathes[dataset_name] = []
-            images_names[dataset_name] = []
-            anns_data[dataset_name] = []
-        orig_img_path = json_path_to_image_path(orig_ann_path)
-        images_pathes_for_compare.append(orig_img_path)
-        if not file_exists(orig_img_path):
-            logger.warn(
-                "Image for annotation {} not found is dataset {}".format(
-                    orig_ann_path.split("/")[-1], dataset_name
-                )
-            )
-            continue
-        images_pathes[dataset_name].append(orig_img_path)
-        images_names[dataset_name].append(sly.io.fs.get_file_name_with_ext(orig_img_path))
-        tag_path = os.path.split(parent_dir)[0]
-        train_val_tag = os.path.basename(tag_path)
-        if split_train is True and samples_count > 2:
-            if (train_val_tag == train_tag) or (train_val_tag == trainval_tag):
-                if idx in random_train_indexes:
-                    train_val_tag = train_tag
-                else:
-                    train_val_tag = val_tag
-
-        # tag_meta = sly.TagMeta(train_val_tag, sly.TagValueType.NONE)
-        tag_meta = sly.TagMeta("split", sly.TagValueType.ANY_STRING)
-        if not tag_metas.has_key(tag_meta.name):
-            tag_metas = tag_metas.add(tag_meta)
-        # tag = sly.Tag(tag_meta)
-        tag = sly.Tag(meta=tag_meta, value=train_val_tag)
-        json_data = json.load(open(orig_ann_path))
-        ann = sly.Annotation.from_img_path(orig_img_path)
-        for obj in json_data["objects"]:
-            class_name = obj["label"]
-            if class_name == "out of roi":
-                polygon = obj["polygon"][:5]
-                interiors = [obj["polygon"][5:]]
-            else:
-                polygon = obj["polygon"]
-                if len(polygon) < 3:
-                    logger.warn(
-                        "Polygon must contain at least 3 points in ann {}, obj_class {}".format(
-                            orig_ann_path, class_name
-                        )
+                ds_name_to_id[dataset_name] = ds.id
+                images_pathes[dataset_name] = []
+                images_names[dataset_name] = []
+                anns_data[dataset_name] = []
+            orig_img_path = json_path_to_image_path(orig_ann_path)
+            images_pathes_for_compare.append(orig_img_path)
+            if not file_exists(orig_img_path):
+                logger.warn(
+                    "Image for annotation {} not found is dataset {}".format(
+                        orig_ann_path.split("/")[-1], dataset_name
                     )
-                    continue
-                interiors = []
-            interiors = [convert_points(interior) for interior in interiors]
-            polygon = sly.Polygon(convert_points(polygon), interiors)
-            if city_classes_to_colors.get(class_name, None):
-                obj_class = sly.ObjClass(
-                    name=class_name,
-                    geometry_type=sly.Polygon,
-                    color=city_classes_to_colors[class_name],
                 )
-            else:
-                new_color = generate_rgb(city_colors)
-                city_colors.append(new_color)
-                obj_class = sly.ObjClass(
-                    name=class_name, geometry_type=sly.Polygon, color=new_color
-                )
-            ann = ann.add_label(sly.Label(polygon, obj_class))
-            if not obj_classes.has_key(class_name):
-                obj_classes = obj_classes.add(obj_class)
-        ann = ann.add_tag(tag)
-        anns_data[dataset_name].append(ann)
-        progress.iter_done_report()
+                continue
+            images_pathes[dataset_name].append(orig_img_path)
+            images_names[dataset_name].append(sly.io.fs.get_file_name_with_ext(orig_img_path))
+            tag_path = os.path.split(parent_dir)[0]
+            train_val_tag = os.path.basename(tag_path)
+            if split_train is True and samples_count > 2:
+                if (train_val_tag == train_tag) or (train_val_tag == trainval_tag):
+                    if idx in random_train_indexes:
+                        train_val_tag = train_tag
+                    else:
+                        train_val_tag = val_tag
+
+            # tag_meta = sly.TagMeta(train_val_tag, sly.TagValueType.NONE)
+            tag_meta = sly.TagMeta("split", sly.TagValueType.ANY_STRING)
+            if not tag_metas.has_key(tag_meta.name):
+                tag_metas = tag_metas.add(tag_meta)
+            # tag = sly.Tag(tag_meta)
+            tag = sly.Tag(meta=tag_meta, value=train_val_tag)
+            json_data = json.load(open(orig_ann_path))
+            ann = sly.Annotation.from_img_path(orig_img_path)
+            for obj in json_data["objects"]:
+                class_name = obj["label"]
+                if class_name == "out of roi":
+                    polygon = obj["polygon"][:5]
+                    interiors = [obj["polygon"][5:]]
+                else:
+                    polygon = obj["polygon"]
+                    if len(polygon) < 3:
+                        logger.warn(
+                            "Polygon must contain at least 3 points in ann {}, obj_class {}".format(
+                                orig_ann_path, class_name
+                            )
+                        )
+                        continue
+                    interiors = []
+                interiors = [convert_points(interior) for interior in interiors]
+                polygon = sly.Polygon(convert_points(polygon), interiors)
+                if city_classes_to_colors.get(class_name, None):
+                    obj_class = sly.ObjClass(
+                        name=class_name,
+                        geometry_type=sly.Polygon,
+                        color=city_classes_to_colors[class_name],
+                    )
+                else:
+                    new_color = generate_rgb(city_colors)
+                    city_colors.append(new_color)
+                    obj_class = sly.ObjClass(
+                        name=class_name, geometry_type=sly.Polygon, color=new_color
+                    )
+                ann = ann.add_label(sly.Label(polygon, obj_class))
+                if not obj_classes.has_key(class_name):
+                    obj_classes = obj_classes.add(obj_class)
+            ann = ann.add_tag(tag)
+            anns_data[dataset_name].append(ann)
+            pbar.update(1)
     out_meta = sly.ProjectMeta(obj_classes=obj_classes, tag_metas=tag_metas)
     api.project.update_meta(out_project.id, out_meta.to_json())
     # out_project.set_meta(out_meta)
@@ -294,9 +296,9 @@ def to_supervisely(input_path: str, output_path: str = None):
     )
 
     with tqdm(desc=f"download_{out_project.name}", total=stat_dct["samples"]) as pbar:
-        sly.download(api, out_project.id, output_path, progress_cb=pbar)
+        sly.download(api, out_project.id, output_path, progress_cb=pbar, save_image_info=True)
 
-    return output_path  # TODO
+    return output_path
 
 
 from supervisely.geometry.bitmap import Bitmap
@@ -305,7 +307,7 @@ from supervisely.io.json import dump_json_file
 from supervisely.io.fs import mkdir, get_file_name, get_file_ext, silent_remove
 from supervisely.imaging.image import write
 
-RESULT_DIR_NAME = "cityscapes_format"
+# RESULT_DIR_NAME = "cityscapes_format"
 images_dir_name = "leftImg8bit"
 annotations_dir_name = "gtFine"
 default_dir_train = "train"
@@ -324,17 +326,20 @@ if splitter_coef > 1 or splitter_coef < 0:
     )
 
 
-def from_supervisely(input_path: str, output_path: str = None) -> str:
+def from_supervisely(
+    input_path: str, output_path: str = None, format: Literal["dir", "tar", "both"] = "both"
+) -> str:
+    project_fs = sly.Project(input_path, sly.OpenMode.READ)
+    meta = project_fs.meta
+    datasets = project_fs.datasets
+
     api = sly.Api()
-    PROJECT_ID = sly.env.project_id()
-    # WORKSPACE_ID = sly.env.workspace_id()
-    task_id = sly.env.task_id()
-    TEAM_ID = sly.env.team_id()
 
-    # storage_dir = my_app.data_dir
-    storage_dir = sly.app.get_data_dir()
+    storage_dir = os.path.dirname(input_path)
 
-    input_path  # TODO
+    if not output_path:
+        RESULT_DIR_NAME = "SLY_TO_CITYSCAPES"
+        # output_path = os.path.join(os.path.dirname(input_path), "SLY_TO_CITYSCAPES")
 
     def get_image_and_ann():
         mkdir(image_dir_path)
@@ -380,10 +385,8 @@ def from_supervisely(input_path: str, output_path: str = None) -> str:
             mask_label,
         )
 
-    project_name = api.project.get_info_by_id(PROJECT_ID).name
-    ARCHIVE_NAME = "{}_{}_Cityscapes.tar.gz".format(PROJECT_ID, project_name)
-    meta_json = api.project.get_meta(PROJECT_ID)
-    meta = sly.ProjectMeta.from_json(meta_json)
+    ARCHIVE_NAME = "{}_Cityscapes.tar.gz".format(project_fs.name)
+
     has_bitmap_poly_shapes = False
     for obj_class in meta.obj_classes:
         if obj_class.geometry_type not in possible_geometries:
@@ -395,7 +398,6 @@ def from_supervisely(input_path: str, output_path: str = None) -> str:
 
     if has_bitmap_poly_shapes is False:
         raise Exception("Input project does not contain bitmap or polygon classes")
-        # my_app.stop()
 
     RESULT_ARCHIVE = os.path.join(storage_dir, ARCHIVE_NAME)
     RESULT_DIR = os.path.join(storage_dir, RESULT_DIR_NAME)
@@ -423,7 +425,6 @@ def from_supervisely(input_path: str, output_path: str = None) -> str:
     dump_json_file(class_to_id, os.path.join(RESULT_DIR, "class_to_id.json"))
     sly.logger.info("Writing classes with colors to class_to_id.json file")
 
-    datasets = api.dataset.get_list(PROJECT_ID)
     for dataset in datasets:
         images_dir_path_train = os.path.join(result_images_train, dataset.name)
         images_dir_path_val = os.path.join(result_images_val, dataset.name)
@@ -432,10 +433,10 @@ def from_supervisely(input_path: str, output_path: str = None) -> str:
         anns_dir_path_val = os.path.join(result_anns_val, dataset.name)
         anns_dir_path_test = os.path.join(result_anns_test, dataset.name)
 
-        images = api.image.get_list(dataset.id)
-        progress = sly.Progress(
-            "Convert images and anns from dataset {}".format(dataset.name), len(images), sly.logger
-        )
+        images = [
+            dataset.get_image_info(sly.fs.get_file_name(img)) for img in os.listdir(dataset.ann_dir)
+        ]
+
         if len(images) < 3:
             sly.logger.warn(
                 "Number of images in {} dataset is less then 3, val and train directories for this dataset will not be created".format(
@@ -457,108 +458,83 @@ def from_supervisely(input_path: str, output_path: str = None) -> str:
             for image_info in images
         ]
 
-        ann_infos = api.annotation.download_batch(dataset.id, image_ids)
-        anns = [sly.Annotation.from_json(ann_info.annotation, meta) for ann_info in ann_infos]
+        anns = [dataset.get_ann(name, meta) for name in image_names]
 
         splitter = get_tags_splitter(anns)
         curr_splitter = {"train": 0, "val": 0, "test": 0}
 
-        for ann, image_id, image_name, base_image_name in zip(
-            anns, image_ids, image_names, base_image_names
-        ):
-            train_val_flag = True
-            try:
-                split_name = ann.img_tags.get("split").value
-                if split_name == "train":
-                    image_dir_path = images_dir_path_train
-                    ann_dir = anns_dir_path_train
-                elif split_name == "val":
-                    image_dir_path = images_dir_path_val
-                    ann_dir = anns_dir_path_val
-                else:
-                    image_dir_path = images_dir_path_test
-                    ann_dir = anns_dir_path_test
-                    train_val_flag = False
-            except:
-                ann_tags = [tag.name for tag in ann.img_tags]
-                separator_tags = list(set(ann_tags) & set(possible_tags))
-                if len(separator_tags) > 1:
-                    sly.logger.warn(
-                        """There are more then one separator tag for {} image. {}
-                    tag will be used for split""".format(
-                            image_name, separator_tags[0]
-                        )
-                    )
-
-                if len(separator_tags) >= 1:
-                    if separator_tags[0] == "train":
+        with tqdm(desc="Convert dataset {}".format(dataset.name), total=len(images)) as pbar:
+            for ann, image_id, image_name, base_image_name in zip(
+                anns, image_ids, image_names, base_image_names
+            ):
+                train_val_flag = True
+                try:
+                    split_name = ann.img_tags.get("split").value
+                    if split_name == "train":
                         image_dir_path = images_dir_path_train
                         ann_dir = anns_dir_path_train
-                    elif separator_tags[0] == "val":
+                    elif split_name == "val":
                         image_dir_path = images_dir_path_val
                         ann_dir = anns_dir_path_val
                     else:
                         image_dir_path = images_dir_path_test
                         ann_dir = anns_dir_path_test
                         train_val_flag = False
+                except:
+                    ann_tags = [tag.name for tag in ann.img_tags]
+                    separator_tags = list(set(ann_tags) & set(possible_tags))
+                    if len(separator_tags) > 1:
+                        sly.logger.warn(
+                            """There are more then one separator tag for {} image. {}
+                        tag will be used for split""".format(
+                                image_name, separator_tags[0]
+                            )
+                        )
 
-                if len(separator_tags) == 0:
-                    if curr_splitter["test"] == splitter["test"]:
-                        curr_splitter = {"train": 0, "val": 0, "test": 0}
-                    if curr_splitter["train"] < splitter["train"]:
-                        curr_splitter["train"] += 1
-                        image_dir_path = images_dir_path_train
-                        ann_dir = anns_dir_path_train
-                    elif curr_splitter["val"] < splitter["val"]:
-                        curr_splitter["val"] += 1
-                        image_dir_path = images_dir_path_val
-                        ann_dir = anns_dir_path_val
-                    elif curr_splitter["test"] < splitter["test"]:
-                        curr_splitter["test"] += 1
-                        image_dir_path = images_dir_path_test
-                        ann_dir = anns_dir_path_test
-                        train_val_flag = False
+                    if len(separator_tags) >= 1:
+                        if separator_tags[0] == "train":
+                            image_dir_path = images_dir_path_train
+                            ann_dir = anns_dir_path_train
+                        elif separator_tags[0] == "val":
+                            image_dir_path = images_dir_path_val
+                            ann_dir = anns_dir_path_val
+                        else:
+                            image_dir_path = images_dir_path_test
+                            ann_dir = anns_dir_path_test
+                            train_val_flag = False
 
-            get_image_and_ann()
+                    if len(separator_tags) == 0:
+                        if curr_splitter["test"] == splitter["test"]:
+                            curr_splitter = {"train": 0, "val": 0, "test": 0}
+                        if curr_splitter["train"] < splitter["train"]:
+                            curr_splitter["train"] += 1
+                            image_dir_path = images_dir_path_train
+                            ann_dir = anns_dir_path_train
+                        elif curr_splitter["val"] < splitter["val"]:
+                            curr_splitter["val"] += 1
+                            image_dir_path = images_dir_path_val
+                            ann_dir = anns_dir_path_val
+                        elif curr_splitter["test"] < splitter["test"]:
+                            curr_splitter["test"] += 1
+                            image_dir_path = images_dir_path_test
+                            ann_dir = anns_dir_path_test
+                            train_val_flag = False
 
-            progress.iter_done_report()
+                get_image_and_ann()
+                pbar.update(1)
 
-    sly.fs.archive_directory(RESULT_DIR, RESULT_ARCHIVE)
-    sly.logger.info("Result directory is archived")
+    if format in ("tar", "both"):
+        sly.fs.archive_directory(RESULT_DIR, RESULT_ARCHIVE)
+        sly.logger.info("Result directory is archived")
+        if format == "tar":
+            shutil.rmtree(RESULT_DIR)
 
-    upload_progress = []
-    # remote_archive_path = os.path.join(
-    #     sly.team_files.RECOMMENDED_EXPORT_PATH,
-    #     "cityscapes_format/{}/{}".format(task_id, ARCHIVE_NAME),
-    # )
-    remote_archive_path = output_path
-
-    def _print_progress(monitor, upload_progress):
-        if len(upload_progress) == 0:
-            upload_progress.append(
-                sly.Progress(
-                    message="Upload {!r}".format(ARCHIVE_NAME),
-                    total_cnt=monitor.len,
-                    ext_logger=sly.logger,
-                    is_size=True,
-                )
-            )
-        upload_progress[0].set_current_value(monitor.bytes_read)
-
-    file_info = api.file.upload(
-        team_id=TEAM_ID,
-        src=RESULT_ARCHIVE,
-        dst=remote_archive_path,
-        progress_cb=lambda m: _print_progress(m, upload_progress),
-    )
-
-    sly.logger.info("Uploaded to Team-Files: {!r}".format(file_info.storage_path))
-    api.task.set_output_archive(
-        task_id, file_info.id, ARCHIVE_NAME, file_url=file_info.storage_path
-    )
-
-    return remote_archive_path
-    # my_app.stop()
+    if format == "tar":
+        return RESULT_ARCHIVE
+    elif format == "dir":
+        return RESULT_DIR
+    else:
+        return (RESULT_ARCHIVE, RESULT_DIR)
 
 
 def get_tags_splitter(anns):
