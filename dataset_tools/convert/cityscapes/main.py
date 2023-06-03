@@ -13,6 +13,15 @@ from dotenv import load_dotenv
 from typing import Literal
 import shutil
 
+
+from supervisely.geometry.bitmap import Bitmap
+from supervisely.geometry.polygon import Polygon
+from supervisely.io.json import dump_json_file
+from supervisely.io.fs import mkdir, get_file_name, get_file_ext, silent_remove
+from supervisely.imaging.image import write
+
+from dataset_tools.convert import unpack_if_archive
+
 # my_app = sly.AppService()
 # TEAM_ID = int(os.environ["context.teamId"])
 # WORKSPACE_ID = int(os.environ["context.workspaceId"])
@@ -301,12 +310,6 @@ def to_supervisely(input_path: str, output_path: str = None):
     return output_path
 
 
-from supervisely.geometry.bitmap import Bitmap
-from supervisely.geometry.polygon import Polygon
-from supervisely.io.json import dump_json_file
-from supervisely.io.fs import mkdir, get_file_name, get_file_ext, silent_remove
-from supervisely.imaging.image import write
-
 # RESULT_DIR_NAME = "cityscapes_format"
 images_dir_name = "leftImg8bit"
 annotations_dir_name = "gtFine"
@@ -329,6 +332,7 @@ if splitter_coef > 1 or splitter_coef < 0:
 def from_supervisely(
     input_path: str, output_path: str = None, format: Literal["dir", "tar", "both"] = "both"
 ) -> str:
+    input_path = unpack_if_archive(input_path)
     project_fs = sly.Project(input_path, sly.OpenMode.READ)
     meta = project_fs.meta
     datasets = project_fs.datasets
@@ -385,7 +389,7 @@ def from_supervisely(
             mask_label,
         )
 
-    ARCHIVE_NAME = "{}_Cityscapes.tar.gz".format(project_fs.name)
+    ARCHIVE_NAME = "{}_cityscapes.tar".format(project_fs.name)
 
     has_bitmap_poly_shapes = False
     for obj_class in meta.obj_classes:
