@@ -70,12 +70,14 @@ def update_sly_url_dict(new_dict: dict) -> None:
     api = sly.Api.from_env()
     team_id = sly.env.team_id()
 
-    api.file.download(team_id, src, dst)
+    if api.file.exists(team_id, src):
+        api.file.download(team_id, src, dst)
 
-    with open(dst, "r") as f:
-        data = json.load(f)
-    
-    data.update(new_dict)
+        with open(dst, "r") as f:
+            data = json.load(f)
+        data.update(new_dict)
+    else:
+        data = new_dict
 
     with open(dst, "w") as f:
         json.dump(data, f)
