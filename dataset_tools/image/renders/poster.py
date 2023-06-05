@@ -243,7 +243,9 @@ class Poster:
         )
 
         texts.append(f"{self._items_count} IMAGES")
-        texts.append(f"{len(self._project_meta.obj_classes)} CLASSES")
+        classes_cnt = len(self._project_meta.obj_classes)
+        classes_text = f'{classes_cnt} {"CLASS" if classes_cnt == 1 else "CLASSES"}'
+        texts.append(classes_text)
         if self._total_labels:
             texts.append(f"{self._total_labels} LABELS")
 
