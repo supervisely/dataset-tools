@@ -1,25 +1,27 @@
-import os
 import json
-
+import os
 from urllib.parse import urljoin
 
 import supervisely as sly
 
 
 def prepare_download_link(project):
-
     api = sly.Api.from_env()
 
     team_id = sly.env.team_id()
     workspace_id = sly.env.workspace_id()
     agent_id = sly.env.agent_id()
+    storage_dir = sly.app.get_data_dir()
+    local_save_path = os.path.join(storage_dir, "download_links.json")
+    api.file.download(team_id, os.environ["DOWNLOADS_DICT"], local_save_path)
+    with open(local_save_path, "r") as f:
+        links = json.load(f)
 
-
-    if project.custom_data.get('download_sly_url', "") != "":
-        print("URL already exists. Skipping export to supervisely format...")
-        return project.custom_data['download_sly_url']
+    if links.get(str(project.id), None) is not None:
+        print("URL already exists. Skipping creation of download link...")
+        return links[str(project.id)]
     else:
-        print("URL not exists. Starting export to supervisely format...")
+        print("URL not exists. Creating a download link...")
 
         app_slug = f"supervisely-ecosystem/export-to-supervisely-format"
         module_id = api.app.get_ecosystem_module_id(app_slug)
@@ -41,7 +43,7 @@ def prepare_download_link(project):
 
         try:
             # wait until task end or specific task status
-            print('Waiting until export to supervisely format is finished...')
+            print("Waiting for the download link to finish being created...")
             api.app.wait(session.task_id, target_status=api.task.Status.FINISHED)
 
         except sly.WaitingTimeExceeded as e:
@@ -56,17 +58,16 @@ def prepare_download_link(project):
             team_id=team_id, module_id=module_id, statuses=[api.task.Status.FINISHED]
         )
         return urljoin(
-            os.environ['SERVER_ADDRESS'], 
-            sessions[0].details['meta']['output']['general']['titleUrl']
+            os.environ["SERVER_ADDRESS"],
+            sessions[0].details["meta"]["output"]["general"]["titleUrl"],
         )
 
 
 def update_sly_url_dict(new_dict: dict) -> None:
-
     src = os.environ["DOWNLOADS_DICT"]
     dst = os.path.join(sly.app.get_data_dir(), "download_links.json")
 
-    print('Updating dictionary with download links...')
+    print("Updating dictionary with download links...")
     api = sly.Api.from_env()
     team_id = sly.env.team_id()
 
@@ -74,13 +75,12 @@ def update_sly_url_dict(new_dict: dict) -> None:
 
     with open(dst, "r") as f:
         data = json.load(f)
-    
+
     data.update(new_dict)
 
     with open(dst, "w") as f:
         json.dump(data, f)
 
-    api.file.upload(team_id, src = dst, dst = src)
+    api.file.upload(team_id, src=dst, dst=src)
 
-    print('Dictionary successfully updated!')
-    
+    print("Dictionary successfully updated!")
