@@ -31,7 +31,9 @@ class ClassesPreview(BaseVisual):
         self.force = force
         self._meta = project_meta
         self._project_name = project_name
-        self._title = f"{self._project_name} · {len(self._meta.obj_classes)} classes"
+        classes_cnt = len(self._meta.obj_classes)
+        classes_text = "classes" if classes_cnt > 1 else "class"
+        self._title = f"{self._project_name} · {classes_cnt} {classes_text}"
 
         self._gap = 20
         self._img_width = 1920
@@ -193,6 +195,10 @@ class ClassesPreview(BaseVisual):
 
         one_big_row_width = sum(image_widths[:-rows]) + (num_images - 1) * self._gap
         self._row_width = one_big_row_width // rows
+        if num_images == 1:
+            one_big_row_width = images[0].shape[1]
+            self._row_width = one_big_row_width
+            return [images]
 
         rows = []
         row_images = []
@@ -228,6 +234,8 @@ class ClassesPreview(BaseVisual):
         for row, width in zip(rows, img_widths):
             if len(row) == 0:
                 continue
+            if len(row) == 1:
+                return row
             gap = (self._row_width - width) // max((len(row) - 1), 1)
             separator = np.ones((self._row_height, gap, channels), dtype=np.uint8) * 255
             combined_images = []
@@ -293,6 +301,11 @@ class ClassesPreview(BaseVisual):
         image2 = cv2.imread(self._logo_path, cv2.IMREAD_UNCHANGED)
         image2 = cv2.cvtColor(image2, cv2.COLOR_BGRA2RGBA)
         image2 = self._resize_image(image2, height)
+
+        height_r = height
+        while image2.shape[1] > image.shape[1] * 0.25:
+            height_r = int(0.95 * height_r)
+            image2 = self._resize_image(image2, height_r)
 
         h1, w1 = image.shape[:2]
         h2, w2 = image2.shape[:2]
