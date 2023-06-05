@@ -103,63 +103,16 @@ def get_split_idxs(num_imgs, percentage):
 
 
 def to_supervisely(input_path: str, output_path: str = None):
+    input_dir = unpack_if_archive(input_path)
+
     tag_metas = sly.TagMetaCollection()
     obj_classes = sly.ObjClassCollection()
     dataset_names = []
 
-    if sly.is_development():
-        load_dotenv(os.path.expanduser("~/ninja.env"))
-        # load_dotenv(os.path.expanduser("~/supervisely.env"))
-        load_dotenv("local.env")
-
-    api = sly.Api.from_env()
-    TEAM_ID = sly.env.team_id()
-    WORKSPACE_ID = sly.env.workspace_id()
-
-    # storage_dir = my_app.data_dir
-    storage_dir = sly.app.get_data_dir()
-
-    project_name = os.path.basename(input_path)
-
     if not output_path:
         output_path = os.path.join(os.path.dirname(input_path), "CITYSCAPES_TO_SLY")
 
-    # import shutil
-
-    # shutil.rmtree(output_path)
-
-    # if os.path.isdir(input_path):
-    #     cur_files_path = input_path
-    #     extract_dir = os.path.join(storage_dir, str(Path(cur_files_path).parent).lstrip("/"))
-    #     input_dir = os.path.join(extract_dir, Path(cur_files_path).name)
-    #     archive_path = os.path.join(
-    #         storage_dir, cur_files_path + ".tar"
-    #     )  # cur_files_path.split("/")[-2] + ".tar"
-    #     project_name = Path(cur_files_path).name
-    # elif tarfile.is_tarfile(input_path):
-    #     cur_files_path = input_path
-    #     extract_dir = os.path.join(storage_dir, get_file_name(cur_files_path))
-    #     archive_path = os.path.join(storage_dir, get_file_name_with_ext(cur_files_path))
-    #     project_name = get_file_name(input_path)
-    #     input_dir = os.path.join(storage_dir, get_file_name(cur_files_path))  # extract_dir
-    # else:
-    #     raise ValueError(f"Passed '{input_path}' path should be only directory or '.tar' archive.")
-
-    # api.file.download(TEAM_ID, cur_files_path, archive_path)
-    archive_path = input_path
-    if not os.path.isdir(archive_path):
-        if tarfile.is_tarfile(archive_path):
-            project_name = sly.fs.get_file_name(archive_path)
-            with tarfile.open(archive_path) as archive:
-                archive.extractall(os.path.dirname(input_path))
-            input_dir = os.path.join(os.path.dirname(input_path), project_name)
-        else:
-            raise Exception("No such file".format(input_path))
-    else:
-        input_dir = input_path
-
-    out_project = api.project.create(WORKSPACE_ID, project_name, change_name_if_conflict=True)
-    # out_project = sly.Project(output_path, sly.OpenMode.CREATE)
+    out_project = sly.Project(output_path, sly.OpenMode.CREATE)
     tags_template = os.path.join(input_dir, "gtFine", "*")
     tags_paths = glob.glob(tags_template)
     tags = [os.path.basename(tag_path) for tag_path in tags_paths]
@@ -184,7 +137,7 @@ def to_supervisely(input_path: str, output_path: str = None):
     images_pathes = {}
     images_names = {}
     anns_data = {}
-    ds_name_to_id = {}
+    # ds_name_to_id = {}
 
     if samples_count > 2:
         random_train_indexes = get_split_idxs(samples_count, samplePercent)
@@ -195,10 +148,10 @@ def to_supervisely(input_path: str, output_path: str = None):
             if dataset_name not in dataset_names:
                 dataset_names.append(dataset_name)
 
-                ds = api.dataset.create(out_project.id, dataset_name, change_name_if_conflict=True)
-                # ds = out_project.create_dataset(dataset_name)
+                # ds = api.dataset.create(out_project.id, dataset_name, change_name_if_conflict=True)
+                ds = out_project.create_dataset(dataset_name)
 
-                ds_name_to_id[dataset_name] = ds.id
+                # ds_name_to_id[dataset_name] = ds.id
                 images_pathes[dataset_name] = []
                 images_names[dataset_name] = []
                 anns_data[dataset_name] = []
@@ -230,6 +183,7 @@ def to_supervisely(input_path: str, output_path: str = None):
             tag = sly.Tag(meta=tag_meta, value=train_val_tag)
             json_data = json.load(open(orig_ann_path))
             ann = sly.Annotation.from_img_path(orig_img_path)
+
             for obj in json_data["objects"]:
                 class_name = obj["label"]
                 if class_name == "out of roi":
@@ -264,18 +218,12 @@ def to_supervisely(input_path: str, output_path: str = None):
                     obj_classes = obj_classes.add(obj_class)
             ann = ann.add_tag(tag)
             anns_data[dataset_name].append(ann)
-            pbar.update(1)
-    out_meta = sly.ProjectMeta(obj_classes=obj_classes, tag_metas=tag_metas)
-    api.project.update_meta(out_project.id, out_meta.to_json())
-    # out_project.set_meta(out_meta)
+            ds.add_item_file(sly.fs.get_file_name_with_ext(orig_img_path), orig_img_path, ann=ann)
 
-    for ds_name, ds_id in ds_name_to_id.items():
-        dst_image_infos = api.image.upload_paths(
-            ds_id, images_names[ds_name], images_pathes[ds_name]
-        )
-        dst_image_ids = [img_info.id for img_info in dst_image_infos]
-        with tqdm(desc=f"upload_anns_{ds_name}", total=len(dst_image_ids)) as pbar:
-            api.annotation.upload_anns(dst_image_ids, anns_data[ds_name], progress_cb=pbar)
+            pbar.update(1)
+
+    out_meta = sly.ProjectMeta(obj_classes=obj_classes, tag_metas=tag_metas)
+    out_project.set_meta(out_meta)
 
     stat_dct = {
         "samples": samples_count,
@@ -303,9 +251,6 @@ def to_supervisely(input_path: str, output_path: str = None):
             "tags": sorted([tag_meta.name for tag_meta in out_meta.tag_metas]),
         },
     )
-
-    with tqdm(desc=f"download_{out_project.name}", total=stat_dct["samples"]) as pbar:
-        sly.download(api, out_project.id, output_path, progress_cb=pbar, save_image_info=True)
 
     return output_path
 
