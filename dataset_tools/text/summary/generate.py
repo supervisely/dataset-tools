@@ -1,14 +1,13 @@
+import operator
 import os
 import re
-
-from dotenv import load_dotenv
-import operator
-from typing import Dict, List
 import textwrap
-
-import supervisely as sly
+from typing import Dict, List
 
 import inflect
+from dotenv import load_dotenv
+
+import supervisely as sly
 
 if sly.is_development():
     load_dotenv(os.path.expanduser("~/ninja.env"))
@@ -53,25 +52,25 @@ def standardize(text: str):
 
 
 def get_summary_data(
-    name:str,
-    fullname:str,
-    cv_tasks:List[str],
-    annotation_types:List[str],
+    name: str,
+    fullname: str,
+    cv_tasks: List[str],
+    annotation_types: List[str],
     industries: str,
-    release_year:int,
-    homepage_url:str,
-    license:str,
-    license_url:str,
-    preview_image_id:int,
-    github_url:str,
-    citation_url:str,
-    download_sly_url:str,
-    download_original_url:str = None,
-    paper:str = None,
-    organization_name:str = None,
-    organization_url:str = None,
-    tags:List[str] = None,
-    **kwargs
+    release_year: int,
+    homepage_url: str,
+    license: str,
+    license_url: str,
+    preview_image_id: int,
+    github_url: str,
+    citation_url: str,
+    download_sly_url: str,
+    download_original_url: str = None,
+    paper: str = None,
+    organization_name: str = None,
+    organization_url: str = None,
+    tags: List[str] = None,
+    **kwargs,
 ) -> Dict:
     api = sly.Api.from_env()
     project_id = sly.env.project_id()
@@ -114,7 +113,6 @@ def get_summary_data(
         "github_url": github_url,
         "citation_url": citation_url,
         "download_sly_url": download_sly_url,
-
         # from supervisely
         "modality": project_info.type,
         "totals": totals_dct,
@@ -122,9 +120,12 @@ def get_summary_data(
         "unlabeled_assets_percent": unlabeled_percent,
         "splits": splits_list,
     }
-            
+
     # optional fields
-    for key, value in zip(['download_original_url', 'paper', 'organization_name', 'organization_url', 'tags'], [download_original_url, paper, organization_name, organization_url, tags]):
+    for key, value in zip(
+        ["download_original_url", "paper", "organization_name", "organization_url", "tags"],
+        [download_original_url, paper, organization_name, organization_url, tags],
+    ):
         if value is not None:
             fields[key] = value
 
@@ -132,7 +133,6 @@ def get_summary_data(
 
 
 def generate_summary_content(data: Dict, vis_url: str) -> str:
-
     # preset fields
     # required
     name = data.get("name", None)
@@ -143,7 +143,7 @@ def generate_summary_content(data: Dict, vis_url: str) -> str:
     release_year = data.get("release_year", None)
     homepage_url = data.get("homepage_url", None)
     license = data.get("license", None)
-    license_url = data.get("license_url", None)  
+    license_url = data.get("license_url", None)
     preview_image_id = data.get("preview_image_id", None)
     github_url = data.get("github_url", None)
     citation_url = data.get("citation_url", None)
@@ -151,10 +151,10 @@ def generate_summary_content(data: Dict, vis_url: str) -> str:
 
     # optional
     download_original_url = data.get("download_original_url", None)
-    paper = data.get("paper", None) 
+    paper = data.get("paper", None)
     organization_name = data.get("organization_name", None)
     organization_url = data.get("organization_url", None)
-    tags = data.get("tags", []),
+    tags = (data.get("tags", []),)
 
     # from supervisely
     # required
@@ -170,12 +170,27 @@ def generate_summary_content(data: Dict, vis_url: str) -> str:
     # prepare data
     annotations = []
     if "instance segmentation" in annotation_types:
-        if "semantic segmentation" not in annotation_types and "object detection" not in annotation_types:
-            annotations.append(" pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into semantic segmentation (only one mask for every class) or object detection (bounding boxes for every object) tasks")
-        elif "semantic segmentation" in annotation_types and "object detection" not in annotation_types:
-            annotations.append(" pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into object detection (bounding boxes for every object) task")
-        elif "semantic segmentation" not in annotation_types and "object detection" in annotation_types:
-            annotations.append(" pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into semantic segmentation task (only one mask for every class)")
+        if (
+            "semantic segmentation" not in annotation_types
+            and "object detection" not in annotation_types
+        ):
+            annotations.append(
+                " pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into semantic segmentation (only one mask for every class) or object detection (bounding boxes for every object) tasks"
+            )
+        elif (
+            "semantic segmentation" in annotation_types
+            and "object detection" not in annotation_types
+        ):
+            annotations.append(
+                " pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into object detection (bounding boxes for every object) task"
+            )
+        elif (
+            "semantic segmentation" not in annotation_types
+            and "object detection" in annotation_types
+        ):
+            annotations.append(
+                " pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into semantic segmentation task (only one mask for every class)"
+            )
         else:
             annotations.append(" pixel-level instance segmentation annotations")
     else:
@@ -186,7 +201,6 @@ def generate_summary_content(data: Dict, vis_url: str) -> str:
 
     annotations = ",".join(annotations).strip()
 
-
     # collect content
     content = f"**{name}** ({fullname}) is a dataset for {list2sentence(cv_tasks, 'tasks', keeptail=True)}. "
 
@@ -196,10 +210,20 @@ def generate_summary_content(data: Dict, vis_url: str) -> str:
             industries.pop("general domain")
             content += f"Also, it is used in {list2sentence(industries, 'industries')}."
     else:
-        content += f"It is used in {list2sentence(industries, 'industries')}."
+        content += f"It is used in the {list2sentence(industries, 'industries')}."
 
     content += "\n\n"
-    content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} different classes including *{'*, *'.join(top_classes[:3])},* and other: *{list2sentence(top_classes[3:], )}*."
+    content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} "
+    if len(top_classes) == 1:
+        content += f"single class "
+    else:
+        content += f"different classes "
+    if len(top_classes) > 3:
+        content += f"including *{'*, *'.join(top_classes[:3])},* and other: *{list2sentence(top_classes[3:], )}*."
+    elif len(top_classes) == 1:
+        content += f"(*{top_classes[0]}*)."
+    else:
+        content += f"including *{list2sentence(top_classes[:3])}*."
     content += f"\n\nEach {p.singular_noun(modality)} in the {name} dataset has {annotations}. "
     content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
     content += f"There are {len(splits)} splits in the dataset: {list2sentence(splits)}. "
@@ -210,7 +234,10 @@ def generate_summary_content(data: Dict, vis_url: str) -> str:
     elif organization_name is None and organization_url is None:
         content += f"The dataset was released in {release_year}."
 
-    content += f"\n\nHere are the visualized examples for each of the {totals.get('total_classes', 0)} classes:\n\n"
+    if len(top_classes) == 1:
+        content += f"\n\nHere is the visualized example of the single {top_classes[0]} class:\n\n"
+    else:
+        content += f"\n\nHere are the visualized examples for each of the {totals.get('total_classes', 0)} classes:\n\n"
     content += f"[Dataset classes]({vis_url})\n"
 
     return content
