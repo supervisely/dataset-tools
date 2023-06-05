@@ -48,6 +48,7 @@ INSTALL_REQUIRES = [
     "matplotlib>=3.3.2, <4.0.0",
     "scikit-image>=0.17.1, <1.0.0",
     "dataframe_image>=0.1.11, <1.0.0",
+    "inflect>=6.0.0",
     # "async_asgi_testclient",
     # "PyYAML",
     # "distinctipy",
