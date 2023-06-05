@@ -6,9 +6,17 @@ import supervisely as sly
 
 
 class Previews:
-    def __init__(self, project_id, project_meta, api, team_id):
+    def __init__(
+        self,
+        project_id,
+        project_meta,
+        api,
+        team_id,
+        force: bool = False,
+    ):
         self.project_meta = project_meta
         self.project_id = project_id
+        self.force = force
 
         self.MAX_WIDTH = 500
         self.BATCH_SIZE = 50
