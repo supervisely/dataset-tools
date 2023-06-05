@@ -15,9 +15,9 @@ input_path = "/home/grokhi/downloads/reduced_cityscapes.tar"
 # input_path = "/home/grokhi/downloads/reduced_cityscapes/"
 # input_path = "/cityscapes/reduced_cityscapes.tar"
 
-res_path = to_supervisely(input_path)
-print(res_path)
+# res_path = to_supervisely(input_path)
+# print(res_path)
 
-# res_path = "/home/grokhi/downloads/CITYSCAPES_TO_SLY"
-res_path2 = from_supervisely(res_path, format="dir")
+res_path = "/home/grokhi/downloads/CITYSCAPES_TO_SLY"
+res_path2 = from_supervisely(res_path, to_format="dir")
 print(res_path2)

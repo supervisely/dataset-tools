@@ -137,21 +137,18 @@ def to_supervisely(input_path: str, output_path: str = None):
     images_pathes = {}
     images_names = {}
     anns_data = {}
-    # ds_name_to_id = {}
 
     if samples_count > 2:
         random_train_indexes = get_split_idxs(samples_count, samplePercent)
-    with tqdm(desc="Importing images", total=samples_count) as pbar:
+    with tqdm(desc="Converting images to sly format", total=samples_count) as pbar:
         for idx, orig_ann_path in enumerate(files_fine):
             parent_dir, json_filename = os.path.split(os.path.abspath(orig_ann_path))
             dataset_name = os.path.basename(parent_dir)
             if dataset_name not in dataset_names:
                 dataset_names.append(dataset_name)
 
-                # ds = api.dataset.create(out_project.id, dataset_name, change_name_if_conflict=True)
                 ds = out_project.create_dataset(dataset_name)
 
-                # ds_name_to_id[dataset_name] = ds.id
                 images_pathes[dataset_name] = []
                 images_names[dataset_name] = []
                 anns_data[dataset_name] = []
@@ -175,11 +172,10 @@ def to_supervisely(input_path: str, output_path: str = None):
                     else:
                         train_val_tag = val_tag
 
-            # tag_meta = sly.TagMeta(train_val_tag, sly.TagValueType.NONE)
             tag_meta = sly.TagMeta("split", sly.TagValueType.ANY_STRING)
             if not tag_metas.has_key(tag_meta.name):
                 tag_metas = tag_metas.add(tag_meta)
-            # tag = sly.Tag(tag_meta)
+
             tag = sly.Tag(meta=tag_meta, value=train_val_tag)
             json_data = json.load(open(orig_ann_path))
             ann = sly.Annotation.from_img_path(orig_img_path)
@@ -222,7 +218,9 @@ def to_supervisely(input_path: str, output_path: str = None):
 
             pbar.update(1)
 
-    out_meta = sly.ProjectMeta(obj_classes=obj_classes, tag_metas=tag_metas)
+    out_meta = sly.ProjectMeta(
+        obj_classes=obj_classes, tag_metas=tag_metas, project_type=sly.ProjectType.IMAGES.value
+    )
     out_project.set_meta(out_meta)
 
     stat_dct = {
@@ -275,16 +273,19 @@ if splitter_coef > 1 or splitter_coef < 0:
 
 
 def from_supervisely(
-    input_path: str, output_path: str = None, format: Literal["dir", "tar", "both"] = "both"
+    input_path: str, output_path: str = None, to_format: Literal["dir", "tar", "both"] = "both"
 ) -> str:
-    input_path = unpack_if_archive(input_path)
-    project_fs = sly.Project(input_path, sly.OpenMode.READ)
+    input_dir = unpack_if_archive(input_path)
+
+    project_fs = sly.Project(input_dir, sly.OpenMode.READ)
     meta = project_fs.meta
     datasets = project_fs.datasets
 
-    api = sly.Api()
+    # api.file.list
 
-    storage_dir = os.path.dirname(input_path)
+    # api = sly.Api()
+
+    storage_dir = os.path.dirname(input_dir)
 
     if not output_path:
         RESULT_DIR_NAME = "SLY_TO_CITYSCAPES"
@@ -294,7 +295,7 @@ def from_supervisely(
         mkdir(image_dir_path)
         mkdir(ann_dir)
         image_path = os.path.join(image_dir_path, image_name)
-        api.image.download_path(image_id, image_path)
+        # api.image.download_path(image_id, image_path)
         image_ext_to_png(image_path)
 
         mask_color, mask_label, poly_json = from_ann_to_cityscapes_mask(
@@ -374,48 +375,44 @@ def from_supervisely(
     dump_json_file(class_to_id, os.path.join(RESULT_DIR, "class_to_id.json"))
     sly.logger.info("Writing classes with colors to class_to_id.json file")
 
-    for dataset in datasets:
-        images_dir_path_train = os.path.join(result_images_train, dataset.name)
-        images_dir_path_val = os.path.join(result_images_val, dataset.name)
-        images_dir_path_test = os.path.join(result_images_test, dataset.name)
-        anns_dir_path_train = os.path.join(result_anns_train, dataset.name)
-        anns_dir_path_val = os.path.join(result_anns_val, dataset.name)
-        anns_dir_path_test = os.path.join(result_anns_test, dataset.name)
+    with tqdm(desc="Convert dataset to original format", total=project_fs.total_items) as pbar:
+        for dataset in datasets:
+            images_dir_path_train = os.path.join(result_images_train, dataset.name)
+            images_dir_path_val = os.path.join(result_images_val, dataset.name)
+            images_dir_path_test = os.path.join(result_images_test, dataset.name)
+            anns_dir_path_train = os.path.join(result_anns_train, dataset.name)
+            anns_dir_path_val = os.path.join(result_anns_val, dataset.name)
+            anns_dir_path_test = os.path.join(result_anns_test, dataset.name)
 
-        images = [
-            dataset.get_image_info(sly.fs.get_file_name(img)) for img in os.listdir(dataset.ann_dir)
-        ]
+            images = os.listdir(dataset.img_dir)
 
-        if len(images) < 3:
-            sly.logger.warn(
-                "Number of images in {} dataset is less then 3, val and train directories for this dataset will not be created".format(
-                    dataset.name
+            if len(images) < 3:
+                sly.logger.warn(
+                    "Number of images in {} dataset is less then 3, val and train directories for this dataset will not be created".format(
+                        dataset.name
+                    )
                 )
-            )
 
-        image_ids = [image_info.id for image_info in images]
-        base_image_names = [image_info.name for image_info in images]
-        # image_names = [
-        #     get_file_name(image_info.name) + cityscapes_images_suffix + get_file_ext(image_info.name) for
-        #     image_info in images
-        # ]
+            # image_ids = [image_info.id for image_info in images]
+            base_image_names = [sly.fs.get_file_name_with_ext(img) for img in images]
+            # image_names = [
+            #     get_file_name(image_info.name) + cityscapes_images_suffix + get_file_ext(image_info.name) for
+            #     image_info in images
+            # ]
 
-        image_names = [
-            get_file_name(image_info.name.replace("_leftImg8bit", ""))
-            + cityscapes_images_suffix
-            + get_file_ext(image_info.name)
-            for image_info in images
-        ]
+            image_names = [
+                get_file_name(img.replace("_leftImg8bit", ""))
+                + cityscapes_images_suffix
+                + get_file_ext(img)
+                for img in images
+            ]
 
-        anns = [dataset.get_ann(name, meta) for name in image_names]
+            anns = [dataset.get_ann(name, meta) for name in image_names]
 
-        splitter = get_tags_splitter(anns)
-        curr_splitter = {"train": 0, "val": 0, "test": 0}
+            splitter = get_tags_splitter(anns)
+            curr_splitter = {"train": 0, "val": 0, "test": 0}
 
-        with tqdm(desc="Convert dataset {}".format(dataset.name), total=len(images)) as pbar:
-            for ann, image_id, image_name, base_image_name in zip(
-                anns, image_ids, image_names, base_image_names
-            ):
+            for ann, image_name, base_image_name in zip(anns, image_names, base_image_names):
                 train_val_flag = True
                 try:
                     split_name = ann.img_tags.get("split").value
@@ -472,15 +469,15 @@ def from_supervisely(
                 get_image_and_ann()
                 pbar.update(1)
 
-    if format in ("tar", "both"):
+    if to_format in ("tar", "both"):
         sly.fs.archive_directory(RESULT_DIR, RESULT_ARCHIVE)
         sly.logger.info("Result directory is archived")
-        if format == "tar":
+        if to_format == "tar":
             shutil.rmtree(RESULT_DIR)
 
-    if format == "tar":
+    if to_format == "tar":
         return RESULT_ARCHIVE
-    elif format == "dir":
+    elif to_format == "dir":
         return RESULT_DIR
     else:
         return (RESULT_ARCHIVE, RESULT_DIR)
