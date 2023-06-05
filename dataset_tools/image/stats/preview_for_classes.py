@@ -192,8 +192,11 @@ class ClassesPreview(BaseVisual):
         rows, _ = self._get_grid_size(num_images)
         self._img_height = rows * (self._row_height + self._gap) + self._gap
         image_widths = [image.shape[1] for image in images]
-
-        one_big_row_width = sum(image_widths[:-rows]) + (num_images - 1) * self._gap
+        
+        if rows == 1:
+            one_big_row_width = sum(image_widths) + (num_images - 1) * self._gap
+        else:
+            one_big_row_width = sum(image_widths[:-rows]) + (num_images - 1) * self._gap
         self._row_width = one_big_row_width // rows
         if num_images == 1:
             one_big_row_width = images[0].shape[1]
@@ -205,12 +208,14 @@ class ClassesPreview(BaseVisual):
         current_width = 0
 
         for idx, (image, width) in enumerate(zip(images, image_widths)):
-            if current_width + width > self._row_width or idx == len(images) - 1:
+            if current_width + width > self._row_width:
                 rows.append(row_images)
 
                 row_images = []
                 current_width = 0
             row_images.append(image)
+            if idx == num_images - 1:
+                rows.append(row_images)
             current_width += width + self._gap
 
         return rows
