@@ -7,6 +7,7 @@ import math
 import supervisely as sly
 from skimage.transform import resize
 from dataset_tools.image.stats.basestats import BaseVisual
+from typing import Union
 
 
 class ClassesHeatmaps(BaseVisual):
@@ -14,8 +15,12 @@ class ClassesHeatmaps(BaseVisual):
     Get heatmaps of visual density of aggregated annotations for every class in the dataset
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, heatmap_img_size: tuple = None, force=False):
-
+    def __init__(
+        self,
+        project_meta: sly.ProjectMeta,
+        heatmap_img_size: tuple = None,
+        force=False,
+    ):
         self.force = force
         self._meta = project_meta
         self.classname_heatmap = {}
@@ -71,8 +76,7 @@ class ClassesHeatmaps(BaseVisual):
 
         img_height, img_width = cv2.imread(self.heatmap_image_paths[0]).shape[:2]
         num_images = len(self.heatmap_image_paths)
-        rows = math.ceil(math.sqrt(num_images))
-        cols = math.ceil(num_images / rows)
+        rows, cols = self._get_grid_size(num_images)
 
         result_width = cols * (img_width + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
         result_height = rows * (img_height + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
@@ -90,6 +94,11 @@ class ClassesHeatmaps(BaseVisual):
             self.heatmap_image_paths = []
 
         result_image.save(path)
+
+    def _get_grid_size(self, num: int = 1, aspect_ratio: Union[float, int] = 1.9) -> tuple:
+        cols = max(int(math.sqrt(num) * aspect_ratio), 1)
+        rows = max((num - 1) // cols + 1, 1)
+        return (rows, cols)
 
     def _create_single_images_text_outside(self, path):
         for heatmap in self.classname_heatmap:
@@ -168,7 +177,6 @@ class ClassesHeatmaps(BaseVisual):
 
     def _create_single_images_text_inside(self, path):
         for heatmap in self.classname_heatmap:
-            font_scale = self._get_optimal_font_scale(heatmap)
             resized_image = resize(self.classname_heatmap[heatmap], self._heatmap_img_size)
             x_pos_center = int(resized_image.shape[1] * 0.5)
             y_pos_percent = int(resized_image.shape[0] * 0.95)
@@ -177,6 +185,7 @@ class ClassesHeatmaps(BaseVisual):
             plt.imsave(image_path, resized_image[:, :, 0])
 
             image = cv2.imread(image_path)
+            font_scale = self._get_optimal_font_scale(heatmap, image)
             text = f"{heatmap}"
             font = cv2.FONT_HERSHEY_SIMPLEX
             text_color = (255, 255, 255)
@@ -185,29 +194,36 @@ class ClassesHeatmaps(BaseVisual):
             text_width = cv2.getTextSize(text, font, font_scale, thickness)[0][0]
             text_position = (x_pos_center - int(text_width / 2), y_pos_percent)
             cv2.putText(
-                image, text, text_position, font, font_scale, text_color, thickness, line_type
+                image,
+                text,
+                text_position,
+                font,
+                font_scale,
+                text_color,
+                thickness,
+                line_type,
             )
             cv2.imwrite(image_path, image)
 
             self.heatmap_image_paths.append(image_path)
 
-    def _get_optimal_font_scale(self, text):
+    def _get_optimal_font_scale(self, text, image):
         font_scale = 10
         thickness = 3
-        text_height_percent = 10
         font = cv2.FONT_HERSHEY_SIMPLEX
         text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
         text_width = text_size[0]
-        text_height = text_size[1]
 
-        while text_width > self._heatmap_img_size[1]:
+        while text_width > image.shape[1] * 0.85:
             font_scale -= 0.1
             text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
             text_width = text_size[0]
-            text_height = text_size[1]
 
-        desired_text_height = (self._heatmap_img_size[0] * text_height_percent) // 100
-        font_scale *= desired_text_height / text_height
+        while text_width < image.shape[1] * 0.5:
+            font_scale += 0.1
+            text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
+            text_width = text_size[0]
+
         return font_scale
 
     def _calculate_output_img_size(self):
