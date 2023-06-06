@@ -95,6 +95,8 @@ def to_supervisely(api: sly.Api):
             api.annotation.upload_anns(img_ids, anns)
             progress.iters_done_report(len(img_batch))
 
+    return new_project.id
+
 
 def from_supervisely(
     input_path: str, output_path: str = None, to_format: Literal["dir", "tar", "both"] = "both"
