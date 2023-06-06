@@ -18,7 +18,6 @@ class SideAnnotationsGrid:
         api: sly.Api = None,
         rows: int = 3,
         cols: int = 3,
-        side_overlay_path: str = "side_logo_overlay.png",
         force: bool = False,
     ):
         self.force = force
@@ -30,7 +29,6 @@ class SideAnnotationsGrid:
         self._row_width = 0
         self._gap = 15
         self._bg_color = (221, 210, 230)  # rgb(221, 210, 230)
-        self._side_overlay_path = side_overlay_path
 
         self._local = False if isinstance(project, int) else True
         self._api = api if api is not None else sly.Api.from_env()
@@ -38,6 +36,9 @@ class SideAnnotationsGrid:
         self.np_images = []
         self._img_array = None
         self._row_height = int((self._img_height - self._gap * (self._rows + 1)) / self._rows)
+
+        self._side_overlay_path = "side_logo_overlay.png"
+        self._logo_path = "logo.png"
 
     @property
     def basename_stem(self) -> None:
@@ -82,7 +83,7 @@ class SideAnnotationsGrid:
             path = os.path.join(storage_dir, "horizontal_grid.png")
 
         self._merge_canvas_with_images()
-        self._add_overlay_with_logo()
+        self._add_logo(self._img_array)
 
         sly.image.write(tmp_path, self._img_array)
         compress_png(tmp_path, path)
@@ -94,10 +95,12 @@ class SideAnnotationsGrid:
 
     def _merge_canvas_with_images(self):
         rows = self._create_rows()
-        self._create_image_canvas()
         rows = self._merge_img_in_rows(rows)
+        self._create_image_canvas()
         for i, image in enumerate(rows):
-            if image.shape[1] > self._img_array.shape[1]:
+            if i > self._rows:
+                continue
+            if image.shape[1] > self._img_array.shape[1] - self._gap:
                 image = image[:, : self._img_array.shape[1] - self._gap]
 
             row_start = i * (self._row_height + self._gap) + self._gap
@@ -118,15 +121,16 @@ class SideAnnotationsGrid:
         row_images = []
         current_width = 0
 
-        for image, width in zip(self.np_images, image_widths):
+        for idx, (image, width) in enumerate(zip(self.np_images, image_widths)):
             if current_width + width > self._row_width:
-                row_images.append(image)
                 rows.append(row_images)
 
                 row_images = []
                 current_width = 0
 
             row_images.append(image)
+            if idx == num_images - 1:
+                rows.append(row_images)
             current_width += width + self._gap
 
         if len(rows) == self._rows:
@@ -146,12 +150,15 @@ class SideAnnotationsGrid:
             combined_image = np.hstack(combined_images)
             combined_rows.append(combined_image)
 
+        self._row_width = min([img.shape[1] for img in combined_rows])
         return combined_rows
 
-    def _resize_image(self, image):
+    def _resize_image(self, image, height=None):
         img_h, img_w = image.shape[:2]
-        img_aspect_ratio = self._row_height / img_h
-        img_h = int(self._row_height)
+        if height is None:
+            height = self._row_height
+        img_aspect_ratio = height / img_h
+        img_h = int(height)
         img_w = int(img_aspect_ratio * img_w)
 
         image = sly.image.resize(image, (img_h, img_w))
@@ -173,3 +180,28 @@ class SideAnnotationsGrid:
         self._img_array[:height2, x : x + width2, :3] = (
             1 - alpha_channel[:, :, np.newaxis]
         ) * region + alpha_channel[:, :, np.newaxis] * image2[:, :, :3]
+
+
+    def _add_logo(self, image):
+        height = max(self._row_height // 5, 80)
+        image2 = cv2.imread(self._logo_path, cv2.IMREAD_UNCHANGED)
+        image2 = cv2.cvtColor(image2, cv2.COLOR_BGRA2RGBA)
+        image2 = self._resize_image(image2, height)
+
+        height_r = height
+        while image2.shape[1] > image.shape[1] * 0.25:
+            height_r = int(0.95 * height_r)
+            image2 = self._resize_image(image2, height_r)
+
+        h1, w1 = image.shape[:2]
+        h2, w2 = image2.shape[:2]
+        x = w1 - w2 - self._gap * 2
+        y = h1 - h2 - self._gap * 2
+        alpha = image2[:, :, 3] / 255.0
+
+        reg = image[y : y + h2, x : x + w2]
+        image[y : y + h2, x : x + w2, :3] = (1 - alpha[:, :, np.newaxis]) * reg[:, :, :3] + alpha[
+            :, :, np.newaxis
+        ] * image2[:, :, :3]
+
+        return image
