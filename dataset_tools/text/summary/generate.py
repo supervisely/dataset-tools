@@ -9,11 +9,6 @@ from dotenv import load_dotenv
 
 import supervisely as sly
 
-if sly.is_development():
-    load_dotenv(os.path.expanduser("~/ninja.env"))
-    load_dotenv("local.env")
-
-
 p = (
     inflect.engine()
 )  # correctly generate plurals, singular nouns, ordinals, indefinite articles; convert numbers to words.
@@ -63,10 +58,10 @@ def get_summary_data(
     license_url: str,
     preview_image_id: int,
     github_url: str,
-    citation_url: str,
     download_sly_url: str,
     download_original_url: str = None,
     paper: str = None,
+    citation_url: str = None,
     organization_name: str = None,
     organization_url: str = None,
     tags: List[str] = None,

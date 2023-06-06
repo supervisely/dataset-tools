@@ -49,6 +49,7 @@ INSTALL_REQUIRES = [
     "scikit-image>=0.17.1, <1.0.0",
     "dataframe_image>=0.1.11, <1.0.0",
     "inflect>=6.0.0",
+    "gdown>=4.7.1",
     # "async_asgi_testclient",
     # "PyYAML",
     # "distinctipy",
