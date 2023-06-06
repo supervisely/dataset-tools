@@ -65,9 +65,9 @@ class ClassesHeatmaps(BaseVisual):
         self._calculate_output_img_size()
 
         if draw_style == "inside_white":
-            self._create_single_images_text_outside(path)
-        if draw_style == "outside_black":
             self._create_single_images_text_inside(path)
+        if draw_style == "outside_black":
+            self._create_single_images_text_outside(path)
 
         img_height, img_width = cv2.imread(self.heatmap_image_paths[0]).shape[:2]
         num_images = len(self.heatmap_image_paths)
