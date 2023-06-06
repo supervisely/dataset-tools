@@ -122,6 +122,8 @@ class SideAnnotationsGrid:
         current_width = 0
 
         for idx, (image, width) in enumerate(zip(self.np_images, image_widths)):
+            if len(rows) == self._rows:
+                return rows
             if current_width + width > self._row_width:
                 rows.append(row_images)
 
@@ -133,8 +135,6 @@ class SideAnnotationsGrid:
                 rows.append(row_images)
             current_width += width + self._gap
 
-        if len(rows) == self._rows:
-            return rows
         return rows
 
     def _merge_img_in_rows(self, rows):
