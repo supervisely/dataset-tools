@@ -5,14 +5,8 @@ import textwrap
 from typing import Dict, List
 
 import inflect
-from dotenv import load_dotenv
 
 import supervisely as sly
-
-if sly.is_development():
-    load_dotenv(os.path.expanduser("~/ninja.env"))
-    load_dotenv("local.env")
-
 
 p = (
     inflect.engine()
@@ -63,17 +57,17 @@ def get_summary_data(
     license_url: str,
     preview_image_id: int,
     github_url: str,
-    citation_url: str,
     download_sly_url: str,
     download_original_url: str = None,
     paper: str = None,
+    citation_url: str = None,
     organization_name: str = None,
     organization_url: str = None,
     tags: List[str] = None,
     **kwargs,
 ) -> Dict:
     api = sly.Api.from_env()
-    project_id = sly.env.project_id()
+    project_id = kwargs.get("project_id", None)
     project_info = api.project.get_info_by_id(project_id)
 
     stats = api.project.get_stats(project_id)
@@ -244,7 +238,7 @@ def generate_summary_content(data: Dict, vis_url: str) -> str:
 
 
 def get_summary_data_sly(project_info: sly.ProjectInfo) -> Dict:
-    return get_summary_data(**project_info.custom_data)
+    return get_summary_data(**project_info.custom_data, project_id=project_info.id)
 
 
 # def generate_meta_from_local():
