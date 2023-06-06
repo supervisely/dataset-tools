@@ -98,7 +98,7 @@ class SideAnnotationsGrid:
         rows = self._merge_img_in_rows(rows)
         self._create_image_canvas()
         for i, image in enumerate(rows):
-            if i > self._rows:
+            if i >= self._rows:
                 continue
             if image.shape[1] > self._img_array.shape[1] - self._gap:
                 image = image[:, : self._img_array.shape[1] - self._gap]
