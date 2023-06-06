@@ -14,7 +14,7 @@ datasets = ["Train", "Val", "Test"]
 
 sample_img_count = {"Train": 400, "Val": 50, "Test": 50}
 
-project_name = "coffee"
+project_name = "Coffee Leaf Biotic Stress"
 work_dir = "coffee_data"
 coffee_url = "https://docs.google.com/uc?id=15YHebAGrx1Vhv8-naave-R5o3Uo70jsm"
 
