@@ -16,11 +16,6 @@ import supervisely as sly
 from dataset_tools.convert import unpack_if_archive
 from supervisely.annotation.json_geometries_map import GET_GEOMETRY_FROM_STR
 
-if sly.is_development():
-    # load_dotenv(os.path.expanduser("~/ninja.env"))
-    load_dotenv("local.env")
-
-api = sly.Api.from_env()
 
 images_links = {
     "train2014": "http://images.cocodataset.org/zips/train2014.zip",
@@ -199,7 +194,7 @@ def download_coco_images(dataset, archive_path, save_path):
     link = images_links[dataset]
     response = requests.head(link, allow_redirects=True)
     sizeb = int(response.headers.get("content-length", 0))
-    p = tqdm(desc=f"Downloading COCO {dataset} dataset", total=sizeb, unit="B", unit_scale=True)
+    p = tqdm(desc=f"Downloading COCO images", total=sizeb, unit="B", unit_scale=True)
     if not sly.fs.file_exists(archive_path):
         sly.fs.download(link, archive_path, progress=p.update)
     shutil.unpack_archive(archive_path, save_path, format="zip")
@@ -218,7 +213,10 @@ def download_coco_annotations(dataset, archive_path, save_path):
         if os.path.exists(ann_dir):
             return
         link = annotations_links["trainval2017"]
-    sly.fs.download(link, archive_path)
+    response = requests.head(link, allow_redirects=True)
+    sizeb = int(response.headers.get("content-length", 0))
+    p = tqdm(desc=f"Downloading COCO anns", total=sizeb, unit="B", unit_scale=True)
+    sly.fs.download(link, archive_path, progress=p.update)
     shutil.unpack_archive(archive_path, save_path, format="zip")
     for file in os.listdir(ann_dir):
         if file != f"instances_{dataset}.json":

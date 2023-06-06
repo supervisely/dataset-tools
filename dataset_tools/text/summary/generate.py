@@ -5,7 +5,6 @@ import textwrap
 from typing import Dict, List
 
 import inflect
-from dotenv import load_dotenv
 
 import supervisely as sly
 

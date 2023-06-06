@@ -6,9 +6,10 @@ from dotenv import load_dotenv
 import supervisely as sly
 import dataset_tools as dtools
 
-if sly.is_development():
-    load_dotenv(os.path.expanduser("~/ninja.env"))
-    load_dotenv("local.env")
+# use creentials for debugging
+# if sly.is_development():
+#     load_dotenv(os.path.expanduser("~/ninja.env"))
+#     load_dotenv("local.env")
 
 os.makedirs("./stats/", exist_ok=True)
 api = sly.Api.from_env()
