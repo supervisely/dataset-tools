@@ -16,15 +16,19 @@ class BaseStats:
 
     def to_pandas(self) -> pd.DataFrame:
         json = self.to_json()
-        table = pd.DataFrame(data=json["data"], columns=json["columns"])
+        try:
+            table = pd.DataFrame(data=json["data"], columns=json["columns"])
+        except KeyError:
+            table = None
         return table
 
     def to_image(self, path: str) -> None:
         """
         Create an image visualizing the results of statistics from a Pandas DataFrame.
         """
-        table = self.to_pandas()[:100]  # max rows == 100
-        table.dfi.export(path, max_rows=-1, max_cols=-1)
+        if self.to_pandas():
+            table = self.to_pandas()[:100]  # max rows == 100
+            table.dfi.export(path, max_rows=-1, max_cols=-1)
 
     @property
     def basename_stem(self) -> str:
