@@ -144,28 +144,27 @@ class ClassesPreview(BaseVisual):
                 cropped_ann = cropped_ann.resize(cropped_img.shape[:2])
                 ann_mask = np.zeros((*cropped_img.shape[:2], 3), dtype=np.uint8)
                 text_mask = np.zeros((*cropped_img.shape[:2], 3), dtype=np.uint8)
-                cropped_ann.draw_pretty(ann_mask, thickness=5, opacity=1)
 
-                label = cropped_ann.labels[0]
-                bbox = label.geometry.to_bbox()
-                f_scale = self._get_optimal_font_scale(cls_name, (bbox.height, bbox.width))
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                t_width, _ = cv2.getTextSize(cls_name, font, f_scale, thickness=3)[0][:2]
 
-                if type(label.geometry) in [sly.Bitmap, sly.Polygon]:
+                for label in cropped_ann.labels:
+                    if type(label.geometry) == sly.Rectangle:
+                        label.draw_contour(ann_mask, thickness=5)
+                    else:
+                        label.draw(ann_mask, thickness=5)
+
+                    bbox = label.geometry.to_bbox()
+                    f_scale = self._get_optimal_font_scale(cls_name, (bbox.height, bbox.width))
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    t_width, t_height = cv2.getTextSize(cls_name, font, f_scale, thickness=3)[0][:2]
+                    while t_height > cropped_img.shape[0] * 0.3 or t_width > cropped_img.shape[1] * 0.8:
+                        f_scale = f_scale * 0.96
+                        t_width, t_height = cv2.getTextSize(cls_name, font, f_scale, thickness=3)[0][:2]
+
                     col, row = bbox.center.col, bbox.center.row
                     org = (col - int(t_width / 2), row)
                     white = (255, 255, 255, 255)
                     cv2.putText(text_mask, cls_name, org, font, f_scale, white, 3, cv2.LINE_AA)
 
-                else:
-                    color = label.obj_class.color
-                    cv2.rectangle(
-                        ann_mask, (bbox.left, bbox.top), (bbox.right, bbox.bottom), color, 2
-                    )
-                    org = (bbox.top, bbox.left)
-                    white = (255, 255, 255, 255)
-                    cv2.putText(text_mask, cls_name, org, font, f_scale, white, 3, cv2.LINE_AA)
                 self._np_images[cls_name] = cropped_img
                 self._np_anns[cls_name] = ann_mask
                 self._np_texts[cls_name] = text_mask
