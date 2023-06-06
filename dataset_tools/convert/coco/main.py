@@ -18,7 +18,6 @@ from supervisely.annotation.json_geometries_map import GET_GEOMETRY_FROM_STR
 
 if sly.is_development():
     # load_dotenv(os.path.expanduser("~/ninja.env"))
-    load_dotenv(os.path.expanduser("~/supervisely.env"))
     load_dotenv("local.env")
 
 api = sly.Api.from_env()
