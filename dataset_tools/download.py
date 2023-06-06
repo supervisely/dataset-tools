@@ -38,7 +38,7 @@ def prepare_download_link(project):
             task_name="custom session name",
             params=params,
         )
-        print("App is started, task_id = ", session.task_id)
+        print("App is started, task_id =", session.task_id)
         print(session)
 
         try:
