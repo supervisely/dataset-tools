@@ -2,7 +2,7 @@ import operator
 import os
 import re
 import textwrap
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import inflect
 
@@ -14,7 +14,11 @@ p = (
 
 
 def list2sentence(
-    lst: Union[List[str], str], anytail: str = "", keeptail=False, url: Union[List[str], str] = None
+    lst: Union[List[str], str],
+    anytail: str = "",
+    keeptail=False,
+    url: Optional[Union[List[str], str]] = None,
+    char2wrap: Optional[str] = None,
 ):
     if isinstance(lst, str):
         lst = [lst]
@@ -33,6 +37,9 @@ def list2sentence(
         for i, u in zip(lst, url):
             new_lst.append(f"[{i}]({u})")
         lst = new_lst
+
+    if char2wrap is not None:
+        lst = [char2wrap + elem + char2wrap for elem in lst]
 
     if len(lst) == 1:
         sentence = lst[0]
@@ -225,11 +232,11 @@ def generate_summary_content(data: Dict, vis_url: str) -> str:
     else:
         content += f"different classes "
     if len(top_classes) > 3:
-        content += f"including *{'*, *'.join(top_classes[:3])},* and other: *{list2sentence(top_classes[3:], )}*."
+        content += f"including *{'*, *'.join(top_classes[:3])},* and other: *{list2sentence(top_classes[3:], char2wrap='*' )}*."
     elif len(top_classes) == 1:
         content += f"(*{top_classes[0]}*)."
     else:
-        content += f"including *{list2sentence(top_classes[:3])}*."
+        content += f"including {list2sentence(top_classes[:3], char2wrap='*')}."
     content += f"\n\nEach {p.singular_noun(modality)} in the {name} dataset has {annotations}. "
     content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
     if len(splits) == 1:
