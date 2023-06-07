@@ -2,7 +2,7 @@ import operator
 import os
 import re
 import textwrap
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import inflect
 
@@ -13,7 +13,13 @@ p = (
 )  # correctly generate plurals, singular nouns, ordinals, indefinite articles; convert numbers to words.
 
 
-def list2sentence(lst: List[str], anytail: str = "", keeptail=False):
+def list2sentence(
+    lst: Union[List[str], str], anytail: str = "", keeptail=False, url: Union[List[str], str] = None
+):
+    if isinstance(lst, str):
+        lst = [lst]
+    if isinstance(url, str):
+        url = [url]
     assert isinstance(lst, list) and all(
         isinstance(item, str) for item in lst
     ), "All items in the list must be strings."
@@ -21,6 +27,12 @@ def list2sentence(lst: List[str], anytail: str = "", keeptail=False):
     anytail = " " + anytail if anytail != "" else anytail
     if len(lst) == 0:
         raise ValueError("Provided list is empty")
+
+    if url is not None:
+        new_lst = []
+        for i, u in zip(lst, url):
+            new_lst.append(f"[{i}]({u})")
+        lst = new_lst
 
     if len(lst) == 1:
         sentence = lst[0]
@@ -220,16 +232,21 @@ def generate_summary_content(data: Dict, vis_url: str) -> str:
         content += f"including *{list2sentence(top_classes[:3])}*."
     content += f"\n\nEach {p.singular_noun(modality)} in the {name} dataset has {annotations}. "
     content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
-    content += f"There are {len(splits)} splits in the dataset: {list2sentence(splits)}. "
+    if len(splits) == 1:
+        content += f"There is 1 split in the dataset: {list2sentence(splits)}. "
+    else:
+        content += f"There are {len(splits)} splits in the dataset: {list2sentence(splits)}. "
     if organization_name is not None and organization_url is not None:
-        content += f"The dataset was released in {release_year} by the [{organization_name}]({organization_url})."
+        content += f"The dataset was released in {release_year} by the {list2sentence(organization_name, url=organization_url)}."
     elif organization_name is not None and organization_url is None:
-        content += f"The dataset was released in {release_year} by the {organization_name}."
+        content += (
+            f"The dataset was released in {release_year} by the {list2sentence(organization_name)}."
+        )
     elif organization_name is None and organization_url is None:
         content += f"The dataset was released in {release_year}."
 
     if len(top_classes) == 1:
-        content += f"\n\nHere is the visualized example of the single {top_classes[0]} class:\n\n"
+        content += f"\n\nHere is the visualized example of the single *{top_classes[0]}* class:\n\n"
     else:
         content += f"\n\nHere are the visualized examples for each of the {totals.get('total_classes', 0)} classes:\n\n"
     content += f"[Dataset classes]({vis_url})\n"
