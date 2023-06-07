@@ -26,7 +26,7 @@ class BaseStats:
         """
         Create an image visualizing the results of statistics from a Pandas DataFrame.
         """
-        if self.to_pandas():
+        if self.to_pandas() is not None:
             table = self.to_pandas()[:100]  # max rows == 100
             table.dfi.export(path, max_rows=-1, max_cols=-1)
 

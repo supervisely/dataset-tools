@@ -13,8 +13,8 @@ sly.logger.info(f"Root source directory: {root_source_dir}")
 sys.path.append(root_source_dir)
 
 # TASK_ID = int(os.environ["TASK_ID"])
-TEAM_ID = sly.env.team_id()
-WORKSPACE_ID = sly.env.workspace_id()
+# TEAM_ID = sly.env.team_id()
+# WORKSPACE_ID = sly.env.workspace_id()
 
 logger = sly.logger
 
