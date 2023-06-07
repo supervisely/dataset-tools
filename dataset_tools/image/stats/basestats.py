@@ -26,9 +26,11 @@ class BaseStats:
         """
         Create an image visualizing the results of statistics from a Pandas DataFrame.
         """
-        if self.to_pandas():
+        try:
             table = self.to_pandas()[:100]  # max rows == 100
             table.dfi.export(path, max_rows=-1, max_cols=-1)
+        except Exception:
+            pass
 
     @property
     def basename_stem(self) -> str:
