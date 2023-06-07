@@ -4,7 +4,7 @@ import zipfile
 from typing import Literal
 
 import gdown
-from tqdm import tqdm
+from tqdm import tqdm 
 
 import dataset_tools.convert.sweetpepper.sly_globals as g
 import supervisely as sly
