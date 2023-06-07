@@ -27,6 +27,7 @@ class ClassesPreview(BaseVisual):
         api: sly.Api = None,
         row_height: int = None,
         force: bool = False,
+        pad: dict = {"top": "10%", "bottom": "10%", "left": "10%", "right": "10%"}
     ):
         self.force = force
         self._meta = project_meta
@@ -34,6 +35,7 @@ class ClassesPreview(BaseVisual):
         classes_cnt = len(self._meta.obj_classes)
         classes_text = "classes" if classes_cnt > 1 else "class"
         self._title = f"{self._project_name} · {classes_cnt} {classes_text}"
+        self._pad = pad
 
         self._gap = 20
         self._img_width = 1920
@@ -129,13 +131,13 @@ class ClassesPreview(BaseVisual):
 
                 image_area = image.width * image.height
                 img = self._api.image.download_np(image.id, keep_alpha=True)
-                pad = "10%"
+
                 crops = sly.aug.instance_crop(
                     img=img,
                     ann=ann,
                     class_title=cls_name,
                     save_other_classes_in_crop=False,
-                    padding_config={"top": pad, "bottom": pad, "left": pad, "right": pad},
+                    padding_config=self._pad,
                 )
                 crops = sorted(crops, key=lambda crop: crop[1].labels[0].area / image_area)
                 cropped_img, cropped_ann = crops[-1]
