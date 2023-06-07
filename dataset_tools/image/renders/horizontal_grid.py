@@ -7,6 +7,7 @@ import numpy as np
 from tqdm import tqdm
 
 import supervisely as sly
+from supervisely.imaging import font as sly_font
 from dataset_tools.image.renders.convert import from_mp4_to_webm, compress_mp4, compress_png
 
 
@@ -19,9 +20,11 @@ class HorizontalGrid:
         rows: int = 3,
         cols: int = 6,
         force: bool = False,
+        is_detection_task: bool = False,
     ):
         self.force = force
         self.project_meta = project_meta
+        self._is_detection_task = is_detection_task
 
         self._img_height = 1920
         self._rows = rows
@@ -59,13 +62,31 @@ class HorizontalGrid:
                 ann: sly.Annotation
                 tmp = np.dstack((img, np.ones((*img.shape[:2], 1), dtype=np.uint8) * 255))
                 ann_mask = np.ones((*img.shape[:2], 4), dtype=np.uint8) * 255
-                ann.draw_pretty(ann_mask[:, :, :3], thickness=0, opacity=0.7)
+
+                if self._is_detection_task:
+                    for label in ann.labels:
+                        if type(label.geometry) != sly.Rectangle:
+                            continue
+                        bbox = label.geometry.to_bbox()
+                        pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
+                        cv2.rectangle(ann_mask, pt1, pt2, label.obj_class.color, 10)
+                        cv2.rectangle(img, pt1, pt2, label.obj_class.color, 10)
+                        font_size = int(sly_font.get_readable_font_size(img.shape[:2]) * 1.4)
+                        font = sly_font.get_font(font_size=font_size)
+                        _, _, _, bottom = font.getbbox(label.obj_class.name)
+                        anchor = (bbox.top - bottom, bbox.left)
+                        sly.image.draw_text(
+                            ann_mask[:, :, :3], label.obj_class.name, anchor, font=font
+                        )
+                        sly.image.draw_text(img, label.obj_class.name, anchor, font=font)
+                else:
+                    ann.draw_pretty(ann_mask[:, :, :3], thickness=0, opacity=0.7)
+                    ann.draw_pretty(img, thickness=0, opacity=0.7)
+
                 self.np_frames.append(self._resize_image(tmp, self._row_height))  # for gif
                 self.np_anns.append(self._resize_image(ann_mask, self._row_height))  # for gif
-
-                ann.draw_pretty(img, thickness=0, opacity=0.7)  # for grid
                 img = self._resize_image(img, self._row_height)
-                self.np_images.append(img)
+                self.np_images.append(img)  # for grid
 
     def to_image(self, path: str = None):
         path_part, ext = os.path.splitext(path)

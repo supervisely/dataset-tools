@@ -18,6 +18,7 @@ class Poster:
         project_meta: sly.ProjectMeta,
         api: sly.Api = None,
         force: bool = False,
+        is_detection_task: bool = False,
     ) -> None:
         self.force = force
         self._project_meta = project_meta
@@ -27,6 +28,7 @@ class Poster:
         self._items_count = 0
         self._total_labels = 0
         self._local = False
+        self._is_detection_task = is_detection_task
 
         if isinstance(project, int):
             self._project = self._api.project.get_info_by_id(project)
@@ -91,7 +93,21 @@ class Poster:
 
                 h, w = np_img.shape[:2]
                 background = np.ones((h, w, 3), dtype=np.uint8) * 255
-                ann.draw_pretty(np_img, thickness=0, opacity=0.7)
+
+                if self._is_detection_task:
+                    for label in ann.labels:
+                        if type(label.geometry) != sly.Rectangle:
+                            continue
+                        bbox = label.geometry.to_bbox()
+                        pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
+                        cv2.rectangle(np_img, pt1, pt2, label.obj_class.color, 10)
+                        font_size = int(sly_font.get_readable_font_size(np_img.shape[:2]) * 1.4)
+                        font = sly_font.get_font(font_size=font_size)
+                        _, _, _, bottom = font.getbbox(label.obj_class.name)
+                        anchor = (bbox.top - bottom, bbox.left)
+                        sly.image.draw_text(np_img, label.obj_class.name, anchor, font=font)
+                else:
+                    ann.draw_pretty(np_img, thickness=0, opacity=0.7)
                 np_img = cv2.addWeighted(np_img, 0.8, background, 0.2, 0)
 
                 # backup
