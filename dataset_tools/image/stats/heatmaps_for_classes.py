@@ -71,6 +71,8 @@ class ClassesHeatmaps(BaseVisual):
         :type outer_grid_spacing: int, optional
         :param output_width: width of result image. Defaults to 1600 px.
         :type output_width: int, optional
+        :param font: path to font file. Defaults to "fonts/FiraSans-Bold.ttf".
+        :type font: str, optional
         """
         self._calculate_output_img_size()
         self._font = font
