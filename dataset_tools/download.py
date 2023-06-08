@@ -13,13 +13,17 @@ def prepare_download_link(project):
     agent_id = sly.env.agent_id()
     storage_dir = sly.app.get_data_dir()
     local_save_path = os.path.join(storage_dir, "download_links.json")
-    api.file.download(team_id, os.environ["DOWNLOADS_DICT"], local_save_path)
-    with open(local_save_path, "r") as f:
-        links = json.load(f)
 
-    if links.get(str(project.id), None) is not None:
+    if api.file.exists(team_id, os.environ["DOWNLOADS_DICT"]):
+        api.file.download(team_id, os.environ["DOWNLOADS_DICT"], local_save_path)
+        with open(local_save_path, "r") as f:
+            links = json.load(f)
+    else:
+        links = {}
+
+    if links.get(project.name, None) is not None:
         print("URL already exists. Skipping creation of download link...")
-        return links[str(project.id)]
+        return links[project.name]["download_sly_url"]
     else:
         print("URL not exists. Creating a download link...")
 
