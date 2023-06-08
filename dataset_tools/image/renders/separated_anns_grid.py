@@ -7,6 +7,7 @@ import numpy as np
 from tqdm import tqdm
 
 import supervisely as sly
+from supervisely.imaging import font as sly_font
 from dataset_tools.image.renders.convert import compress_png
 
 
@@ -19,9 +20,11 @@ class SideAnnotationsGrid:
         rows: int = 3,
         cols: int = 3,
         force: bool = False,
+        is_detection_task: bool = False,
     ):
         self.force = force
         self.project_meta = project_meta
+        self._is_detection_task = is_detection_task
 
         self._img_height = 1080
         self._rows = rows
@@ -71,7 +74,19 @@ class SideAnnotationsGrid:
         mask_img[:, :, 0:3] = self._bg_color  # rgb(221, 210, 230)
 
         for label in ann.labels:
-            label.geometry.draw(mask_img, color=label.obj_class.color, thickness=3)
+            if type(label.geometry) == sly.Point:
+                label.draw(mask_img, thickness=15)
+            if type(label.geometry) == sly.Rectangle:
+                bbox = label.geometry.to_bbox()
+                pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
+                cv2.rectangle(mask_img, pt1, pt2, label.obj_class.color, 7)
+                font_size = int(sly_font.get_readable_font_size(mask_img.shape[:2]) * 1.4)
+                font = sly_font.get_font(font_size=font_size)
+                _, _, _, bottom = font.getbbox(label.obj_class.name)
+                anchor = (bbox.top - bottom, bbox.left)
+                sly.image.draw_text(mask_img, label.obj_class.name, anchor, font=font)
+        if not self._is_detection_task:
+            ann.draw_pretty(mask_img, thickness=3, opacity=0.7, fill_rectangles=False)
 
         return mask_img
 
