@@ -12,7 +12,7 @@ def download_and_extract():
     gdown.download(g.coffee_url, g.archive_path, quiet=False)
     if zipfile.is_zipfile(g.archive_path):
         with zipfile.ZipFile(g.archive_path, "r") as archive:
-            archive.extractall(g.work_dir_path)
+            archive.extractall(g.work_dir)
     else:
         sly.logger.warn("Archive cannot be unpacked {}".format(g.arch_name))
 
@@ -62,14 +62,14 @@ def create_annotation(ann_path):
     )
 
 
-def to_supervisely(api: sly.Api):
+def to_supervisely(api: sly.Api, workspace_id):
     download_and_extract()
 
-    coffee_data_path = os.path.join(g.work_dir_path, sly.fs.get_file_name(g.arch_name))
+    coffee_data_path = os.path.join(g.work_dir, sly.fs.get_file_name(g.arch_name))
     tags_file = os.path.join(coffee_data_path, g.symptom_tag_file)
     read_csv(tags_file)
 
-    new_project = api.project.create(g.WORKSPACE_ID, g.project_name, change_name_if_conflict=True)
+    new_project = api.project.create(workspace_id, g.project_name, change_name_if_conflict=True)
     api.project.update_meta(new_project.id, g.meta.to_json())
 
     for ds in g.datasets:
@@ -95,7 +95,7 @@ def to_supervisely(api: sly.Api):
             api.annotation.upload_anns(img_ids, anns)
             progress.iters_done_report(len(img_batch))
 
-    return new_project.id
+    return new_project
 
 
 def from_supervisely(

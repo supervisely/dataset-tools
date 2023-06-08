@@ -6,10 +6,6 @@ root_source_dir = str(Path(sys.argv[0]).parents[1])
 sly.logger.info(f"Root source directory: {root_source_dir}")
 sys.path.append(root_source_dir)
 
-
-TEAM_ID = sly.env.team_id()
-WORKSPACE_ID = sly.env.workspace_id()
-
 datasets = ["Train", "Val", "Test"]
 
 sample_img_count = {"Train": 400, "Val": 50, "Test": 50}
@@ -50,7 +46,5 @@ tag_meta_collection = sly.TagMetaCollection(tag_metas)
 
 meta = sly.ProjectMeta(obj_classes=obj_class_collection, tag_metas=tag_meta_collection)
 
-storage_dir = sly.app.get_data_dir()
-work_dir_path = os.path.join(storage_dir, work_dir)
-sly.fs.mkdir(work_dir_path)
-archive_path = os.path.join(work_dir_path, arch_name)
+sly.fs.mkdir(work_dir)
+archive_path = os.path.join(work_dir, arch_name)
