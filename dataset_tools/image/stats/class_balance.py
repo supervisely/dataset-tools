@@ -1,8 +1,8 @@
 from typing import Dict
 
 import numpy as np
-import supervisely as sly
 
+import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseStats
 
 UNLABELED_COLOR = [0, 0, 0]
@@ -18,20 +18,26 @@ class ClassBalance(BaseStats):
         Avg area per image
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, force:bool=False) -> None:
+    def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
         self._meta = project_meta
         self._stats = {}
         self.force = force
 
-        self._class_names = []
-        class_colors = []
-        class_indices_colors = []
+        self._class_names = ["unlabeled"]
+        class_colors = [UNLABELED_COLOR]
+        class_indices_colors = [UNLABELED_COLOR]
+
+        # self._class_names = []
+        # class_colors = []
+        # class_indices_colors = []
         self._name_to_index = {}
         for idx, obj_class in enumerate(self._meta.obj_classes):
             self._class_names.append(obj_class.name)
             class_colors.append(obj_class.color)
-            class_indices_colors.append([idx, idx, idx])
-            self._name_to_index[obj_class.name] = idx
+            cls_idx = idx + 1
+            # class_indices_colors.append([idx, idx, idx])
+            class_indices_colors.append([cls_idx, cls_idx, cls_idx])
+            self._name_to_index[obj_class.name] = cls_idx
 
         self._stats["class_names"] = self._class_names
         self._stats["class_indices_colors"] = class_indices_colors
@@ -58,6 +64,9 @@ class ClassBalance(BaseStats):
         )
         stat_count = ann.stat_class_count(self._stats["class_names"])
 
+        if stat_area["unlabeled"] > 0:
+            stat_count["unlabeled"] = 1
+
         for idx, class_name in enumerate(self._stats["class_names"]):
             cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
             cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
@@ -74,7 +83,9 @@ class ClassBalance(BaseStats):
                     self._stats["objects_count"][idx] / self._stats["images_count"][idx]
                 )
 
-            if stat_count[class_name] > 0:
+            if class_name == "unlabeled":
+                continue
+            elif stat_count[class_name] > 0:
                 self._stats["image_counts_filter_by_id"][idx].append(image.id)
 
             # TODO: implement later
