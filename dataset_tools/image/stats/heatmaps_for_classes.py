@@ -35,12 +35,20 @@ class ClassesHeatmaps(BaseVisual):
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         image_height, image_width = ann.img_size
         self._ds_image_sizes.append((image_height, image_width))
-        geometry_types_to_heatmap = ["polygon", "rectangle", "bitmap"]
+        geometry_types_to_heatmap = [
+            sly.Polygon.name(),
+            sly.Rectangle.name(),
+            sly.Bitmap.name(),
+            sly.Point.name(),
+        ]
         ann = ann.resize(self._heatmap_img_size)
         for label in ann.labels:
             temp_canvas = np.zeros(self._heatmap_img_size + (3,), dtype=np.uint8)
-            if label.geometry.geometry_name() in geometry_types_to_heatmap:
-                label.draw(temp_canvas, color=(1, 1, 1))
+            if label.geometry.name() in geometry_types_to_heatmap:
+                if label.geometry.name() == sly.Point.name():
+                    label.draw(temp_canvas, color=(1, 1, 1), thickness=5)
+                else:
+                    label.draw(temp_canvas, color=(1, 1, 1))
                 self.classname_heatmap[label.obj_class.name] += temp_canvas
 
     def to_image(
@@ -205,8 +213,8 @@ class ClassesHeatmaps(BaseVisual):
             font = ImageFont.truetype(self._font, font_size)
             text_width, _ = font.getsize(text)
 
-        desired_font_height = (self._heatmap_img_size[0] * text_height_percent) // 100
-        desired_font_size = int(font_size * desired_text_width / text_width)
+        desired_font_height = math.ceil((self._heatmap_img_size[0] * text_height_percent) // 100)
+        desired_font_size = math.ceil(font_size * desired_text_width / text_width)
         desired_font_size = min(desired_font_size, desired_font_height)
         return desired_font_size
 
