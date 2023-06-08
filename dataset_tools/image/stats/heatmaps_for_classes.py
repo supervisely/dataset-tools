@@ -139,7 +139,7 @@ class ClassesHeatmaps(BaseVisual):
         line_spacing_percent = 20
 
         image_height = image.size[1]
-        text_height = int(image_height * text_height_percent / 100)
+        text_height = math.ceil(image_height * text_height_percent / 100)
 
         font = ImageFont.truetype(self._font, text_height)
 
