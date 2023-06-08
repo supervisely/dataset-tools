@@ -238,7 +238,12 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     else:
         content += f"including {list2sentence(top_classes[:3], char2wrap='*')}."
     content += f"\n\nEach {p.singular_noun(modality)} in the {name} dataset has {annotations}. "
-    content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
+    if unlabeled_assets_num == 0:
+        content += f"All {modality} are labeled (i.e. with annotations). "
+    elif unlabeled_assets_num == 1:
+        content += f"There is 1 unlabled {p.singular_noun(modality)} (i.e. without annotations). "
+    else:
+        content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
     if len(splits) == 1:
         content += f"There is 1 split in the dataset: {list2sentence(splits)}. "
     else:
@@ -254,7 +259,9 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
 
     if vis_url is not None:
         if len(top_classes) == 1:
-            content += f"\n\nHere is the visualized example of the single *{top_classes[0]}* class:\n\n"
+            content += (
+                f"\n\nHere is the visualized example of the single *{top_classes[0]}* class:\n\n"
+            )
         else:
             content += f"\n\nHere are the visualized examples for each of the {totals.get('total_classes', 0)} classes:\n\n"
         content += f"[Dataset classes]({vis_url})\n"
