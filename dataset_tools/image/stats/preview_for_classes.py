@@ -6,11 +6,12 @@ from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 
 import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseVisual
-from dataset_tools.image.renders.convert import from_mp4_to_webm, compress_mp4, compress_png
+from dataset_tools.image.renders.convert import from_mp4_to_webm, compress_mp4
 from supervisely.imaging import font as sly_font
 
 UNLABELED_COLOR = [0, 0, 0]
@@ -27,7 +28,7 @@ class ClassesPreview(BaseVisual):
         api: sly.Api = None,
         row_height: int = None,
         force: bool = False,
-        pad: dict = {"top": "10%", "bottom": "10%", "left": "10%", "right": "10%"}
+        pad: dict = {"top": "10%", "bottom": "10%", "left": "10%", "right": "10%"},
     ):
         self.force = force
         self._meta = project_meta
@@ -42,6 +43,7 @@ class ClassesPreview(BaseVisual):
         self._img_height = None
         self._row_height = row_height if row_height is not None else 480
         self._row_width = None
+        self._font = None
 
         self._api = api if api is not None else sly.Api.from_env()
 
@@ -60,7 +62,12 @@ class ClassesPreview(BaseVisual):
             class_name = label.obj_class.name
             self._classname2images[class_name].append((image, ann))
 
-    def animate(self, path: str = None):
+    def animate(
+        self,
+        path: str = None,
+        font: str = "fonts/FiraSans-Bold.ttf",
+    ):
+        self._font = font
         dirname = os.path.dirname(path)
         os.makedirs(dirname, exist_ok=True)
         self._collect_images()
@@ -147,7 +154,6 @@ class ClassesPreview(BaseVisual):
                 ann_mask = np.zeros((*cropped_img.shape[:2], 3), dtype=np.uint8)
                 text_mask = np.zeros((*cropped_img.shape[:2], 3), dtype=np.uint8)
 
-
                 for label in cropped_ann.labels:
                     if type(label.geometry) == sly.Rectangle:
                         label.draw_contour(ann_mask, thickness=5)
@@ -155,17 +161,26 @@ class ClassesPreview(BaseVisual):
                         label.draw(ann_mask, thickness=5)
 
                     bbox = label.geometry.to_bbox()
-                    f_scale = self._get_optimal_font_scale(cls_name, (bbox.height, bbox.width))
-                    font = cv2.FONT_HERSHEY_SIMPLEX
-                    t_width, t_height = cv2.getTextSize(cls_name, font, f_scale, thickness=3)[0][:2]
-                    while t_height > cropped_img.shape[0] * 0.3 or t_width > cropped_img.shape[1] * 0.8:
-                        f_scale = f_scale * 0.96
-                        t_width, t_height = cv2.getTextSize(cls_name, font, f_scale, thickness=3)[0][:2]
 
-                    col, row = bbox.center.col, bbox.center.row
-                    org = (col - int(t_width / 2), row)
-                    white = (255, 255, 255, 255)
-                    cv2.putText(text_mask, cls_name, org, font, f_scale, white, 3, cv2.LINE_AA)
+                    font_size = self._get_base_font_size(cls_name, ann_mask.shape[1])
+                    font = ImageFont.truetype(self._font, font_size // 2)
+
+                    color_white = (255, 255, 255, 255)
+                    color_black = (0, 0, 0, 0)
+                    x_pos, y_pos = bbox.center.col, bbox.center.row
+
+                    tmp_canvas = Image.fromarray(text_mask)
+                    draw = ImageDraw.Draw(tmp_canvas)
+                    draw.text(
+                        (x_pos, y_pos),
+                        cls_name,
+                        font=font,
+                        fill=color_white,
+                        stroke_width=1,
+                        stroke_fill=color_black,
+                        anchor="mm",
+                    )
+                    text_mask = np.array(tmp_canvas, dtype=np.uint8)
 
                 self._np_images[cls_name] = cropped_img
                 self._np_anns[cls_name] = ann_mask
@@ -190,15 +205,15 @@ class ClassesPreview(BaseVisual):
 
     def _create_rows(self, images: List[np.ndarray]) -> List[List[np.ndarray]]:
         num_images = len(images)
-        rows, _ = self._get_grid_size(num_images)
-        self._img_height = rows * (self._row_height + self._gap) + self._gap
+        rows_num, _ = self._get_grid_size(num_images)
+        self._img_height = rows_num * (self._row_height + self._gap) + self._gap
         image_widths = [image.shape[1] for image in images]
-        
-        if rows == 1:
+
+        if rows_num == 1:
             one_big_row_width = sum(image_widths) + (num_images - 1) * self._gap
         else:
-            one_big_row_width = sum(image_widths[:-rows]) + (num_images - 1) * self._gap
-        self._row_width = one_big_row_width // rows
+            one_big_row_width = sum(image_widths[:-rows_num]) + (num_images - 1) * self._gap
+        self._row_width = one_big_row_width // rows_num
         if num_images == 1:
             one_big_row_width = images[0].shape[1]
             self._row_width = one_big_row_width
@@ -214,9 +229,13 @@ class ClassesPreview(BaseVisual):
 
                 row_images = []
                 current_width = 0
+                if len(rows) == self.rows_num:
+                    return rows
             row_images.append(image)
             if idx == num_images - 1:
                 rows.append(row_images)
+                if len(rows) == rows_num:
+                    return rows
             current_width += width + self._gap
 
         return rows
@@ -272,25 +291,6 @@ class ClassesPreview(BaseVisual):
 
         return canvas
 
-    def _get_optimal_font_scale(self, text: str, image_size: tuple) -> float:
-        font_scale = 10
-        thickness = 3
-        text_height_percent = 10
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
-        text_width = text_size[0]
-        text_height = text_size[1]
-
-        while text_width > image_size[1] * 0.6:
-            font_scale -= 0.1
-            text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
-            text_width = text_size[0]
-            text_height = text_size[1]
-
-        desired_text_height = (image_size[0] * text_height_percent) // 100
-        font_scale *= desired_text_height / text_height
-        return font_scale
-
     def _overlay_images(
         self, bg: np.ndarray, overlay: np.ndarray, opacity: Union[float, int]
     ) -> np.ndarray:
@@ -327,25 +327,60 @@ class ClassesPreview(BaseVisual):
         return image
 
     def _draw_title(self, image, text):
-        image_h, image_w = image.shape[:2]
-        font_scale = self._get_optimal_font_scale(text, image.shape[:2])
-        font_size = sly_font.get_readable_font_size((image_h, image_w))
-        font = sly_font.get_font(font_name, int(font_size * font_scale))
-        l, t, r, b = font.getbbox(text)
-        title_w, title_h = r - l + self._gap, b
-        while title_h > self._row_height * 0.3 or title_w > image_w * 0.8:
-            font = font.font_variant(size=int(font.size * 0.96))
-            l, t, r, b = font.getbbox(text)
-            title_w, title_h = r - l + self._gap, b
-        x, y = (image_w - title_w) // 2, self._gap * 2
-        left, top, right, bottom = (x, y, x + title_w, y + title_h)
-        tmp_canvas = np.zeros((title_h, title_w, 3), dtype=np.uint8)
-        tmp_canvas = self._gradient(tmp_canvas, 0, 0, title_w, title_h)
-        color = (255, 255, 255, 255)
-        sly.image.draw_text(tmp_canvas, text, (-t // 2, self._gap // 2), "tl", font, False, color)
-        image[top - 3 : bottom + 3, left - 3 : right + 3, :3] = 255
-        image[top:bottom, left:right, :3] = tmp_canvas
+        _, image_w = image.shape[:2]
+        font_size = self._get_base_font_size(text, image_w)
+        font = ImageFont.truetype(self._font, int(font_size * 0.75))
+        _, top, _, _ = font.getbbox(text)
+
+        full_offset = top * 2
+        half_offset = top
+        x_pos_center = int(image_w * 0.5)
+        y_pos_percent = self._gap * 2
+
+        text_width, text_height = font.getsize(text)
+        text_color = (255, 255, 255, 255)
+
+        tmp_canvas = np.zeros(
+            (text_height + half_offset, text_width + full_offset, 3), dtype=np.uint8
+        )
+        tmp_canvas = self._gradient(
+            tmp_canvas, 0, 0, text_width + full_offset, text_height + half_offset
+        )
+
+        tmp_canvas = Image.fromarray(tmp_canvas)
+        draw = ImageDraw.Draw(tmp_canvas)
+        text_width, text_height = draw.textsize(text, font=font)
+        x, y = (x_pos_center - int(text_width / 2), y_pos_percent)
+        draw.text((half_offset, -half_offset // 3), text, font=font, fill=text_color)
+
+        tmp_canvas = np.array(tmp_canvas, dtype=np.uint8)
+        canvas_h, canvas_w = tmp_canvas.shape[:2]
+
+        image[y - 3 : y + canvas_h + 3, x - 3 : x + canvas_w + 3, :3] = 255
+        image[y : y + canvas_h, x : x + canvas_w, :3] = tmp_canvas
+
         return image
+
+    def _get_base_font_size(self, text, image_w):
+        desired_text_width = image_w * 0.85
+        desired_text_height = self._row_height * 0.2
+        text_height_percent = 25
+        font_size = 30
+
+        font = ImageFont.truetype(self._font, font_size)
+
+        text_width, title_height = font.getsize(text)
+
+        while text_width > desired_text_width or title_height > desired_text_height:
+            font_size -= 1
+            font = ImageFont.truetype(self._font, font_size)
+            text_width, title_height = font.getsize(text)
+
+        desired_font_height = math.ceil((self._row_height * text_height_percent) // 100)
+        desired_font_size = math.ceil(font_size * desired_text_width / text_width)
+        desired_font_size = min(desired_font_size, desired_font_height)
+
+        return desired_font_size
 
     def _gradient(self, img, left, top, right, bottom):
         c1 = np.array((225, 181, 62))  # rgb
