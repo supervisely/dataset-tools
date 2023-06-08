@@ -252,13 +252,9 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     elif organization_name is None and organization_url is None:
         content += f"The dataset was released in {release_year}."
 
-    if len(top_classes) == 1:
-        content += f"\n\nHere is the visualized example of the single *{top_classes[0]}* class:\n\n"
-    else:
-        content += f"\n\nHere are the visualized examples for each of the {totals.get('total_classes', 0)} classes:\n\n"
     if vis_url is not None:
         if len(top_classes) == 1:
-            content += f"\n\nHere is the visualized example of the single {top_classes[0]} class:\n\n"
+            content += f"\n\nHere is the visualized example of the single *{top_classes[0]}* class:\n\n"
         else:
             content += f"\n\nHere are the visualized examples for each of the {totals.get('total_classes', 0)} classes:\n\n"
         content += f"[Dataset classes]({vis_url})\n"
