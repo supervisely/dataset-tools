@@ -144,7 +144,7 @@ class ClassBalance(BaseStats):
         res = {
             "columns": columns,
             "data": rows,
-            "referencesRow": self._stats["image_counts_filter_by_id"],
+            "referencesRow": self._stats["image_counts_filter_by_id"][1:],
             "options": options,
             "columnsOptions": colomns_options,
         }
