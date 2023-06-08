@@ -117,7 +117,8 @@ class ClassesHeatmaps(BaseVisual):
         result_image.save(path)
 
     def _get_grid_size(self, num: int = 1, aspect_ratio: Union[float, int] = 1.9) -> tuple:
-        cols = max(int(math.sqrt(num) * aspect_ratio), 1)
+        max_cols = 8
+        cols = min(max(int(math.sqrt(num) * aspect_ratio), 1), max_cols)
         rows = max((num - 1) // cols + 1, 1)
         return (rows, cols)
 
