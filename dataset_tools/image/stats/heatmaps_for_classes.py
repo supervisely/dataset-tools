@@ -1,8 +1,7 @@
 import os
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import matplotlib.pyplot as plt
-import cv2
 import math
 import supervisely as sly
 from skimage.transform import resize
@@ -15,17 +14,13 @@ class ClassesHeatmaps(BaseVisual):
     Get heatmaps of visual density of aggregated annotations for every class in the dataset
     """
 
-    def __init__(
-        self,
-        project_meta: sly.ProjectMeta,
-        heatmap_img_size: tuple = None,
-        force=False,
-    ):
+    def __init__(self, project_meta: sly.ProjectMeta, heatmap_img_size: tuple = None, force=False):
         self.force = force
         self._meta = project_meta
         self.classname_heatmap = {}
         self._ds_image_sizes = []
         self.heatmap_image_paths = []
+        self._font = None
 
         if heatmap_img_size:
             self._heatmap_img_size = heatmap_img_size
@@ -52,8 +47,12 @@ class ClassesHeatmaps(BaseVisual):
         self,
         path: str,
         draw_style: str = "inside_white",
+        rows: int | None = None,
+        cols: int | None = None,
         grid_spacing: int = 20,
         outer_grid_spacing: int = 20,
+        output_width: int = 1920,
+        font: str = "fonts/FiraSans-Bold.ttf",
     ) -> None:
         """
         Crates image grid with density heatmaps of all possible classes.
@@ -62,21 +61,31 @@ class ClassesHeatmaps(BaseVisual):
         :type path: str.
         :param draw_style: style in which output heatmaps grid will be represented. Possible values: "inside_white", "outside_black"
         :type draw_style: str, optional
+        :param rows: number of rows. Defaults to None.
+        :type rows: int or None, optional
+        :param cols: number of columns. Defaults to None.
+        :type cols: int or None, optional
         :param grid_spacing: spaces between images. Defaults to 20.
         :type grid_spacing: int, optional
         :param outer_grid_spacing: frame around the overall image. Defaults to 20.
         :type outer_grid_spacing: int, optional
+        :param output_width: width of result image. Defaults to 1600 px.
+        :type output_width: int, optional
+        :param font: path to font file. Defaults to "fonts/FiraSans-Bold.ttf".
+        :type font: str, optional
         """
         self._calculate_output_img_size()
+        self._font = font
 
         if draw_style == "inside_white":
             self._create_single_images_text_inside(path)
         if draw_style == "outside_black":
             self._create_single_images_text_outside(path)
 
-        img_height, img_width = cv2.imread(self.heatmap_image_paths[0]).shape[:2]
+        img_width, img_height = Image.open(self.heatmap_image_paths[0]).size
         num_images = len(self.heatmap_image_paths)
-        rows, cols = self._get_grid_size(num_images)
+        if not any((rows, cols)):
+            rows, cols = self._get_grid_size(num_images)
 
         result_width = cols * (img_width + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
         result_height = rows * (img_height + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
@@ -93,6 +102,10 @@ class ClassesHeatmaps(BaseVisual):
             sly.api.file_api.silent_remove(img_path)
             self.heatmap_image_paths = []
 
+        width_percent = output_width / result_width
+        output_height = math.ceil(result_height * width_percent)
+        result_image = result_image.resize((output_width, output_height), Image.Resampling.LANCZOS)
+
         result_image.save(path)
 
     def _get_grid_size(self, num: int = 1, aspect_ratio: Union[float, int] = 1.9) -> tuple:
@@ -106,31 +119,21 @@ class ClassesHeatmaps(BaseVisual):
             image_path = os.path.join(os.path.dirname(path), f"{heatmap}.png")
             plt.imsave(image_path, resized_image[:, :, 0])
 
-            image = cv2.imread(image_path)
+            image = Image.open(image_path)
             image = self._draw_text_below_image(heatmap, image)
-            cv2.imwrite(image_path, image)
+            image.save(image_path)
 
             self.heatmap_image_paths.append(image_path)
 
     def _draw_text_below_image(self, text, image):
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        line_type = cv2.LINE_AA
-        font_scale = 1.0
         text_color = (0, 0, 0)
-        thickness = 3
         text_height_percent = 10
-        line_spacing_percent = 5
+        line_spacing_percent = 20
 
-        image_height = image.shape[0]
+        image_height = image.size[1]
         text_height = int(image_height * text_height_percent / 100)
 
-        text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
-        while text_size[1] > text_height:
-            font_scale -= 0.1
-            text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
-        while text_size[1] < text_height:
-            font_scale += 0.1
-            text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
+        font = ImageFont.truetype(self._font, text_height)
 
         characters = list(text)
         lines = []
@@ -138,9 +141,9 @@ class ClassesHeatmaps(BaseVisual):
 
         for char in characters[1:]:
             temp_line = current_line + char
-            size = cv2.getTextSize(temp_line, font, font_scale, thickness)[0]
+            size = font.getsize(temp_line)
 
-            if size[0] <= image.shape[1]:
+            if size[0] <= image.size[0]:
                 current_line = temp_line
             else:
                 lines.append(current_line)
@@ -148,83 +151,64 @@ class ClassesHeatmaps(BaseVisual):
 
         lines.append(current_line)
 
-        text_x = 10
-        text_y = image_height + text_height + 10
-
-        line_spacing = int(image_height * line_spacing_percent / 100)
+        line_spacing = int(text_height * line_spacing_percent / 100)
 
         result_height = (
             image_height + text_height + (len(lines) - 1) * (text_height + line_spacing) + 40
         )
-        result_image = np.zeros((result_height, image.shape[1], 3), dtype=np.uint8)
-        result_image.fill(255)
-        result_image[:image_height, :] = image
+        result_image = Image.new("RGB", (image.size[0], result_height), color=(255, 255, 255))
+        result_image.paste(image, (0, 0))
+
+        draw = ImageDraw.Draw(result_image)
+
+        text_x = 10
+        text_y = image_height + 10
 
         for line in lines:
-            cv2.putText(
-                result_image,
-                line,
-                (text_x, text_y),
-                font,
-                font_scale,
-                text_color,
-                thickness,
-                line_type,
-            )
+            draw.text((text_x, text_y), line, font=font, fill=text_color)
             text_y += text_height + line_spacing
 
         return result_image
 
     def _create_single_images_text_inside(self, path):
         for heatmap in self.classname_heatmap:
+            font_size = self._get_optimal_font_size(heatmap)
             resized_image = resize(self.classname_heatmap[heatmap], self._heatmap_img_size)
             x_pos_center = int(resized_image.shape[1] * 0.5)
-            y_pos_percent = int(resized_image.shape[0] * 0.95)
+            y_pos_percent = int((resized_image.shape[0] - font_size) * 0.95)
 
             image_path = os.path.join(os.path.dirname(path), f"{heatmap}.png")
             plt.imsave(image_path, resized_image[:, :, 0])
 
-            image = cv2.imread(image_path)
-            font_scale = self._get_optimal_font_scale(heatmap, image)
+            image = Image.open(image_path)
+            draw = ImageDraw.Draw(image)
+            font = ImageFont.truetype(self._font, font_size)
             text = f"{heatmap}"
-            font = cv2.FONT_HERSHEY_SIMPLEX
             text_color = (255, 255, 255)
-            thickness = 3
-            line_type = cv2.LINE_AA
-            text_width = cv2.getTextSize(text, font, font_scale, thickness)[0][0]
+            text_width, _ = draw.textsize(text, font=font)
             text_position = (x_pos_center - int(text_width / 2), y_pos_percent)
-            cv2.putText(
-                image,
-                text,
-                text_position,
-                font,
-                font_scale,
-                text_color,
-                thickness,
-                line_type,
-            )
-            cv2.imwrite(image_path, image)
+            draw.text(text_position, text, font=font, fill=text_color)
+            image.save(image_path)
 
             self.heatmap_image_paths.append(image_path)
 
-    def _get_optimal_font_scale(self, text, image):
-        font_scale = 10
-        thickness = 3
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
-        text_width = text_size[0]
+    def _get_optimal_font_size(self, text):
+        desired_text_width = self._heatmap_img_size[1]
+        text_height_percent = 10
+        font_size = 10
 
-        while text_width > image.shape[1] * 0.85:
-            font_scale -= 0.1
-            text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
-            text_width = text_size[0]
+        font = ImageFont.truetype(self._font, font_size)
+        text_width, _ = font.getsize(text)
 
-        while text_width < image.shape[1] * 0.5:
-            font_scale += 0.1
-            text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
-            text_width = text_size[0]
+        while text_width > desired_text_width:
+            font_size -= 1
+            font = ImageFont.truetype(self._font, font_size)
+            text_width, _ = font.getsize(text)
 
-        return font_scale
+        desired_font_height = (self._heatmap_img_size[0] * text_height_percent) // 100
+        desired_font_size = int(font_size * desired_text_width / text_width)
+        desired_font_size = min(desired_font_size, desired_font_height)
+        return desired_font_size
 
     def _calculate_output_img_size(self):
         sizes = np.array(self._ds_image_sizes)

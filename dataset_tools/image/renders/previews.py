@@ -1,8 +1,11 @@
 import os
 from datetime import datetime
 
+import cv2
 import numpy as np
+
 import supervisely as sly
+from supervisely.imaging import font as sly_font
 
 
 class Previews:
@@ -13,10 +16,12 @@ class Previews:
         api,
         team_id,
         force: bool = False,
+        is_detection_task: bool = False,
     ):
         self.project_meta = project_meta
         self.project_id = project_id
         self.force = force
+        self._is_detection_task = is_detection_task
 
         self.MAX_WIDTH = 500
         self.BATCH_SIZE = 50
@@ -51,7 +56,18 @@ class Previews:
                 ann = ann.resize(out_size)
 
             render = np.zeros((ann.img_size[0], ann.img_size[1], 3), dtype=np.uint8)
-            ann.draw(render, thickness=ann._get_thickness())
+
+            for label in ann.labels:
+                label: sly.Label
+                if type(label.geometry) == sly.Point:
+                    label.draw(render, thickness=15)
+                if self._is_detection_task:
+                    if type(label.geometry) == sly.Rectangle:
+                        label.draw_contour(render, thickness=ann._get_thickness())
+                else:
+                    if type(label.geometry) != sly.Rectangle:
+                        label.draw(render, thickness=ann._get_thickness())
+
             alpha = (1 - np.all(render == [0, 0, 0], axis=-1).astype("uint8")) * 255
             rgba = np.dstack((render, alpha))
 

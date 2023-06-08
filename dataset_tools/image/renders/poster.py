@@ -94,20 +94,30 @@ class Poster:
                 h, w = np_img.shape[:2]
                 background = np.ones((h, w, 3), dtype=np.uint8) * 255
 
-                if self._is_detection_task:
-                    for label in ann.labels:
-                        if type(label.geometry) != sly.Rectangle:
-                            continue
+                h, w = self._size_line_1 if i < 3 else self._size_line_2
+                img_h, img_w = np_img.shape[:2]
+                scale_ratio = max(h / img_h, w / img_w)
+                img_h, img_w = int(img_h * scale_ratio), int(img_w * scale_ratio)
+                np_img = sly.image.resize(np_img, (img_h, img_w))
+
+                background = sly.image.resize(background, np_img.shape[:2])
+                ann = ann.resize(np_img.shape[:2])
+
+                ann: sly.Annotation
+                for label in ann.labels:
+                    if type(label.geometry) == sly.Point:
+                        label.draw(np_img, thickness=15)
+                    if type(label.geometry) == sly.Rectangle:
                         bbox = label.geometry.to_bbox()
                         pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
-                        cv2.rectangle(np_img, pt1, pt2, label.obj_class.color, 10)
+                        cv2.rectangle(np_img, pt1, pt2, label.obj_class.color, 7)
                         font_size = int(sly_font.get_readable_font_size(np_img.shape[:2]) * 1.4)
                         font = sly_font.get_font(font_size=font_size)
                         _, _, _, bottom = font.getbbox(label.obj_class.name)
                         anchor = (bbox.top - bottom, bbox.left)
                         sly.image.draw_text(np_img, label.obj_class.name, anchor, font=font)
-                else:
-                    ann.draw_pretty(np_img, thickness=0, opacity=0.7)
+                if not self._is_detection_task:
+                    ann.draw_pretty(np_img, thickness=3, opacity=0.7, fill_rectangles=False)
                 np_img = cv2.addWeighted(np_img, 0.8, background, 0.2, 0)
 
                 # backup
@@ -122,7 +132,7 @@ class Poster:
                 #     thickness = 3
                 #     ann.draw_contour(np_img, thickness=thickness)
 
-                np_images.append(self._resize_image(np_img, i))
+                np_images.append(self._crop_image(np_img, i))
                 i += 1
                 pbar.update(1)
 
@@ -141,17 +151,13 @@ class Poster:
         sly.fs.silent_remove(tmp_path)
         sly.logger.info(f"Poster saved to: {path}")
 
-    def _resize_image(self, image: np.ndarray, image_num: int):
+    def _crop_image(self, image: np.ndarray, image_num: int):
         h, w = self._size_line_1 if image_num < 3 else self._size_line_2
         img_h, img_w = image.shape[:2]
-        scale_ratio = max(h / img_h, w / img_w)
-        img_h, img_w = int(img_h * scale_ratio), int(img_w * scale_ratio)
-        image = sly.image.resize(image, (img_h, img_w))
         start_h = (img_h - h) // 2
         start_w = (img_w - w) // 2
         rect = (start_h, start_w, start_h + h, start_w + w)
         image = sly.image.crop_with_padding(image, sly.Rectangle(*rect))
-
         rgba_image = np.zeros((h, w, 4), dtype=np.uint8)
         rgba_image[:h, :w, :3] = image[:h, :w, :3]
         return rgba_image
@@ -178,6 +184,7 @@ class Poster:
         subs_x = (poster_w - subs_w - logo.shape[1]) // 2
         subs_y = title_bottom + self._GAP
 
+        self._gradient(bg_image, subs_x, 0, subs_x + subs_w, poster_h)
         bg = bg_image[subs_y : subs_y + subs_h, subs_x : subs_x + subs_w, :3]
 
         alpha_channel = np.where(np.all(image == 0, axis=-1), 0, 255).astype(np.uint8)

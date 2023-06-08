@@ -65,14 +65,19 @@ class VerticalGrid:
                 tmp = np.dstack((img, np.ones((*img.shape[:2], 1), dtype=np.uint8) * 255))
                 ann_mask = np.ones((*img.shape[:2], 4), dtype=np.uint8) * 255
 
-                if self._is_detection_task:
-                    for label in ann.labels:
-                        if type(label.geometry) != sly.Rectangle:
-                            continue
+                ann_mask = self._resize_image(ann_mask, self._column_width)
+                img = self._resize_image(img, self._column_width)
+                ann = ann.resize(img.shape[:2])
+                ann: sly.Annotation
+                for label in ann.labels:
+                    if type(label.geometry) == sly.Point:
+                        label.draw(ann_mask, thickness=15)
+                        label.draw(img, thickness=15)
+                    if type(label.geometry) == sly.Rectangle:
                         bbox = label.geometry.to_bbox()
                         pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
-                        cv2.rectangle(ann_mask, pt1, pt2, label.obj_class.color, 10)
-                        cv2.rectangle(img, pt1, pt2, label.obj_class.color, 10)
+                        cv2.rectangle(ann_mask, pt1, pt2, label.obj_class.color, thickness=10)
+                        cv2.rectangle(img, pt1, pt2, label.obj_class.color, thickness=10)
                         font_size = int(sly_font.get_readable_font_size(img.shape[:2]) * 1.4)
                         font = sly_font.get_font(font_size=font_size)
                         _, _, _, bottom = font.getbbox(label.obj_class.name)
@@ -81,14 +86,14 @@ class VerticalGrid:
                             ann_mask[:, :, :3], label.obj_class.name, anchor, font=font
                         )
                         sly.image.draw_text(img, label.obj_class.name, anchor, font=font)
-                else:
-                    ann.draw_pretty(ann_mask[:, :, :3], thickness=0, opacity=0.7)
-                    ann.draw_pretty(img, thickness=0, opacity=0.7)
+                if not self._is_detection_task:
+                    ann.draw_pretty(ann_mask[:, :, :3], thickness=0, opacity=0.7, fill_rectangles=False)
+                    ann.draw_pretty(img, thickness=0, opacity=0.7, fill_rectangles=False)
 
-                img = self._resize_image(img, self._column_width)
                 self.np_frames.append(self._resize_image(tmp, self._column_width))  # for gif
-                self.np_anns.append(self._resize_image(ann_mask, self._column_width))  # for gif
-                self.np_images.append(img)
+                self.np_anns.append(ann_mask)  # for gif
+                self.np_images.append(img)  # for grid
+
 
                 p.update(1)
 
