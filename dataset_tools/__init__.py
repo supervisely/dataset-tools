@@ -1,4 +1,4 @@
-from dataset_tools.download import download, prepare_download_link, update_sly_url_dict
+from dataset_tools.repo.download import download, prepare_link, update_sly_url_dict
 from dataset_tools.image.renders.convert import (
     compress_mp4,
     compress_png,
@@ -18,13 +18,9 @@ from dataset_tools.image.stats.object_and_class_sizes import ClassSizes, ObjectS
 from dataset_tools.image.stats.objects_distribution import ObjectsDistribution
 from dataset_tools.image.stats.preview_for_classes import ClassesPreview
 from dataset_tools.image.stats.wrapper import count_stats  # , initialize
+from dataset_tools.repo.project_repo import ProjectRepo
 from dataset_tools.text.summary.generate import (
     generate_summary_content,
     get_summary_data,
     get_summary_data_sly,
 )
-
-
-from dataset_tools.image.renders.convert import from_mp4_to_webm, compress_mp4, compress_png
-
-from dataset_tools.repo.project_repo import ProjectRepo

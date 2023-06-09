@@ -2,7 +2,12 @@ import json
 import os
 from urllib.parse import urljoin
 
+import requests
+import tqdm
+
 import supervisely as sly
+
+urls_path = "./dataset_tools/data/download_urls.json"
 
 
 def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
@@ -87,3 +92,33 @@ def update_sly_url_dict(api: sly.Api, new_dict: dict) -> None:
     api.file.upload(team_id, src=dst, dst=src)
 
     sly.logger.info("Dictionary successfully updated!")
+
+
+def download(dataset_name: str, dst_path: str):
+    try:
+        with open(urls_path, "r") as f:
+            data = json.load(f)
+    except:
+        raise FileNotFoundError(
+            "File with download urls was not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
+        )
+    try:
+        data[dataset_name]
+    except KeyError:
+        raise KeyError(
+            f"Key '{dataset_name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
+        )
+
+    sly_url = data[dataset_name]["download_sly_url"]
+
+    response = requests.get(sly_url, stream=True)
+    total_size = int(response.headers.get("content-length", 0))
+    block_size = 1024  # Adjust the block size as needed
+
+    with tqdm.tqdm(desc="Downloading", total=total_size, unit="B", unit_scale=True) as pbar:
+        with open(dst_path, "wb") as file:
+            for data in response.iter_content(block_size):
+                file.write(data)
+                pbar.update(len(data))
+
+    sly.logger.info(f"Dataset {dataset_name} was downloaded to: '{dst_path}'")
