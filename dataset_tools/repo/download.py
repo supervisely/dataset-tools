@@ -77,7 +77,7 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
         )
 
 
-def update_sly_url_dict(api: sly.Api, new_dict: dict) -> None:
+def update_sly_url_dict(new_dict: dict) -> None:
     if os.path.exists(urls_path):
         with open(urls_path, "r") as f:
             data = json.load(f)
