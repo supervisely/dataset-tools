@@ -76,7 +76,6 @@ class ProjectRepo:
     def _process_download_link(self):
         self.download_sly_url = download.prepare_link(self.api, self.project_info)
         download.update_sly_url_dict(
-            self.api,
             {
                 self.project_name: {
                     "id": self.project_id,
