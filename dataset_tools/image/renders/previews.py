@@ -62,11 +62,14 @@ class Previews:
                 if type(label.geometry) == sly.Point:
                     label.draw(render, thickness=15)
                 if self._is_detection_task:
-                    if type(label.geometry) == sly.Rectangle:
-                        label.draw_contour(render, thickness=ann._get_thickness())
+                    bbox = label.geometry.to_bbox()
+                    pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
+                    cv2.rectangle(render, pt1, pt2, label.obj_class.color, 7)
                 else:
                     if type(label.geometry) != sly.Rectangle:
                         label.draw(render, thickness=ann._get_thickness())
+                    else:
+                        label.draw_contour(render, thickness=ann._get_thickness())
 
             alpha = (1 - np.all(render == [0, 0, 0], axis=-1).astype("uint8")) * 255
             rgba = np.dstack((render, alpha))
