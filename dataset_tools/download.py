@@ -2,36 +2,46 @@ import json
 import os
 from urllib.parse import urljoin
 
+import requests
+import tqdm
+
 import supervisely as sly
 
 
-def prepare_download_link(project):
-    api = sly.Api.from_env()
+urls_path = "./dataset_tools/data/download_urls.json"
 
+
+def prepare_download_link(project) -> str:
+    api = sly.Api.from_env()
     team_id = sly.env.team_id()
     workspace_id = sly.env.workspace_id()
     agent_id = sly.env.agent_id()
-    storage_dir = sly.app.get_data_dir()
-    local_save_path = os.path.join(storage_dir, "download_links.json")
 
-    if api.file.exists(team_id, os.environ["DOWNLOADS_DICT"]):
-        api.file.download(team_id, os.environ["DOWNLOADS_DICT"], local_save_path)
-        with open(local_save_path, "r") as f:
-            links = json.load(f)
+    if os.path.exists(urls_path):
+        with open(urls_path, "r") as f:
+            urls = json.load(f)
     else:
-        links = {}
+        keys = [project.name for project in api.project.get_list(workspace_id)]
+        urls = {key: None for key in keys}
 
-    if links.get(project.name, None) is not None:
-        print("URL already exists. Skipping creation of download link...")
-        return links[project.name]["download_sly_url"]
+    try:
+        urls[project.name]
+    except KeyError:
+        raise KeyError(
+            f"Key '{project.name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
+        )
+
+    if urls[project.name].get("download_sly_url", None) is not None:
+        sly.logger.info("URL already exists. Skipping creation of download link...")
+        return urls[project.name]["download_sly_url"]
     else:
-        print("URL not exists. Creating a download link...")
+        sly.logger.info("URL not exists. Creating a download link...")
 
         app_slug = f"supervisely-ecosystem/export-to-supervisely-format"
         module_id = api.app.get_ecosystem_module_id(app_slug)
         module_info = api.app.get_ecosystem_module_info(module_id)
 
-        print("Start app: ", module_info.name)
+        sly.logger.info("Start app: ", module_info.name)
 
         params = module_info.get_arguments(images_project=project.id)
 
@@ -42,20 +52,20 @@ def prepare_download_link(project):
             task_name="custom session name",
             params=params,
         )
-        print("App is started, task_id =", session.task_id)
-        print(session)
+        sly.logger.info("App is started, task_id =", session.task_id)
+        sly.logger.info(session)
 
         try:
             # wait until task end or specific task status
-            print("Waiting for the download link to finish being created...")
+            sly.logger.info("Waiting for the download link to finish being created...")
             api.app.wait(session.task_id, target_status=api.task.Status.FINISHED)
 
         except sly.WaitingTimeExceeded as e:
-            print(e)
+            sly.logger.info(e)
             # we don't want to wait more, let's stop our long-lived or "zombie" task
             api.app.stop(session.task_id)
         except sly.TaskFinishedWithError as e:
-            print(e)
+            sly.logger.info(e)
 
         # let's list all sessions of specific app in our team with additional optional filtering by statuses [finished]
         sessions = api.app.get_sessions(
@@ -68,25 +78,47 @@ def prepare_download_link(project):
 
 
 def update_sly_url_dict(new_dict: dict) -> None:
-    src = os.environ["DOWNLOADS_DICT"]
-    dst = os.path.join(sly.app.get_data_dir(), "download_links.json")
-
-    print("Updating dictionary with download links...")
-    api = sly.Api.from_env()
-    team_id = sly.env.team_id()
-
-    if api.file.exists(team_id, src):
-        api.file.download(team_id, src, dst)
-
-        with open(dst, "r") as f:
+    if os.path.exists(urls_path):
+        with open(urls_path, "r") as f:
             data = json.load(f)
-        data.update(new_dict)
     else:
-        data = new_dict
+        sly.logger.info(f"File '{urls_path}' not exists. Creating a new one...")
+        data = {}
 
-    with open(dst, "w") as f:
-        json.dump(data, f)
+    sly.logger.info("Updating dictionary with download links...")
+    data.update(new_dict)
 
-    api.file.upload(team_id, src=dst, dst=src)
+    with open(urls_path, "w") as f:
+        json.dump(data, f, indent=4)
 
-    print("Dictionary successfully updated!")
+    sly.logger.info("Done.")
+
+
+def download(dataset_name: str, dst_path: str):
+    try:
+        with open(urls_path, "r") as f:
+            data = json.load(f)
+    except:
+        raise FileNotFoundError(
+            "File with download urls was not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
+        )
+    try:
+        data[dataset_name]
+    except KeyError:
+        raise KeyError(
+            f"Key '{dataset_name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
+        )
+
+    sly_url = data[dataset_name]["download_sly_url"]
+
+    response = requests.get(sly_url, stream=True)
+    total_size = int(response.headers.get("content-length", 0))
+    block_size = 1024  # Adjust the block size as needed
+
+    with tqdm.tqdm(desc="Downloading", total=total_size, unit="B", unit_scale=True) as pbar:
+        with open(dst_path, "wb") as file:
+            for data in response.iter_content(block_size):
+                file.write(data)
+                pbar.update(len(data))
+
+    sly.logger.info(f"Dataset {dataset_name} was downloaded to: '{dst_path}'")

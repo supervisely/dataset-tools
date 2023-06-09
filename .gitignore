@@ -7,6 +7,6 @@ dataset_tools.egg-info/
 build/
 demo/
 .flake8
-data/
+./data/
 /stats/
 render_results/
