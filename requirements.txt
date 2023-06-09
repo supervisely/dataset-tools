@@ -1,3 +1,5 @@
 supervisely
 dataframe_image
 inflect
+matplotlib
+scikit-image
