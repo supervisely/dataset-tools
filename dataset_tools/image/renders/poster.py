@@ -206,7 +206,7 @@ class Poster:
     def _draw_title(self, text):
         image_h, image_w = self._size
         font_size = self._get_base_font_size(self._title_font, text)
-        font = ImageFont.truetype(self._title_font, int(font_size * 0.8))
+        font = ImageFont.truetype(self._title_font, int(font_size))
         _, top, _, _ = font.getbbox(text)
 
         full_offset = top
@@ -238,9 +238,10 @@ class Poster:
 
     def _get_base_font_size(self, font_family, text):
         image_h, image_w = self._size
-        desired_text_width = image_w * 0.85
-        desired_text_height = image_h * 0.1
-        text_height_percent = 25
+        text_width_percent = 90
+        text_height_percent = 20
+        desired_text_width = image_w * text_width_percent // 100
+        desired_text_height = image_h * text_height_percent // 100
         font_size = 30
 
         font = ImageFont.truetype(font_family, font_size)
@@ -294,10 +295,7 @@ class Poster:
         if self._title is not None:
             title = self._title.upper()
         else:
-            if len(self._project.name.split(" ")) < 4:
-                title = self._project.name.upper()
-            else:
-                title = " ".join(self._project.name.split(" ")[:3]).upper()
+            title = self._project.name.upper()
 
         subs = []
         subs.append(f"{self._items_count} images")
