@@ -1,9 +1,11 @@
+import math
 import os
 import random
 from typing import List, Union
 
 import cv2
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 
 import supervisely as sly
@@ -19,6 +21,7 @@ class Poster:
         api: sly.Api = None,
         force: bool = False,
         is_detection_task: bool = False,
+        title: str = None,
     ) -> None:
         self.force = force
         self._project_meta = project_meta
@@ -29,6 +32,10 @@ class Poster:
         self._total_labels = 0
         self._local = False
         self._is_detection_task = is_detection_task
+
+        self._title = title
+        self._title_font: str = "fonts/FiraSans-SemiBold.ttf"
+        self._subs_font: str = "fonts/FiraSans-Bold.ttf"
 
         if isinstance(project, int):
             self._project = self._api.project.get_info_by_id(project)
@@ -107,7 +114,7 @@ class Poster:
                 for label in ann.labels:
                     if type(label.geometry) == sly.Point:
                         label.draw(np_img, thickness=15)
-                    if type(label.geometry) == sly.Rectangle:
+                    if self._is_detection_task:
                         bbox = label.geometry.to_bbox()
                         pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
                         cv2.rectangle(np_img, pt1, pt2, label.obj_class.color, 7)
@@ -163,24 +170,17 @@ class Poster:
         return rgba_image
 
     def _draw_text_and_rectangles(self):
-        base_font_size = sly_font.get_readable_font_size(self._size)
-        font_name_title = "FiraSans-Regular.ttf"
-        font_name_subs = "FiraSans-Thin.ttf"
-        font_title = sly_font.get_font(font_name_title, int(base_font_size * 6))
-        font_subs = sly_font.get_font(font_name_subs, int(base_font_size * 1.8))
-        title, *subs = self._get_text_from_project()
-        _, _, _, subs_height = font_subs.getbbox("".join(subs))
+        title, subs = self._get_text_from_project()
 
         poster_h, poster_w = self._size
 
         bg_image = np.zeros((poster_h, poster_w, 3), dtype=np.uint8)
 
-        title_bottom = self._draw_title(bg_image, font_title, title)
-        sub_imgs = [self._draw_subtitles(font_subs, text, subs_height) for text in subs]
-        logo = self._draw_logo(subs_height)
-
-        image = np.hstack(sub_imgs)
+        title_bottom = self._draw_title(title)
+        image = self._draw_subtitles(subs)
         subs_h, subs_w = image.shape[:2]
+
+        logo = self._draw_logo(subs_h)
         subs_x = (poster_w - subs_w - logo.shape[1]) // 2
         subs_y = title_bottom + self._GAP
 
@@ -200,49 +200,82 @@ class Poster:
         result = np.hstack([result, logo])
 
         h, w = result.shape[:2]
-        cv2.rectangle(result, (0, 0), (w - 1, h - 1), (255, 255, 255), 2)
+        cv2.rectangle(result, (0, 0), (w - 1, h - 1), (255, 255, 255), 5)
         self._poster[subs_y : subs_y + h, subs_x : subs_x + w, :3] = result
 
-    def _draw_title(self, image, font, text):
-        poster_h, poster_w = self._size
-        l, t, r, b = font.getbbox(text)
-        title_w, title_h = r - l, b
-        while title_w > poster_w * 0.9:
-            font = font.font_variant(size=int(font.size * 0.96))
-            l, t, r, b = font.getbbox(text)
-            title_w, title_h = r - l, b
-        title_x, title_y = (poster_w - title_w) // 2, (poster_h - title_h) // 2
-        left, top, right, bottom = title_x, title_y, title_x + title_w, title_y + title_h
+    def _draw_title(self, text):
+        image_h, image_w = self._size
+        font_size = self._get_base_font_size(self._title_font, text)
+        font = ImageFont.truetype(self._title_font, int(font_size))
+        _, top, _, _ = font.getbbox(text)
 
-        self._gradient(image, title_x, 0, title_x + title_w, poster_h)
-        p = self._GAP // 3
-        image[top + p : bottom - p, left + p : right - p] = 255
+        full_offset = top
+        half_offset = top // 2
+        pad = self._GAP // 3
+        x_pos_center = int(image_w * 0.5)
+        y_pos_percent = int(image_h * 0.5)
+
+        text_width, text_height = font.getsize(text)
+        text_color = (0, 0, 0, 210)
+
+        tmp_canvas = np.zeros(
+            (text_height + half_offset, text_width + full_offset, 3), dtype=np.uint8
+        )
+        canvas_h, canvas_w = tmp_canvas.shape[:2]
+        tmp_canvas = self._gradient(tmp_canvas, 0, 0, canvas_w, canvas_h)
+        tmp_canvas[pad : canvas_h - pad, pad : canvas_w - pad, :3] = 255
+
+        tmp_canvas = Image.fromarray(tmp_canvas)
+        draw = ImageDraw.Draw(tmp_canvas)
+        text_width, text_height = draw.textsize(text, font=font)
+        draw.text((half_offset, -half_offset // 3), text, font=font, fill=text_color)
+
+        tmp_canvas = np.array(tmp_canvas, dtype=np.uint8)
+        x, y = (x_pos_center - int(canvas_w / 2), y_pos_percent - int(canvas_h / 2))
+        self._poster[y : y + canvas_h, x : x + canvas_w, :3] = tmp_canvas
+
+        return y + canvas_h
+
+    def _get_base_font_size(self, font_family, text):
+        image_h, image_w = self._size
+        text_width_percent = 90
+        text_height_percent = 20
+        desired_text_width = image_w * text_width_percent // 100
+        desired_text_height = image_h * text_height_percent // 100
+        font_size = 30
+
+        font = ImageFont.truetype(font_family, font_size)
+
+        _, _, text_width, text_height = font.getbbox(text)
+
+        while text_width > desired_text_width or text_height > desired_text_height:
+            font_size -= 1
+            font = ImageFont.truetype(font_family, font_size)
+            text_width, text_height = font.getsize(text)
+
+        desired_font_height = math.ceil((image_h * text_height_percent) // 100)
+        desired_font_size = math.ceil(font_size * desired_text_width / text_width)
+        desired_font_size = min(desired_font_size, desired_font_height)
+
+        return desired_font_size
+
+    def _draw_subtitles(self, text):
+        font_subs_size = self._get_base_font_size(self._subs_font, text)
+        font_subs = ImageFont.truetype(self._subs_font, int(font_subs_size * 0.7))
+        _, _, _, box_b = font_subs.getbbox(text)
+
+        font_subs = ImageFont.truetype(self._subs_font, int(font_subs.size * 0.6))
+        _, _, r, b = font_subs.getbbox(text)
+        offset = box_b - b
+        image = np.ones((box_b, r + offset, 3), dtype=np.uint8) * 255
 
         sly.image.draw_text(
             image,
             text,
-            (top - t // 2, left),
-            font=font,
-            fill_background=False,
-            color=(0, 0, 0, 210),
-        )
-
-        self._poster[top:bottom, left:right, :3] = image[top:bottom, left:right, :3]
-        return bottom + p
-
-    def _draw_subtitles(self, font, text, height):
-        _, t, r, _ = font.getbbox(text)
-        pad = self._GAP // 4
-        w = r + self._GAP
-        image = np.ones((height, w, 3), dtype=np.uint8) * 255
-        sly.image.draw_text(
-            image,
-            text,
-            (-t // 2, pad * 2),
-            font=font,
+            (offset // 2, offset // 2),
+            font=font_subs,
             fill_background=False,
         )
-        image[:, r + 3 * pad :, :3] = 0
         image = np.dstack((image, np.ones((*image.shape[:2], 1), dtype=np.uint8) * 255))
         return 255 - image
 
@@ -258,21 +291,21 @@ class Poster:
         return logo
 
     def _get_text_from_project(self):
-        texts = []
-        texts.append(
-            self._project.name.upper()
-            if len(self._project.name.split(" ")) < 4
-            else " ".join(self._project.name.split(" ")[:3]).upper()
-        )
+        title = None
+        if self._title is not None:
+            title = self._title.upper()
+        else:
+            title = self._project.name.upper()
 
-        texts.append(f"{self._items_count} IMAGES")
+        subs = []
+        subs.append(f"{self._items_count} images")
         classes_cnt = len(self._project_meta.obj_classes)
-        classes_text = f'{classes_cnt} {"CLASS" if classes_cnt == 1 else "CLASSES"}'
-        texts.append(classes_text)
+        classes_text = f'{classes_cnt} {"class" if classes_cnt == 1 else "classes"}'
+        subs.append(classes_text)
         if self._total_labels:
-            texts.append(f"{self._total_labels} LABELS")
+            subs.append(f"{self._total_labels} labels")
 
-        return texts
+        return title, " · ".join(subs)
 
     def _gradient(self, img, left, top, right, bottom):
         c1 = np.array((225, 181, 62))  # rgb
