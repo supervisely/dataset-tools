@@ -22,7 +22,7 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
             urls = json.load(f)
     else:
         keys = [project.name for project in api.project.get_list(workspace_id)]
-        urls = {key: None for key in keys}
+        urls = {key: {} for key in keys}
 
     try:
         urls[project_info.name]
