@@ -28,7 +28,7 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
         urls[project_info.name]
     except KeyError:
         raise KeyError(
-            f"Key '{project_info.name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
+            f"Download URL for dataset '{project_info.name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
         )
 
     if urls[project_info.name].get("download_sly_url", None) is not None:
