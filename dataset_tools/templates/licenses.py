@@ -31,3 +31,10 @@ class License:
             self.name = "CC BY 4.0"
             self.url = "https://creativecommons.org/licenses/by/4.0/legalcode"
             return self
+
+    class BY_NC_SA_4_0:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "CC BY-NC-SA 4.0"
+            self.url = "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode"
+            return self

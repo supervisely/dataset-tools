@@ -18,7 +18,7 @@ class ClassCooccurrence(BaseStats):
         etc.
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, force:bool = False) -> None:
+    def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
         self._meta = project_meta
         self._stats = {}
         self.force = force
