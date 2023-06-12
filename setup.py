@@ -87,10 +87,10 @@ setup(
     package_data={
         "": ["fonts/*.ttf"],
     },
-    # package_data={
-    #     "": ["*.html", "*.css", "*.js", "fonts/*.ttf"],
-    #     "supervisely": ["video/*.sh", "app/development/*.sh", "imaging/colors.json.gz"],
-    # },
+    package_data={
+        # "": ["*.html", "*.css", "*.js", "fonts/*.ttf"],
+        "dataset_tools": ["data/*.json"],
+    },
     # entry_points={
     #     "console_scripts": [
     #         "sly-release=supervisely.release.run:cli_run",
