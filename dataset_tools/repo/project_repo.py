@@ -406,11 +406,11 @@ class ProjectRepo:
                 download_sly_url=self.download_sly_url,
             )
             if isinstance(self.download_original_url, str):
-                download_content += f"The data in original format can be :link: [downloaded here]({self.download_original_url})"
+                download_content += f"The data in original format can be 🔗[downloaded here]({self.download_original_url})"
             if isinstance(self.download_original_url, dict):
                 download_content += "The data in original format can be downloaded here:\n\n"
                 for key, val in self.download_original_url.items():
-                    download_content += f"- :link:[{key}]({val})\n"
+                    download_content += f"- 🔗[{key}]({val})\n"
         elif self.download_original_url is None:
             download_content = DOWNLOAD_ORIGINAL_TEMPLATE.format(
                 homepage_url=self.homepage_url,
