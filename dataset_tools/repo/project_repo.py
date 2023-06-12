@@ -1,13 +1,10 @@
 import json
+from typing import List, Literal, Optional
 
-from typing import List, Optional, Literal
-
+import dataset_tools as dtools
 import supervisely as sly
-
 from dataset_tools.repo import download
 from dataset_tools.templates import License
-import dataset_tools as dtools
-
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
@@ -212,9 +209,7 @@ class ProjectRepo:
 
         if len(vstats) > 0:
             if heatmaps.force:
-                heatmaps.to_image(
-                    f"./stats/{heatmaps.basename_stem}.png", draw_style="outside_black"
-                )
+                heatmaps.to_image(f"./stats/{heatmaps.basename_stem}.png")
             if classes_previews.force:
                 classes_previews.animate(f"./visualizations/{classes_previews.basename_stem}.webm")
             if previews.force:
