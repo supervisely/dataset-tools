@@ -11,8 +11,7 @@ import dataset_tools as dtools
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name_full} data, "
-    "please cite the following reference (to be prepared after the challenge workshop) "
-    "in any publications:\n\n"
+    "please cite the following reference:\n\n"
     "```\n@misc{{{project_name},\n"
     '\tauthor = "TO BE FILLED MANUALLY!",\n'
     '\ttitle = "{project_name_full}",\n'
@@ -347,7 +346,10 @@ class ProjectRepo:
 
         if self.citation_url is not None:
             citation_content = (
-                f"PASTE HERE CUSTOM CITATION FROM THE SOURCE URL\n\n[🔗 Source]({self.citation_url})"
+                f"If you make use of the {self.project_name_full} data, "
+                f"please cite the following reference:\n\n"
+                "PASTE HERE CUSTOM CITATION FROM THE SOURCE URL\n\n"
+                f"[🔗 Source]({self.citation_url})"
             )
         else:
             citation_content = CITATION_TEMPLATE.format(
