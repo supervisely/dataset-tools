@@ -1,12 +1,17 @@
-import os
-import numpy as np
-from PIL import Image, ImageDraw, ImageFont
-import matplotlib.pyplot as plt
 import math
-import supervisely as sly
-from skimage.transform import resize
-from dataset_tools.image.stats.basestats import BaseVisual
+import os
 from typing import Union
+
+import matplotlib.pyplot as plt
+import numpy as np
+import supervisely as sly
+from PIL import Image, ImageDraw, ImageFont
+from skimage.transform import resize
+
+from dataset_tools.image.stats.basestats import BaseVisual
+
+CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
+PARENT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(CURENT_DIR)))
 
 
 class ClassesHeatmaps(BaseVisual):
@@ -60,7 +65,7 @@ class ClassesHeatmaps(BaseVisual):
         grid_spacing: int = 20,
         outer_grid_spacing: int = 20,
         output_width: int = 1920,
-        font: str = "fonts/FiraSans-Bold.ttf",
+        font: str = os.path.join(PARENT_DIR, "fonts/FiraSans-Bold.ttf"),
     ) -> None:
         """
         Crates image grid with density heatmaps of all possible classes.
