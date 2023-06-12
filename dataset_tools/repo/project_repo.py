@@ -281,9 +281,7 @@ class ProjectRepo:
 
     def build_texts(
         self,
-        force: Optional[
-            List[Literal["all", "summary", "citation", "license", "readme", "download"]]
-        ] = None,
+        force: Optional[List[Literal["all", "citation", "license", "readme", "download"]]] = None,
     ):
         sly.logger.info("Starting to build texts...")
 
@@ -294,14 +292,10 @@ class ProjectRepo:
 
         sly.logger.info(f"Following texts are passed with force: {force}")
 
-        summary_path = "SUMMARY.md"
         citation_path = "CITATION.md"
         license_path = "LICENSE.md"
         readme_path = "README.md"
         download_path = "DOWNLOAD.md"
-
-        if "summary" in force or not sly.fs.file_exists(summary_path):
-            self._build_summary(summary_path)
 
         if "citation" in force or not sly.fs.file_exists(citation_path):
             self._build_citation(citation_path)
@@ -315,26 +309,41 @@ class ProjectRepo:
         if "download" in force or not sly.fs.file_exists(download_path):
             self._build_download(download_path)
 
-    def _build_summary(self, summary_path):
-        sly.logger.info("Starting to build summary...")
+    def build_summary(
+        self,
+        force: bool = False,
+        preview_class: Optional[
+            Literal["ClassesPreview", "HorizontalGrid", "SideAnnotationsGrid"]
+        ] = "ClassesPreview",
+    ):
+        if force is True or not sly.fs.file_exists("SUMMARY.md"):
+            sly.logger.info("Starting to build summary...")
+            self._build_summary(preview_class=preview_class)
+            sly.logger.info("Successfully built and saved summary.")
+
+    def _build_summary(self, preview_class):
+        classname2path = {
+            "ClassesPreview": "visualizations/classes_preview.webm",
+            "HorizontalGrid": "visualizations/horizontal_grid.png",
+            "SideAnnotationsGrid": "visualizations/side_annotations_grid.png",
+        }
 
         summary_data = dtools.get_summary_data_sly(self.project_info)
 
-        classes_preview = None
-        if sly.fs.file_exists("./visualizations/classes_preview.webm"):
-            classes_preview = (
-                f"{self.custom_data['github_url']}/raw/main/visualizations/classes_preview.webm"
-            )
+        if preview_class in classname2path.keys() and sly.fs.file_exists(
+            f"./{classname2path[preview_class]}"
+        ):
+            vis_url = f"{self.custom_data['github_url']}/raw/main/{classname2path[preview_class]}"
+        else:
+            vis_url = None
 
         summary_content = dtools.generate_summary_content(
             summary_data,
-            vis_url=classes_preview,
+            vis_url=vis_url,
         )
 
-        with open(summary_path, "w") as summary_file:
+        with open("SUMMARY.md", "w") as summary_file:
             summary_file.write(summary_content)
-
-        sly.logger.info("Successfully built and saved summary.")
 
     def _build_citation(self, citation_path):
         sly.logger.info("Starting to build citation...")
