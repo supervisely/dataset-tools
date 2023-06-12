@@ -6,9 +6,9 @@ import supervisely as sly
 import dataset_tools as dtools
 
 # only for tests
-# if sly.is_development():
-#     load_dotenv(os.path.expanduser("~/ninja.env"))
-#     load_dotenv("local.env")
+if sly.is_development():
+    load_dotenv(os.path.expanduser("~/ninja.env"))
+    load_dotenv("local.env")
 
 os.makedirs("./render_results/", exist_ok=True)
 api = sly.Api.from_env()

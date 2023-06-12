@@ -12,6 +12,9 @@ import supervisely as sly
 from dataset_tools.image.renders.convert import compress_png
 from supervisely.imaging import font as sly_font
 
+CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
+PARENT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(CURENT_DIR)))
+
 
 class Poster:
     def __init__(
@@ -34,8 +37,8 @@ class Poster:
         self._is_detection_task = is_detection_task
 
         self._title = title
-        self._title_font: str = "fonts/FiraSans-SemiBold.ttf"
-        self._subs_font: str = "fonts/FiraSans-Bold.ttf"
+        self._title_font: str = os.path.join(PARENT_DIR, "fonts/FiraSans-SemiBold.ttf")
+        self._subs_font: str = os.path.join(PARENT_DIR, "fonts/FiraSans-Bold.ttf")
 
         if isinstance(project, int):
             self._project = self._api.project.get_info_by_id(project)
