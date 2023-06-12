@@ -52,13 +52,22 @@ class ClassesPerImage(BaseStats):
         self._referencesRow = []
 
     def update(self, image_info: sly.ImageInfo, ann: sly.Annotation) -> None:
+        cur_class_names = ["unlabeled"]
+        cur_class_colors = [UNLABELED_COLOR]
+        classname_to_index = {}
+        for label in ann.labels:
+            if label.obj_class.name not in cur_class_names:
+                cur_class_names.append(label.obj_class.name)
+                class_index = len(cur_class_colors) + 1
+                cur_class_colors.append([class_index, class_index, class_index])
+                classname_to_index[label.obj_class.name] = class_index
+
         render_idx_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
         render_idx_rgb[:] = UNLABELED_COLOR
-        ann.draw_class_idx_rgb(render_idx_rgb, self._classname_to_index)
-        stat_area = sly.Annotation.stat_area(
-            render_idx_rgb, self._class_names, self._class_indices_colors
-        )
-        stat_count = ann.stat_class_count(self._class_names)
+        ann.draw_class_idx_rgb(render_idx_rgb, classname_to_index)
+
+        stat_area = sly.Annotation.stat_area(render_idx_rgb, cur_class_names, cur_class_colors)
+        stat_count = ann.stat_class_count(cur_class_names)
 
         if stat_area["unlabeled"] > 0:
             stat_count["unlabeled"] = 1
@@ -79,10 +88,14 @@ class ClassesPerImage(BaseStats):
             ]
         )
         for class_name in self._class_names:
-            cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
-            cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
             if class_name == "unlabeled":
                 continue
+            if class_name not in cur_class_names:
+                cur_area = 0
+                cur_count = 0
+            else:
+                cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
+                cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
             table_row.append(cur_count)
             table_row.append(round(cur_area, 2) if cur_area != 0 else 0)
 

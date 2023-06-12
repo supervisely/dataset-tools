@@ -54,26 +54,40 @@ class ClassBalance(BaseStats):
         self._stats["avg_nonzero_count"] = [None] * len(self._class_names)
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation):
+        cur_class_names = ["unlabeled"]
+        cur_class_colors = [UNLABELED_COLOR]
+        classname_to_index = {}
+
+        for label in ann.labels:
+            if label.obj_class.name not in cur_class_names:
+                cur_class_names.append(label.obj_class.name)
+                class_index = len(cur_class_colors) + 1
+                cur_class_colors.append([class_index, class_index, class_index])
+                classname_to_index[label.obj_class.name] = class_index
+
         render_idx_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
         render_idx_rgb[:] = UNLABELED_COLOR
 
-        ann.draw_class_idx_rgb(render_idx_rgb, self._stats["_name_to_index"])
+        ann.draw_class_idx_rgb(render_idx_rgb, classname_to_index)
 
-        stat_area = sly.Annotation.stat_area(
-            render_idx_rgb, self._stats["class_names"], self._stats["class_indices_colors"]
-        )
-        stat_count = ann.stat_class_count(self._stats["class_names"])
+        stat_area = sly.Annotation.stat_area(render_idx_rgb, cur_class_names, cur_class_colors)
+        stat_count = ann.stat_class_count(cur_class_names)
 
         if stat_area["unlabeled"] > 0:
             stat_count["unlabeled"] = 1
 
         for idx, class_name in enumerate(self._stats["class_names"]):
-            cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
-            cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
+            if class_name not in cur_class_names:
+                cur_area = 0
+                cur_count = 0
+                self._stats["images_count"][idx] = 0
+            else:
+                cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
+                cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
+                self._stats["images_count"][idx] += 1 if stat_count[class_name] > 0 else 0
 
             self._stats["sum_class_area_per_image"][idx] += cur_area
             self._stats["objects_count"][idx] += cur_count
-            self._stats["images_count"][idx] += 1 if stat_count[class_name] > 0 else 0
 
             if self._stats["images_count"][idx] > 0:
                 self._stats["avg_nonzero_area"][idx] = (
@@ -85,8 +99,9 @@ class ClassBalance(BaseStats):
 
             if class_name == "unlabeled":
                 continue
-            elif stat_count[class_name] > 0:
-                self._stats["image_counts_filter_by_id"][idx].append(image.id)
+            elif class_name in cur_class_names:
+                if stat_count[class_name] > 0:
+                    self._stats["image_counts_filter_by_id"][idx].append(image.id)
 
             # TODO: implement later
             # if stat_count[class_name] > 0:
