@@ -1,7 +1,9 @@
 class License:
     class Custom:
-        def __new__(cls):
+        def __new__(cls, url: str):
             self = super().__new__(cls)
+            self.name = "custom"
+            self.url = url
             return self
 
     class CC0_1_0:
