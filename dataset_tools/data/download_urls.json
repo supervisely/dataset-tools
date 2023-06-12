@@ -68,5 +68,10 @@
         "id": 865,
         "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/j/0/Vz/daImiEimWtbLk0WvuklRpaYnvByyXROEbeFH0DWvXj05NYRH2NTPXB0xyiNQp9b03GmcXBmTPp59PeCe5whghBwRvD4MkmIxOZewwLsrAsEbMY08NEhCFU4fNmlh.tar",
         "download_original_url": "https://conservancy.umn.edu/handle/11299/206575"
+    },
+    "Weed": {
+        "id": 955,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/7/L/Iz/nopJghEeZgZP4xHyLRvTDz12fwRFdWJSjboLVoYvWHoOpQY5cdAGZIxnp8XwKSUeMHPo7oiId0ljhUEuoM0LuzL4nf09BKHMx1CWXvWqjA5p5zW8X7D03lwqpSXK.tar",
+        "download_original_url": "https://github.com/lameski/rgbweeddetection"
     }
 }

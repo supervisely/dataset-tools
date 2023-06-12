@@ -3,9 +3,8 @@ import os
 from urllib.parse import urljoin
 
 import requests
-import tqdm
-
 import supervisely as sly
+import tqdm
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(CURENT_DIR)
@@ -27,14 +26,17 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
         keys = [project.name for project in api.project.get_list(workspace_id)]
         urls = {key: {} for key in keys}
 
-    try:
-        urls[project_info.name]
-    except KeyError:
-        raise KeyError(
-            f"Download URL for dataset '{project_info.name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
-        )
+    # try:
+    #     urls[project_info.name]
+    # except KeyError:
+    #     raise KeyError(
+    #         f"Download URL for dataset '{project_info.name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
+    #     )
 
-    if urls[project_info.name].get("download_sly_url", None) is not None:
+    if (
+        urls.get(project_info.name) is not None
+        and urls[project_info.name].get("download_sly_url") is not None
+    ):
         sly.logger.info("URL already exists. Skipping creation of download link...")
         return urls[project_info.name]["download_sly_url"]
     else:
