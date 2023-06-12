@@ -6,3 +6,7 @@ class Industry:
     class Industrial:
         def __new__(cls):
             return "industrial"
+
+    class Agriculture:
+        def __new__(cls):
+            return "agriculture"

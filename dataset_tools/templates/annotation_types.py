@@ -6,3 +6,7 @@ class AnnotationType:
     class ObjectDetection:
         def __new__(cls):
             return "object detection"
+
+    class InstanceSegmentation:
+        def __new__(cls):
+            return "instance segmentation"
