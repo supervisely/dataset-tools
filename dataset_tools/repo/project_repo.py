@@ -22,14 +22,14 @@ README_TEMPLATE = "# {project_name_full}\n\n{project_name} is a dataset for {cv_
 
 DOWNLOAD_SLY_TEMPLATE = (
     "Dataset **{project_name}** can be downloaded in Supervisely format:\n\n [Download]({download_sly_url})\n\n"
-    "As an alternative, it can be downloaded with dataset-tools package:\n``` bash\npip install --upgrade dataset-tools\n```"
+    "As an alternative, it can be downloaded with *dataset-tools* package:\n``` bash\npip install --upgrade dataset-tools\n```"
     "\n\n... using following python code:\n``` python\nimport dataset_tools as dtools\n\ndtools.download(dataset='{project_name}', "
     "dst_path='~/dtools/datasets/{project_name}.tar')\n```\n"
 )
 
 DOWNLOAD_ORIGINAL_TEMPLATE = (
     "Please visit dataset [homepage]({homepage_url}) to download the data. \n\n"
-    "Afterward, you have the option to download it in the universal supervisely format by utilizing the dataset-tools package:\n``` "
+    "Afterward, you have the option to download it in the universal supervisely format by utilizing the *dataset-tools* package:\n``` "
     "bash\npip install --upgrade dataset-tools\n```"
     "\n\n... using following python code:\n``` python\nimport dataset_tools as dtools\n\n"
     "dtools.download(dataset='{project_name}', dst_path='~/dtools/datasets/{project_name}.tar')\n```\n"
