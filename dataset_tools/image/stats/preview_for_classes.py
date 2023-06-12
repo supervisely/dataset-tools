@@ -6,16 +6,19 @@ from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
+import supervisely as sly
 from PIL import Image, ImageDraw, ImageFont
+from supervisely.imaging import font as sly_font
 from tqdm import tqdm
 
-import supervisely as sly
+from dataset_tools.image.renders.convert import compress_mp4, from_mp4_to_webm
 from dataset_tools.image.stats.basestats import BaseVisual
-from dataset_tools.image.renders.convert import from_mp4_to_webm, compress_mp4
-from supervisely.imaging import font as sly_font
 
 UNLABELED_COLOR = [0, 0, 0]
 font_name = "FiraSans-Regular.ttf"
+
+CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
+PARENT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(CURENT_DIR)))
 
 
 class ClassesPreview(BaseVisual):
@@ -65,7 +68,7 @@ class ClassesPreview(BaseVisual):
     def animate(
         self,
         path: str = None,
-        font: str = "fonts/FiraSans-Bold.ttf",
+        font: str = os.path.join(PARENT_DIR, "fonts/FiraSans-Bold.ttf"),
     ):
         self._font = font
         dirname = os.path.dirname(path)
