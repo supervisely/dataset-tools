@@ -7,7 +7,10 @@ import tqdm
 
 import supervisely as sly
 
-urls_path = "./dataset_tools/data/download_urls.json"
+CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
+PARENT_DIR = os.path.dirname(CURENT_DIR)
+urls_path = os.path.join(PARENT_DIR, "data", "download_urls.json")
+# urls_path = "./dataset_tools/data/download_urls.json"
 
 
 def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
@@ -41,7 +44,7 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
         module_id = api.app.get_ecosystem_module_id(app_slug)
         module_info = api.app.get_ecosystem_module_info(module_id)
 
-        sly.logger.info("Start app: ", module_info.name)
+        sly.logger.info(f"Start app: {module_info.name}")
 
         params = module_info.get_arguments(images_project=project_info.id)
 
@@ -98,7 +101,7 @@ def download(dataset_name: str, dst_path: str):
     try:
         with open(urls_path, "r") as f:
             data = json.load(f)
-    except:
+    except Exception:
         raise FileNotFoundError(
             "File with download urls was not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
         )

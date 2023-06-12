@@ -126,6 +126,7 @@ class ProjectRepo:
         force: Optional[
             List[
                 Literal[
+                    "all",
                     "ClassBalance",
                     "ClassCooccurrence",
                     "ClassesPerImage",
@@ -143,6 +144,18 @@ class ProjectRepo:
 
         if force is None:
             force = []
+        elif "all" in force:
+            force = [
+                "ClassBalance",
+                "ClassCooccurrence",
+                "ClassesPerImage",
+                "ObjectsDistribution",
+                "ObjectSizes",
+                "ClassSizes",
+                "ClassesHeatmaps",
+                "ClassesPreview",
+                "Previews",
+            ]
 
         sly.logger.info(f"Following stats are passed with force: {force}")
 
@@ -193,6 +206,7 @@ class ProjectRepo:
 
         sly.logger.info("Saving stats...")
         for stat in stats:
+            sly.logger.info(f"Saving {stat.basename_stem}...")
             with open(f"./stats/{stat.basename_stem}.json", "w") as f:
                 json.dump(stat.to_json(), f)
             stat.to_image(f"./stats/{stat.basename_stem}.png")
@@ -212,13 +226,15 @@ class ProjectRepo:
     def build_visualizations(
         self,
         force: Optional[
-            List[Literal["Poster", "SideAnnotationsGrid", "HorizontalGrid", "VerticalGrid"]]
+            List[Literal["all", "Poster", "SideAnnotationsGrid", "HorizontalGrid", "VerticalGrid"]]
         ] = None,
     ):
         sly.logger.info("Starting to build visualizations...")
 
         if force is None:
             force = []
+        elif "all" in force:
+            force = ["Poster", "SideAnnotationsGrid", "HorizontalGrid", "VerticalGrid"]
 
         sly.logger.info(f"Following visualizations are passed with force: {force}")
 
@@ -266,13 +282,15 @@ class ProjectRepo:
     def build_texts(
         self,
         force: Optional[
-            List[Literal["summary", "citation", "license", "readme", "download"]]
+            List[Literal["all", "summary", "citation", "license", "readme", "download"]]
         ] = None,
     ):
         sly.logger.info("Starting to build texts...")
 
         if force is None:
             force = []
+        elif "all" in force:
+            force = ["summary", "citation", "license", "readme", "download"]
 
         sly.logger.info(f"Following texts are passed with force: {force}")
 
