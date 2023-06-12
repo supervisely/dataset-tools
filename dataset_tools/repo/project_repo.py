@@ -28,7 +28,7 @@ DOWNLOAD_SLY_TEMPLATE = (
     "Dataset **{project_name}** can be downloaded in Supervisely format:\n\n [Download]({download_sly_url})\n\n"
     "As an alternative, it can be downloaded with dataset-tools package:\n``` bash\npip install --upgrade dataset-tools\n```"
     "\n\n... using following python code:\n``` python\nimport dataset_tools as dtools\n\ndtools.download(dataset='{project_name}', "
-    "dst_dir='~/dtools/datasets/{project_name}')\n```\n"
+    "dst_path='~/dtools/datasets/{project_name}.tar')\n```\n"
 )
 
 DOWNLOAD_ORIGINAL_TEMPLATE = (
@@ -36,7 +36,7 @@ DOWNLOAD_ORIGINAL_TEMPLATE = (
     "Afterward, you have the option to download it in the universal supervisely format by utilizing the dataset-tools package:\n``` "
     "bash\npip install --upgrade dataset-tools\n```"
     "\n\n... using following python code:\n``` python\nimport dataset_tools as dtools\n\n"
-    "dtools.download(dataset='{project_name}', dst_dir='~/dtools/datasets/{project_name}')\n```\n"
+    "dtools.download(dataset='{project_name}', dst_path='~/dtools/datasets/{project_name}.tar')\n```\n"
 )
 
 
@@ -345,11 +345,16 @@ class ProjectRepo:
     def _build_citation(self, citation_path):
         sly.logger.info("Starting to build citation...")
 
-        citation_content = CITATION_TEMPLATE.format(
-            project_name_full=self.project_name_full,
-            project_name=self.project_name,
-            homepage_url=self.homepage_url,
-        )
+        if self.citation_url is not None:
+            citation_content = (
+                f"PASTE HERE CUSTOM CITATION FROM THE SOURCE URL\n\n[🔗 Source]({self.citation_url})"
+            )
+        else:
+            citation_content = CITATION_TEMPLATE.format(
+                project_name_full=self.project_name_full,
+                project_name=self.project_name,
+                homepage_url=self.homepage_url,
+            )
 
         with open(citation_path, "w") as citation_file:
             citation_file.write(citation_content)
