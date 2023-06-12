@@ -281,7 +281,12 @@ class ProjectRepo:
 
     def build_texts(
         self,
-        force: Optional[List[Literal["all", "citation", "license", "readme", "download"]]] = None,
+        force: Optional[
+            List[Literal["all", "citation", "license", "readme", "download", "summary"]]
+        ] = None,
+        preview_class: Optional[
+            Literal["ClassesPreview", "HorizontalGrid", "SideAnnotationsGrid"]
+        ] = "ClassesPreview",
     ):
         sly.logger.info("Starting to build texts...")
 
@@ -296,6 +301,7 @@ class ProjectRepo:
         license_path = "LICENSE.md"
         readme_path = "README.md"
         download_path = "DOWNLOAD.md"
+        summary_path = "SUMMARY.md"
 
         if "citation" in force or not sly.fs.file_exists(citation_path):
             self._build_citation(citation_path)
@@ -309,19 +315,10 @@ class ProjectRepo:
         if "download" in force or not sly.fs.file_exists(download_path):
             self._build_download(download_path)
 
-    def build_summary(
-        self,
-        force: bool = False,
-        preview_class: Optional[
-            Literal["ClassesPreview", "HorizontalGrid", "SideAnnotationsGrid"]
-        ] = "ClassesPreview",
-    ):
-        if force is True or not sly.fs.file_exists("SUMMARY.md"):
-            sly.logger.info("Starting to build summary...")
-            self._build_summary(preview_class=preview_class)
-            sly.logger.info("Successfully built and saved summary.")
+        if "summary" in force or not sly.fs.file_exists(summary_path):
+            self._build_summary(summary_path, preview_class=preview_class)
 
-    def _build_summary(self, preview_class):
+    def _build_summary(self, summary_path, preview_class):
         classname2path = {
             "ClassesPreview": "visualizations/classes_preview.webm",
             "HorizontalGrid": "visualizations/horizontal_grid.png",
@@ -342,7 +339,7 @@ class ProjectRepo:
             vis_url=vis_url,
         )
 
-        with open("SUMMARY.md", "w") as summary_file:
+        with open(summary_path, "w") as summary_file:
             summary_file.write(summary_content)
 
     def _build_citation(self, citation_path):
