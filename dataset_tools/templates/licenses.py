@@ -27,6 +27,13 @@ class License:
             self.url = "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode"
             return self
 
+    class CC_BY_NC_SA_4_0:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "CC BY-NC-SA 4.0"
+            self.url = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            return self
+
     class CC_BY_4_0:
         def __new__(cls):
             self = super().__new__(cls)

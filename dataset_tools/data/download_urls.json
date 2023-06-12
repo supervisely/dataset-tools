@@ -1,77 +1,90 @@
 {
-  "CWFID": {
-    "id": 953,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/q/V/tD/DkjDBIGvZwkFWBECl9HeLGb6CZBatBrf5Vb3dUwN6cx815WdUDJr0j4Sq5CNTWl43fxyBWInzMFxdrhy4Z3kML71TKjwqzl6xec6MfRmKTJpriMuOWDZ891my5bd.tar",
-    "download_original_url": "https://github.com/cwfid/dataset/archive/refs/tags/v1.0.zip"
-  },
-  "Food Recognition 2022": {
-    "id": 950,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/g/x/8C/uFOBz66enoXsEMPzMcLCPLbr13xU07IOTI9nHHP0qumJalbd5xOhq1WD9IwMlNneg8RDqN9i53ke58w7JdAsk2fRelMmpkDeFhcd7cBWb53z3KayMNLqJc469r6W.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/awsaf49/food-recognition-2022-dataset/download?datasetVersionNumber=1"
-  },
-  "Maize tassel detection": {
-    "id": 960,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/u/a/iO/45iG0hods7PsIqjUX8SB9RFKku0ssavGeNm5gzJmGX1vMuY8MIOxX52hfm0WHWO4cjKP4C3BVrl3Snrw5lPTYzFZBaXmdwfnVF2f8qjLRyemo6ztWCoxXB92gbh7.tar",
-    "download_original_url": "https://zenodo.org/record/4922074/files/Maize_Tassels_Recognition.zip?download=1"
-  },
-  "Kolektor Surface-Defect": {
-    "id": 938,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/s/r/P1/JrEfJCgcRmLOTMVAwQ3SidwXmswQV8mbXSupoN995fDqyrwczLAUuE7Mx10HsMuEP6ObS11f6nbUilKUNqADIKVnbKn3CGFJPAe3lFf1LpDqtuNUbRbCIOdDnhAn.tar",
-    "download_original_url": "https://go.vicos.si/kolektorsdd2"
-  },
-  "MVTEC D2S": {
-    "id": 957,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/s/r/P1/JrEfJCgcRmLOTMVAwQ3SidwXmswQV8mbXSupoN995fDqyrwczLAUuE7Mx10HsMuEP6ObS11f6nbUilKUNqADIKVnbKn3CGFJPAe3lFf1LpDqtuNUbRbCIOdDnhAn.tar",
-    "download_original_url": "https://some.com/dataset/dowload_url"
-  },
-  "Maize Tassel Detection": {
-    "id": 964,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/c/Q/8L/EWOitf0kkvnch3ZG2dBhHiWV78yfRirJ2yeTIZVlab2VZzPetJeaLWC5EglOw8VwRhxqqtev7iYKafvJJxWyis2OiQ9Ed3okMmGXczqrogEDu7qxTHZb4zhcuinJ.tar",
-    "download_original_url": "https://zenodo.org/record/4922074/files/Maize_Tassels_Recognition.zip?download=1"
-  },
-  "ENDONUKE": {
-    "id": 944,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/N/h/yh/4nlfH5LCK3yH5CzVLRM3nTUUln2iAv1vPIbhUYbS5rqWwG6ZB0QINPSSBBVhYJlZgJLnesRWgUabQ9dSzGmLi5oQw4AFilKDlDSP9BbzBm0yQvOGe3BgEiilRM7P.tar",
-    "download_original_url": "https://www.ispras.ru/conf/endonuke/data.zip"
-  },
-  "Disease Detection in Fruit Images": {
-    "id": 916,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/j/0/7n/QGz5WbKFT4cd7oDce2l5cPAdzAQ9guex1aw9WgSqOcwkoqFcfSxfVY40xvCm7XxLEjiNwViNQLt05vj5HrC2ixntB6rETu92EgLEq4Et1qPO6Kki77NNjaNLMJZK.tar",
-    "download_original_url": "https://github.com/QuIIL/Dataset-Region-Aggregated-Attention-CNN-for-Disease-Detection-in-Fruit-Images/archive/refs/heads/main.zip"
-  },
-  "Cracks and Potholes in Road": {
-    "id": 867,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/H/N/1c/tffyIaurui8RdI3QGX9cWE2Pc6MHBlIcnAyVzy5HCC79Z2Y8tMwwesOVNCO9vY9ATAnh9lRqtXOviTiuOGNCdnIXpK3neDxQefqtcYNBwW1XXqr0m3UTP2VauZhB.tar",
-    "download_original_url": "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/t576ydh9v8-4.zip"
-  },
-  "Full Body TikTok Dancing": {
-    "id": 902,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/p/N/AM/lIxpXk9ejtJkx0Eh7lV7jK8kPxKjVXF0sCxOBNfJ5bZJNAlhZPdmSiEyeXKtYoAKbCmiQHIIexrATKUJRq7bzlvfqTmiv2p9mj5TE4f9VmEnDaJgen1wTERUSCEI.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/tapakah68/segmentation-full-body-tiktok-dancing-dataset/download?datasetVersionNumber=2"
-  },
-  "Concrete crack": {
-    "id": 866,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/h/U/WQ/gAtkOvnGUCKdYO24WSUeQGuevZEkH9q8eWegwZcnCR9ZoDglHtcrTb0jLONttZfP1Cb5xouFzLQXIgV0vP2UuuxHstk2BhithxvrAcBXxyfTJVoPNgPiNlot6Zz5.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/motono0223/concrete-crack-segmentation-dataset/download?datasetVersionNumber=1"
-  },
-  "Coffee Leaf Biotic Stress": {
-    "id": 903,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/N/K/kc/nkyT0EIqVnU9ol58gfQ99dtpQlLUru3PvGfspiKeVqSA5gUZA2dbvdHYmiPiQyNlHmV9O69thqBO99ya3pVDWgOElJjWzT9oOQAOUaqakWoXzFxJyDvdUxInCC9q.tar",
-    "download_original_url": "https://drive.google.com/open?id=15YHebAGrx1Vhv8-naave-R5o3Uo70jsm"
-  },
-  "RoCoLe": {
-    "id": 948,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/S/C/9p/nqiW3HLG5V2PLTdBNY1dpARkettuDLczQowzsdhAwrwqS3eOaCt959OxFnOJ0uTiTxHqPfM0AsK6EHXGZb7MBJrZEMvpvTJnhHPtVSriwnvWRkOQR13myY8x7y1W.tar",
-    "download_original_url": "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/c5yvn32dzg-2.zip"
-  },
-  "MinneApple": {
-    "id": 865,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/j/0/Vz/daImiEimWtbLk0WvuklRpaYnvByyXROEbeFH0DWvXj05NYRH2NTPXB0xyiNQp9b03GmcXBmTPp59PeCe5whghBwRvD4MkmIxOZewwLsrAsEbMY08NEhCFU4fNmlh.tar",
-    "download_original_url": "https://conservancy.umn.edu/handle/11299/206575"
-  },
-  "Weed detection": {
-    "id": 955,
-    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/H/c/1u/SUemHlviy8FJq9LO53oVD886Kzf3cDFyvBYbXluxflQ2tMuj3JPXglafDxMUrOyhaSyj4DJmTVFvx9o2JqgjOY2TyaXa2Cy2ZJV9aCtOMppgg4zIDDCDv0B3P4Y9.tar",
-    "download_original_url": "https://github.com/lameski/rgbweeddetection"
-  }
+    "CWFID": {
+        "id": 953,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/q/V/tD/DkjDBIGvZwkFWBECl9HeLGb6CZBatBrf5Vb3dUwN6cx815WdUDJr0j4Sq5CNTWl43fxyBWInzMFxdrhy4Z3kML71TKjwqzl6xec6MfRmKTJpriMuOWDZ891my5bd.tar",
+        "download_original_url": "https://github.com/cwfid/dataset/archive/refs/tags/v1.0.zip"
+    },
+    "Food Recognition 2022": {
+        "id": 950,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/g/x/8C/uFOBz66enoXsEMPzMcLCPLbr13xU07IOTI9nHHP0qumJalbd5xOhq1WD9IwMlNneg8RDqN9i53ke58w7JdAsk2fRelMmpkDeFhcd7cBWb53z3KayMNLqJc469r6W.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/awsaf49/food-recognition-2022-dataset/download?datasetVersionNumber=1"
+    },
+    "Maize tassel detection": {
+        "id": 960,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/u/a/iO/45iG0hods7PsIqjUX8SB9RFKku0ssavGeNm5gzJmGX1vMuY8MIOxX52hfm0WHWO4cjKP4C3BVrl3Snrw5lPTYzFZBaXmdwfnVF2f8qjLRyemo6ztWCoxXB92gbh7.tar",
+        "download_original_url": "https://zenodo.org/record/4922074/files/Maize_Tassels_Recognition.zip?download=1"
+    },
+    "Kolektor Surface-Defect": {
+        "id": 938,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/s/r/P1/JrEfJCgcRmLOTMVAwQ3SidwXmswQV8mbXSupoN995fDqyrwczLAUuE7Mx10HsMuEP6ObS11f6nbUilKUNqADIKVnbKn3CGFJPAe3lFf1LpDqtuNUbRbCIOdDnhAn.tar",
+        "download_original_url": "https://go.vicos.si/kolektorsdd2"
+    },
+    "MVTEC D2S": {
+        "id": 957,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/s/r/P1/JrEfJCgcRmLOTMVAwQ3SidwXmswQV8mbXSupoN995fDqyrwczLAUuE7Mx10HsMuEP6ObS11f6nbUilKUNqADIKVnbKn3CGFJPAe3lFf1LpDqtuNUbRbCIOdDnhAn.tar",
+        "download_original_url": "https://some.com/dataset/dowload_url"
+    },
+    "Maize Tassel Detection": {
+        "id": 964,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/c/Q/8L/EWOitf0kkvnch3ZG2dBhHiWV78yfRirJ2yeTIZVlab2VZzPetJeaLWC5EglOw8VwRhxqqtev7iYKafvJJxWyis2OiQ9Ed3okMmGXczqrogEDu7qxTHZb4zhcuinJ.tar",
+        "download_original_url": "https://zenodo.org/record/4922074/files/Maize_Tassels_Recognition.zip?download=1"
+    },
+    "ENDONUKE": {
+        "id": 944,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/N/h/yh/4nlfH5LCK3yH5CzVLRM3nTUUln2iAv1vPIbhUYbS5rqWwG6ZB0QINPSSBBVhYJlZgJLnesRWgUabQ9dSzGmLi5oQw4AFilKDlDSP9BbzBm0yQvOGe3BgEiilRM7P.tar",
+        "download_original_url": "https://www.ispras.ru/conf/endonuke/data.zip"
+    },
+    "Disease Detection in Fruit Images": {
+        "id": 916,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/j/0/7n/QGz5WbKFT4cd7oDce2l5cPAdzAQ9guex1aw9WgSqOcwkoqFcfSxfVY40xvCm7XxLEjiNwViNQLt05vj5HrC2ixntB6rETu92EgLEq4Et1qPO6Kki77NNjaNLMJZK.tar",
+        "download_original_url": "https://github.com/QuIIL/Dataset-Region-Aggregated-Attention-CNN-for-Disease-Detection-in-Fruit-Images/archive/refs/heads/main.zip"
+    },
+    "Cracks and Potholes in Road": {
+        "id": 867,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/H/N/1c/tffyIaurui8RdI3QGX9cWE2Pc6MHBlIcnAyVzy5HCC79Z2Y8tMwwesOVNCO9vY9ATAnh9lRqtXOviTiuOGNCdnIXpK3neDxQefqtcYNBwW1XXqr0m3UTP2VauZhB.tar",
+        "download_original_url": "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/t576ydh9v8-4.zip"
+    },
+    "Full Body TikTok Dancing": {
+        "id": 902,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/p/N/AM/lIxpXk9ejtJkx0Eh7lV7jK8kPxKjVXF0sCxOBNfJ5bZJNAlhZPdmSiEyeXKtYoAKbCmiQHIIexrATKUJRq7bzlvfqTmiv2p9mj5TE4f9VmEnDaJgen1wTERUSCEI.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/tapakah68/segmentation-full-body-tiktok-dancing-dataset/download?datasetVersionNumber=2"
+    },
+    "Concrete crack": {
+        "id": 866,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/h/U/WQ/gAtkOvnGUCKdYO24WSUeQGuevZEkH9q8eWegwZcnCR9ZoDglHtcrTb0jLONttZfP1Cb5xouFzLQXIgV0vP2UuuxHstk2BhithxvrAcBXxyfTJVoPNgPiNlot6Zz5.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/motono0223/concrete-crack-segmentation-dataset/download?datasetVersionNumber=1"
+    },
+    "Coffee Leaf Biotic Stress": {
+        "id": 903,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/N/K/kc/nkyT0EIqVnU9ol58gfQ99dtpQlLUru3PvGfspiKeVqSA5gUZA2dbvdHYmiPiQyNlHmV9O69thqBO99ya3pVDWgOElJjWzT9oOQAOUaqakWoXzFxJyDvdUxInCC9q.tar",
+        "download_original_url": "https://drive.google.com/open?id=15YHebAGrx1Vhv8-naave-R5o3Uo70jsm"
+    },
+    "RoCoLe": {
+        "id": 948,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/S/C/9p/nqiW3HLG5V2PLTdBNY1dpARkettuDLczQowzsdhAwrwqS3eOaCt959OxFnOJ0uTiTxHqPfM0AsK6EHXGZb7MBJrZEMvpvTJnhHPtVSriwnvWRkOQR13myY8x7y1W.tar",
+        "download_original_url": "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/c5yvn32dzg-2.zip"
+    },
+    "MinneApple": {
+        "id": 865,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/j/0/Vz/daImiEimWtbLk0WvuklRpaYnvByyXROEbeFH0DWvXj05NYRH2NTPXB0xyiNQp9b03GmcXBmTPp59PeCe5whghBwRvD4MkmIxOZewwLsrAsEbMY08NEhCFU4fNmlh.tar",
+        "download_original_url": "https://conservancy.umn.edu/handle/11299/206575"
+    },
+    "Weed detection": {
+        "id": 955,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/H/c/1u/SUemHlviy8FJq9LO53oVD886Kzf3cDFyvBYbXluxflQ2tMuj3JPXglafDxMUrOyhaSyj4DJmTVFvx9o2JqgjOY2TyaXa2Cy2ZJV9aCtOMppgg4zIDDCDv0B3P4Y9.tar",
+        "download_original_url": "https://github.com/lameski/rgbweeddetection"
+    },
+    "Sweet Pepper": {
+        "id": 936,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/1/N/pI/EqrSGHLjMYawkM7xHV7WBVeSm8oCXdJ4ZhIlmDtEhBMrMkOFAQ42kcsMqESt4Tg7RW8m4QYf5r7iJN5XdtiIWy3iY9yVPyFvDi78wVv1CjFpHVYGjkKZeanSTEGy.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/lemontyc/sweet-pepper/download?datasetVersionNumber=1"
+    },
+    "TomatOD": {
+        "id": 932,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/3/E/jT/ZYpX9f7tkdaXWsjrfh0h98q8R8nTRF5PmKli3ly4pPN3Va7rWRKKoWJvjb1XKjbzYfNNynnPj8vDKVmp4lT1Nl8qdOnMK9k6VHWzxLZ7W0ps7efCbqdqJnDB7Wvt.tar",
+        "download_original_url": {
+            "Images": "https://datasets-u2m.s3.eu-west-3.amazonaws.com/tomatOD_images.zip",
+            "Bounding box annotations (train and validation sets)": "https://datasets-u2m.s3.eu-west-3.amazonaws.com/tomatOD_annotations.zip"
+        }
+    }
 }
