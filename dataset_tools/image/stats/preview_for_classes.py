@@ -232,7 +232,7 @@ class ClassesPreview(BaseVisual):
 
                 row_images = []
                 current_width = 0
-                if len(rows) == self.rows_num:
+                if len(rows) == rows_num:
                     return rows
             row_images.append(image)
             if idx == num_images - 1:
