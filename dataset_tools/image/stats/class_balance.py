@@ -80,7 +80,7 @@ class ClassBalance(BaseStats):
             if class_name not in cur_class_names:
                 cur_area = 0
                 cur_count = 0
-                self._stats["images_count"][idx] = 0
+                self._stats["images_count"][idx] += 0
             else:
                 cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
                 cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
