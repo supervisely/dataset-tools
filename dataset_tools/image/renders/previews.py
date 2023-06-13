@@ -48,7 +48,7 @@ class Previews:
         local_paths, remote_paths = [], []
 
         for image, ann in self.images_batch:
-            if image.id in existing_ids:
+            if image.id in existing_ids and not self.force:
                 continue
 
             if image.width > self.MAX_WIDTH:
