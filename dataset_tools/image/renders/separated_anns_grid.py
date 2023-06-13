@@ -17,8 +17,8 @@ class SideAnnotationsGrid:
         project: Union[str, int],
         project_meta: sly.ProjectMeta,
         api: sly.Api = None,
-        rows: int = 3,
-        cols: int = 3,
+        rows: int = 2,
+        cols: int = 4,
         force: bool = False,
         is_detection_task: bool = False,
     ):
@@ -115,13 +115,13 @@ class SideAnnotationsGrid:
         for i, image in enumerate(rows):
             if i >= self._rows:
                 continue
-            if image.shape[1] > self._img_array.shape[1] - self._gap:
-                image = image[:, : self._img_array.shape[1] - self._gap]
+            if image.shape[1] > self._img_array.shape[1] - 2 * self._gap:
+                image = image[:, : self._img_array.shape[1] - 2 * self._gap]
 
             row_start = i * (self._row_height + self._gap) + self._gap
             row_end = row_start + self._row_height
             column_start = self._gap
-            column_end = self._img_array.shape[1]
+            column_end = column_start + image.shape[1]
 
             self._img_array[row_start:row_end, column_start:column_end] = image
 
