@@ -10,3 +10,7 @@ class Industry:
     class Agriculture:
         def __new__(cls):
             return "agriculture"
+
+    class Medical:
+        def __new__(cls):
+            return "medical"
