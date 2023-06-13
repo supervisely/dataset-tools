@@ -234,7 +234,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     else:
         content += f"different classes "
     if len(top_classes) > 3:
-        content += f"including *{'*, *'.join(top_classes[:3])},* and other: *{list2sentence(top_classes[3:], char2wrap='*' )}*."
+        content += f"including *{'*, *'.join(top_classes[:3])},* and other: {list2sentence(top_classes[3:], char2wrap='*' )}."
     elif len(top_classes) == 1:
         content += f"(*{top_classes[0]}*)."
     else:
