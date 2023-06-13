@@ -12,6 +12,7 @@ CITATION_TEMPLATE = (
     "``` bibtex \n@misc{{{project_name},\n"
     '\tauthor = "TO BE FILLED MANUALLY!",\n'
     '\ttitle = "{project_name_full}",\n'
+    "\tyear = {{{year}}} ,\n"
     '\thowpublished = "{homepage_url}"\n}}\n```\n\n'
     "[🔗 Source]({homepage_url})"
 )
@@ -351,6 +352,7 @@ class ProjectRepo:
                 project_name_full=self.project_name_full,
                 project_name=self.project_name,
                 homepage_url=self.homepage_url,
+                year=self.release_year,
             )
 
         with open(citation_path, "w") as citation_file:
