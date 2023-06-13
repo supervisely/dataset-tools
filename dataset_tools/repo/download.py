@@ -82,7 +82,9 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
         )
 
 
-def update_sly_url_dict(new_dict: dict) -> None:
+def update_sly_url_dict(api: sly.Api, new_dict: dict) -> None:
+    team_id = sly.env.team_id()
+
     if os.path.exists(urls_path):
         with open(urls_path, "r") as f:
             data = json.load(f)
@@ -96,7 +98,12 @@ def update_sly_url_dict(new_dict: dict) -> None:
     with open(urls_path, "w") as f:
         json.dump(data, f, indent=4)
 
-    sly.logger.info("Done.")
+    sly.logger.info(f"Dictionary saved to pip '{urls_path}'")
+
+    teamfiles_path = f"/cache/{os.path.basename(urls_path)}"
+    api.file.upload(team_id, urls_path, teamfiles_path)
+
+    sly.logger.info(f"Dictionary saved to Team files: '{teamfiles_path}'")
 
 
 def download(dataset_name: str, dst_path: str):
