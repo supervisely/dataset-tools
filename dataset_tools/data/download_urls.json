@@ -96,5 +96,17 @@
         "id": 907,
         "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/e/R/qZ/2eZK8XSou8uIggZbWGrGX28rBwcdwtNODgOkyOXtOMug95TUmuwqIetS2FJfRtaytU6Ma8UeGbXqQABXyGBQbbb7bYkg93oTQVAGeoCZfjAE3JykHxHHfRqf7ll3.tar",
         "download_original_url": "http://assets.laboro.ai/laborotomato/laboro_tomato.zip"
+    },
+    "PASCAL VOC 2012": {
+        "id": 223,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/B/z/TJ/UW3TPAsqipckcv4MczFVHMyzukpIlnqmR6FICBmCGqgdx2KIK5HDFDT32MqVJN30grsrFpp9XGmd9BEchZpSv4T37IUMPJRJbssZugkfHD1HlCPbkwYZxfav7fp1.tar",
+        "download_original_url": {
+            "Training/validation data": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar",
+            "Development kit code and documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCdevkit_18-May-2011.tar",
+            "PDF documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/devkit_doc.pdf",
+            "HTML documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/htmldoc/index.html",
+            "Guidelines used for annotating the database (VOC2011)": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/guidelines.html",
+            "Action guidelines used for annotating the action task images": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/action_guidelines/index.html"
+        }
     }
 }
