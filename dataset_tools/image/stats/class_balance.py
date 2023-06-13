@@ -18,10 +18,11 @@ class ClassBalance(BaseStats):
         Avg area per image
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
+    def __init__(self, project_meta: sly.ProjectMeta, force: bool = False, stat_cache: dict = None) -> None:
         self._meta = project_meta
         self._stats = {}
         self.force = force
+        self._stat_cache = stat_cache
 
         self._class_names = ["unlabeled"]
         class_colors = [UNLABELED_COLOR]
@@ -65,12 +66,18 @@ class ClassBalance(BaseStats):
                 cur_class_colors.append([class_index, class_index, class_index])
                 classname_to_index[label.obj_class.name] = class_index
 
-        render_idx_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
-        render_idx_rgb[:] = UNLABELED_COLOR
-
-        ann.draw_class_idx_rgb(render_idx_rgb, classname_to_index)
-
-        stat_area = sly.Annotation.stat_area(render_idx_rgb, cur_class_names, cur_class_colors)
+        if self._stat_cache is not None and image.id in self._stat_cache:
+            stat_area = self._stat_cache[image.id]["stat_area"]
+        else:
+            render_idx_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
+            render_idx_rgb[:] = UNLABELED_COLOR
+            ann.draw_class_idx_rgb(render_idx_rgb, classname_to_index)
+            stat_area = sly.Annotation.stat_area(render_idx_rgb, cur_class_names, cur_class_colors)
+            if self._stat_cache is not None:
+                if image.id in self._stat_cache:
+                    self._stat_cache[image.id]["stat_area"] = stat_area
+                else:
+                    self._stat_cache[image.id] = {"stat_area": stat_area}
         stat_count = ann.stat_class_count(cur_class_names)
 
         if stat_area["unlabeled"] > 0:
