@@ -14,3 +14,11 @@ class Industry:
     class Medical:
         def __new__(cls):
             return "medical"
+
+    class Energy:
+        def __new__(cls):
+            return "energy"
+
+    class Manufacturing:
+        def __new__(cls):
+            return "manufacturing"

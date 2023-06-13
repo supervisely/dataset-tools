@@ -108,5 +108,10 @@
             "Guidelines used for annotating the database (VOC2011)": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/guidelines.html",
             "Action guidelines used for annotating the action task images": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/action_guidelines/index.html"
         }
+    },
+    "Cityscapes": {
+        "id": 991,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/i/I/AC/iFg8pQZNS3vxqTQsNJq8L3EJUG6A3sdfYGraFB0pRE3wHhRNQEGjpVbiB1aRujHmC5zQVke6KJynEyc7praanbjz6NN1ARkKXvIE0YAK3NrxzMg0TWmIPIj6xBE1.tar",
+        "download_original_url": null
     }
 }
