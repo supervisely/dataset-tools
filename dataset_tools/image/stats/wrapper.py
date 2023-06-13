@@ -1,11 +1,15 @@
 import os
 import random
-from typing import Union, List
+from typing import List, Union
 
 from tqdm import tqdm
 
 import supervisely as sly
+from dataset_tools import ClassBalance, ClassCooccurrence, ClassesPerImage, ObjectsDistribution
 
+CLASSES_TO_OPTIMIZE = [ClassBalance, ClassCooccurrence, ClassesPerImage, ObjectsDistribution]
+MAX_HEIGHT = 500
+MAX_WIDTH = 500
 
 def sample_images(
     api: sly.Api,
@@ -100,7 +104,9 @@ def count_stats(
         print("Done")
     """
     if len(stats) == 0:
-        print("Passed 'stats' parameter is empty. Enable 'force' flag to overwrite statistics output file. Skipping statistics counting...")
+        print(
+            "Passed 'stats' parameter is empty. Enable 'force' flag to overwrite statistics output file. Skipping statistics counting..."
+        )
         return
     if sample_rate <= 0 or sample_rate > 1:
         raise ValueError("Sample rate has to be in range (0, 1]")
@@ -131,7 +137,28 @@ def count_stats(
                 else:
                     anns = [dataset.get_ann(name, project_meta) for name in image_names]
 
-                for img, ann in zip(batch, anns):
+                resized_anns = [resize_ann_with_aspect_ratio(ann) for ann in anns]
+
+                for img, ann, resized_ann in zip(batch, anns, resized_anns):
                     for stat in stats:
-                        stat.update(img, ann)
+                        if stat.__class__ in CLASSES_TO_OPTIMIZE:
+                            stat.update(img, resized_ann)
+                        else:
+                            stat.update(img, ann)
                     pbar.update(1)
+
+
+def resize_ann_with_aspect_ratio(ann: sly.Annotation):
+    height, width = ann.img_size
+    if width > MAX_WIDTH or height > MAX_HEIGHT:
+        aspect_ratio = width / height
+        target_aspect_ratio = MAX_WIDTH / MAX_HEIGHT
+        if aspect_ratio > target_aspect_ratio:
+            new_width = MAX_WIDTH
+            new_height = int(new_width / aspect_ratio)
+        else:
+            new_height = MAX_HEIGHT
+            new_width = int(new_height * aspect_ratio)
+        new_ann = ann.resize((new_width, new_height))
+        return new_ann
+    return ann

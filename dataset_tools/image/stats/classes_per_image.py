@@ -15,7 +15,6 @@ class ClassesPerImage(BaseStats):
         Dataset
         Height
         Width
-        # Channels
         Unlabeled
         Class1 objects count
         Class1 covered area (%)
@@ -29,10 +28,12 @@ class ClassesPerImage(BaseStats):
         project_meta: sly.ProjectMeta,
         datasets: List[sly.DatasetInfo] = None,
         force: bool = False,
+        stat_cache: dict = None,
     ) -> None:
         self._meta = project_meta
         self._stats = {}
         self.force = force
+        self._stat_cache = stat_cache
 
         self._dataset_id_to_name = None
         if datasets is not None:
@@ -58,15 +59,23 @@ class ClassesPerImage(BaseStats):
         for label in ann.labels:
             if label.obj_class.name not in cur_class_names:
                 cur_class_names.append(label.obj_class.name)
-                class_index = len(cur_class_colors) + 1
+                class_index = len(cur_class_colors)
                 cur_class_colors.append([class_index, class_index, class_index])
                 classname_to_index[label.obj_class.name] = class_index
 
-        render_idx_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
-        render_idx_rgb[:] = UNLABELED_COLOR
-        ann.draw_class_idx_rgb(render_idx_rgb, classname_to_index)
+        if self._stat_cache is not None and image_info.id in self._stat_cache:
+            stat_area = self._stat_cache[image_info.id]["stat_area"]
+        else:
+            render_idx_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
+            render_idx_rgb[:] = UNLABELED_COLOR
+            ann.draw_class_idx_rgb(render_idx_rgb, classname_to_index)
+            stat_area = sly.Annotation.stat_area(render_idx_rgb, cur_class_names, cur_class_colors)
+            if self._stat_cache is not None:
+                if image_info.id in self._stat_cache:
+                    self._stat_cache[image_info.id]["stat_area"] = stat_area
+                else:
+                    self._stat_cache[image_info.id] = {"stat_area": stat_area}
 
-        stat_area = sly.Annotation.stat_area(render_idx_rgb, cur_class_names, cur_class_colors)
         stat_count = ann.stat_class_count(cur_class_names)
 
         if stat_area["unlabeled"] > 0:
@@ -81,9 +90,8 @@ class ClassesPerImage(BaseStats):
         area_unl = stat_area["unlabeled"] if not np.isnan(stat_area["unlabeled"]) else 0
         table_row.extend(
             [
-                stat_area["height"],
-                stat_area["width"],
-                # stat_area["channels"],
+                image_info.height,  # stat_area["height"],
+                image_info.width,  # stat_area["width"],
                 round(area_unl, 2) if area_unl != 0 else 0,
             ]
         )
