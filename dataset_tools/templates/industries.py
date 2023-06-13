@@ -23,6 +23,6 @@ class Industry:
         def __new__(cls):
             return "manufacturing"
 
-    class Foog:
+    class Food:
         def __new__(cls):
             return "food"
