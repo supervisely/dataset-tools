@@ -17,7 +17,7 @@ class HorizontalGrid:
         project: Union[str, int],
         project_meta: sly.ProjectMeta,
         api: sly.Api = None,
-        rows: int = 3,
+        rows: int = 2,
         cols: int = 6,
         force: bool = False,
         is_detection_task: bool = False,
