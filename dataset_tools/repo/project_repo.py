@@ -12,7 +12,7 @@ CITATION_TEMPLATE = (
     "``` bibtex \n@misc{{{project_name},\n"
     '\tauthor = "TO BE FILLED MANUALLY!",\n'
     '\ttitle = "{project_name_full}",\n'
-    "\tyear = {{{year}}} ,\n"
+    "\tyear = {{{year}}},\n"
     '\thowpublished = "{homepage_url}"\n}}\n```\n\n'
     "[🔗 Source]({homepage_url})"
 )
