@@ -13,6 +13,13 @@ class License:
             self.url = "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
             return self
 
+    class CC_BY_NC_SA_3_0_US:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "CC BY-NC-SA 3.0 US"
+            self.url = "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+            return self
+
     class CC_BY_SA_4_0:
         def __new__(cls):
             self = super().__new__(cls)

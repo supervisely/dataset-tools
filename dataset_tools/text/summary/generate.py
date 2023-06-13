@@ -208,7 +208,9 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
             annotations.append(" pixel-level instance segmentation annotations")
     else:
         if "semantic segmentation" in annotation_types:
-            annotations.append(" pixel-level semantic segmentation annotations")
+            annotations.append(
+                " pixel-level semantic segmentation annotations. Due to the nature of the semantic segmentation task, it can be automatically transformed into object detection (bounding boxes for every object) task"
+            )
         if "object detection" in annotation_types:
             annotations.append(" bounding boxes annotations")
 
