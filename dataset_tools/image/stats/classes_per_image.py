@@ -28,7 +28,7 @@ class ClassesPerImage(BaseStats):
         project_meta: sly.ProjectMeta,
         datasets: List[sly.DatasetInfo] = None,
         force: bool = False,
-        stat_cache: dict = None
+        stat_cache: dict = None,
     ) -> None:
         self._meta = project_meta
         self._stats = {}
@@ -90,8 +90,8 @@ class ClassesPerImage(BaseStats):
         area_unl = stat_area["unlabeled"] if not np.isnan(stat_area["unlabeled"]) else 0
         table_row.extend(
             [
-                stat_area["height"],
-                stat_area["width"],
+                image_info.height,  # stat_area["height"],
+                image_info.width,  # stat_area["width"],
                 round(area_unl, 2) if area_unl != 0 else 0,
             ]
         )
