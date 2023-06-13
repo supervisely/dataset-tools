@@ -156,11 +156,11 @@ class ProjectRepo:
             ]
 
         sly.logger.info(f"Following stats are passed with force: {force}")
-
+        stat_cache = {}
         stats = [
-            dtools.ClassBalance(self.project_meta),
+            dtools.ClassBalance(self.project_meta, stat_cache=stat_cache),
             dtools.ClassCooccurrence(self.project_meta),
-            dtools.ClassesPerImage(self.project_meta, self.datasets),
+            dtools.ClassesPerImage(self.project_meta, self.datasets, stat_cache=stat_cache),
             dtools.ObjectsDistribution(self.project_meta),
             dtools.ObjectSizes(self.project_meta),
             dtools.ClassSizes(self.project_meta),
