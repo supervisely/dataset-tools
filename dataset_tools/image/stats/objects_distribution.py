@@ -82,7 +82,26 @@ class ObjectsDistribution(BaseStats):
         )
         hmp.add_series_batch(series)
 
+        number_of_rows = len(series)
+        max_widget_height = 800
+        if number_of_rows < 5:
+            row_height = 50
+        elif number_of_rows < 20:
+            row_height = 30
+        else:
+            row_height = 20
+
         res = hmp.get_json_data()
+        number_of_columns = len(columns)
+        calculated_height = number_of_columns * row_height
+        height = min(calculated_height, max_widget_height)
         res["referencesCell"] = references
+        res["height"] = height
+
+        # Disabling labels and ticks for x-axis if there are too many columns.
+        if number_of_columns > 30:
+            res["options"]["xaxis"]["labels"] = {"show": False}
+            res["options"]["xaxis"]["axisTicks"] = {"show": False}
+            res["options"]["dataLabels"] = {"enabled": False}
 
         return res
