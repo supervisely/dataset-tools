@@ -183,5 +183,10 @@
             "Full STN PLAD dataset": "https://github.com/andreluizbvs/PLAD/releases/download/1.0/plad.zip",
             "Labels": "https://github.com/andreluizbvs/PLAD/files/8952243/labels.zip"
         }
+    },
+    "Insulator-Defect Detection": {
+        "id": 1027,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/u/y/1j/dFVgX8asWh3QL4vVEBkbPKkJnqEPcqvlk2vH6ss6fneJj3snw9hzM1paZnBX8il1AVgWriXeMKEmnwTlipqvUAJjHQPLJijUarHCcSn9GzOEkbWO7Ln6jLXL6W0T.tar",
+        "download_original_url": "https://figshare.com/ndownloader/files/37587370"
     }
 }
