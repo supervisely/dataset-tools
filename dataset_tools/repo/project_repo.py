@@ -205,8 +205,9 @@ class ProjectRepo:
         sly.logger.info("Saving stats...")
         for stat in stats:
             sly.logger.info(f"Saving {stat.basename_stem}...")
-            with open(f"./stats/{stat.basename_stem}.json", "w") as f:
-                json.dump(stat.to_json(), f)
+            if stat.to_json() is not None:
+                with open(f"./stats/{stat.basename_stem}.json", "w") as f:
+                    json.dump(stat.to_json(), f)
             stat.to_image(f"./stats/{stat.basename_stem}.png")
 
         if len(vstats) > 0:
