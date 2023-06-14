@@ -137,6 +137,7 @@ class ProjectRepo:
                 ]
             ]
         ] = None,
+        settings: dict = {},
     ):
         sly.logger.info("Starting to build stats...")
 
@@ -156,6 +157,10 @@ class ProjectRepo:
             ]
 
         sly.logger.info(f"Following stats are passed with force: {force}")
+
+        cls_prevs_settings = settings.get("ClassesPreview", {})
+        heatmaps_settings = settings.get("ClassesHeatmaps", {})
+
         stat_cache = {}
         stats = [
             dtools.ClassBalance(self.project_meta, stat_cache=stat_cache),
@@ -166,7 +171,7 @@ class ProjectRepo:
             dtools.ClassSizes(self.project_meta),
         ]
         heatmaps = dtools.ClassesHeatmaps(self.project_meta)
-        classes_previews = dtools.ClassesPreview(self.project_meta, self.project_info.name)
+        classes_previews = dtools.ClassesPreview(self.project_meta, self.project_info.name, **cls_prevs_settings)
         previews = dtools.Previews(self.project_id, self.project_meta, self.api, self.team_id)
 
         for stat in stats:
@@ -212,7 +217,7 @@ class ProjectRepo:
 
         if len(vstats) > 0:
             if heatmaps.force:
-                heatmaps.to_image(f"./stats/{heatmaps.basename_stem}.png")
+                heatmaps.to_image(f"./stats/{heatmaps.basename_stem}.png", **heatmaps_settings)
             if classes_previews.force:
                 classes_previews.animate(f"./visualizations/{classes_previews.basename_stem}.webm")
             if previews.force:
@@ -225,6 +230,7 @@ class ProjectRepo:
         force: Optional[
             List[Literal["all", "Poster", "SideAnnotationsGrid", "HorizontalGrid", "VerticalGrid"]]
         ] = None,
+        settings: dict = {},
     ):
         sly.logger.info("Starting to build visualizations...")
 
@@ -235,13 +241,18 @@ class ProjectRepo:
 
         sly.logger.info(f"Following visualizations are passed with force: {force}")
 
+        poster_settings = settings.get("Poster", {})
+        side_annots_settings = settings.get("SideAnnotationsGrid", {})
+        hor_grid_settings = settings.get("HorizontalGrid", {})
+        vert_grid_settings = settings.get("VerticalGrid", {})
+
         renderers = [
-            dtools.Poster(self.project_id, self.project_meta),
-            dtools.SideAnnotationsGrid(self.project_id, self.project_meta),
+            dtools.Poster(self.project_id, self.project_meta, **poster_settings),
+            dtools.SideAnnotationsGrid(self.project_id, self.project_meta, **side_annots_settings),
         ]
         animators = [
-            dtools.HorizontalGrid(self.project_id, self.project_meta),
-            dtools.VerticalGrid(self.project_id, self.project_meta),
+            dtools.HorizontalGrid(self.project_id, self.project_meta, **hor_grid_settings),
+            dtools.VerticalGrid(self.project_id, self.project_meta, **vert_grid_settings),
         ]
 
         for vis in renderers + animators:
@@ -293,6 +304,9 @@ class ProjectRepo:
             force = ["summary", "citation", "license", "readme", "download"]
 
         sly.logger.info(f"Following texts are passed with force: {force}")
+
+        if preview_class is None:
+            preview_class = "ClassesPreview"
 
         citation_path = "CITATION.md"
         license_path = "LICENSE.md"
