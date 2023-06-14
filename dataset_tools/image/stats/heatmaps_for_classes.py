@@ -92,6 +92,7 @@ class ClassesHeatmaps(BaseVisual):
         self.output_width = output_width
         self.cols = cols
         self.rows = rows
+        self.max_cols = 6
 
         if draw_style == "inside_white":
             self._create_single_images_text_inside(path)
@@ -137,7 +138,6 @@ class ClassesHeatmaps(BaseVisual):
         result_image.save(path)
 
     def _get_grid_size(self, num: int = 1, aspect_ratio: Union[float, int] = 1.9) -> tuple:
-        self.max_cols = 6
         cols = min(max(int(math.sqrt(num) * aspect_ratio), 1), self.max_cols)
         rows = max((num - 1) // cols + 1, 1)
         return (rows, cols)
