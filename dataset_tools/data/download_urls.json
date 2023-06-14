@@ -180,8 +180,8 @@
         "id": 1021,
         "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/w/l/AJ/jEFYpS8kGivKVygJ0oCjbdbjN2xK7bORwSfxPM2oy3l8k1EM0XAa2xPb9f1v3CcaOaFIrYwEb1bdm87E67eEdIWnYpYi5Ygx9825N1h0sARI29AcEB5LQnBy4HAK.tar",
         "download_original_url": {
-            "images": "https://github.com/andreluizbvs/PLAD/releases/download/1.0/plad.zip",
-            "labels": "https://github.com/andreluizbvs/PLAD/files/8952243/labels.zip"
+            "Full STN PLAD dataset": "https://github.com/andreluizbvs/PLAD/releases/download/1.0/plad.zip",
+            "Labels": "https://github.com/andreluizbvs/PLAD/files/8952243/labels.zip"
         }
     }
 }
