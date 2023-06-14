@@ -213,7 +213,10 @@ class ProjectRepo:
             if stat.to_json() is not None:
                 with open(f"./stats/{stat.basename_stem}.json", "w") as f:
                     json.dump(stat.to_json(), f)
-            stat.to_image(f"./stats/{stat.basename_stem}.png")
+            try:
+                stat.to_image(f"./stats/{stat.basename_stem}.png")
+            except TypeError:
+                pass
 
         if len(vstats) > 0:
             if heatmaps.force:

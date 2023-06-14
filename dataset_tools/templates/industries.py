@@ -26,3 +26,7 @@ class Industry:
     class Food:
         def __new__(cls):
             return "food"
+
+    class Livestock:
+        def __new__(cls):
+            return "livestock"

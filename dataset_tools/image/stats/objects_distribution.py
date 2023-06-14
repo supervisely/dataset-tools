@@ -99,11 +99,11 @@ class ObjectsDistribution(BaseStats):
         res["options"]["chart"]["height"] = height
 
         # Disabling labels and ticks for x-axis if there are too many columns.
-        if number_of_columns > 20:
+        if 50 > number_of_columns > 20:
             res["options"]["xaxis"]["labels"] = {"show": False}
             res["options"]["xaxis"]["axisTicks"] = {"show": False}
             res["options"]["dataLabels"] = {"enabled": False}
-        elif number_of_columns > 50:
+        elif number_of_columns >= 50:
             return
 
         return res
