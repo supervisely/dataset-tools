@@ -82,13 +82,16 @@ class ClassesHeatmaps(BaseVisual):
         :type grid_spacing: int, optional
         :param outer_grid_spacing: frame around the overall image. Defaults to 20.
         :type outer_grid_spacing: int, optional
-        :param output_width: width of result image. Defaults to 1600 px.
+        :param output_width: width of result image. Defaults to 1920 px.
         :type output_width: int, optional
         :param font: path to font file. Defaults to "fonts/FiraSans-Bold.ttf".
         :type font: str, optional
         """
         self._calculate_output_img_size()
         self._font = font
+        self.output_width = output_width
+        self.cols = cols
+        self.rows = rows
 
         if draw_style == "inside_white":
             self._create_single_images_text_inside(path)
@@ -97,39 +100,50 @@ class ClassesHeatmaps(BaseVisual):
 
         img_width, img_height = Image.open(self.heatmap_image_paths[0]).size
         num_images = len(self.heatmap_image_paths)
-        if rows is None or cols is None:
-            if (rows is None) != (cols is None):
+        if self.rows is None or self.cols is None:
+            if (self.rows is None) != (self.cols is None):
                 sly.logger.info(
                     "Both rows and cols must be defined to set heatmaps grid manually. Rows and cols will be calculated automatically."
                 )
-            rows, cols = self._get_grid_size(num_images)
+            self.rows, self.cols = self._get_grid_size(num_images)
 
-        result_width = cols * (img_width + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
-        result_height = rows * (img_height + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
+        self._change_output_width_relative_to_cols()
+
+        result_width = (
+            self.cols * (img_width + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
+        )
+        result_height = (
+            self.rows * (img_height + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
+        )
 
         result_image = Image.new("RGB", (result_width, result_height), "white")
 
         for i, img_path in enumerate(self.heatmap_image_paths):
             img = Image.open(img_path)
-            row = i // cols
-            col = i % cols
+            row = i // self.cols
+            col = i % self.cols
             x = outer_grid_spacing + col * (img_width + grid_spacing)
             y = outer_grid_spacing + row * (img_height + grid_spacing)
             result_image.paste(img, (x, y))
             sly.api.file_api.silent_remove(img_path)
             self.heatmap_image_paths = []
 
-        width_percent = output_width / result_width
+        width_percent = self.output_width / result_width
         output_height = math.ceil(result_height * width_percent)
-        result_image = result_image.resize((output_width, output_height), Image.Resampling.LANCZOS)
+        result_image = result_image.resize(
+            (self.output_width, output_height), Image.Resampling.LANCZOS
+        )
 
         result_image.save(path)
 
     def _get_grid_size(self, num: int = 1, aspect_ratio: Union[float, int] = 1.9) -> tuple:
-        max_cols = 8
-        cols = min(max(int(math.sqrt(num) * aspect_ratio), 1), max_cols)
+        self.max_cols = 6
+        cols = min(max(int(math.sqrt(num) * aspect_ratio), 1), self.max_cols)
         rows = max((num - 1) // cols + 1, 1)
         return (rows, cols)
+
+    def _change_output_width_relative_to_cols(self):
+        self.output_width = math.ceil(self.output_width / self.max_cols * self.cols)
 
     def _create_single_images_text_outside(self, path):
         for heatmap in self.classname_heatmap:
