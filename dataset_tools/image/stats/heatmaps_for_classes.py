@@ -26,6 +26,7 @@ class ClassesHeatmaps(BaseVisual):
         self._ds_image_sizes = []
         self.heatmap_image_paths = []
         self._font = None
+        self.max_cols = 6
 
         if heatmap_img_size:
             self._heatmap_img_size = heatmap_img_size
@@ -92,7 +93,6 @@ class ClassesHeatmaps(BaseVisual):
         self.output_width = output_width
         self.cols = cols
         self.rows = rows
-        self.max_cols = 6
 
         if draw_style == "inside_white":
             self._create_single_images_text_inside(path)
