@@ -93,7 +93,7 @@ class ObjectsDistribution(BaseStats):
 
         res = hmp.get_json_data()
         number_of_columns = len(columns)
-        calculated_height = number_of_columns * row_height
+        calculated_height = number_of_rows * row_height
         height = min(calculated_height, max_widget_height)
         res["referencesCell"] = references
         res["height"] = height

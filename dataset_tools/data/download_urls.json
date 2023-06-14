@@ -128,5 +128,10 @@
         "id": 998,
         "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/s/5/Mo/tRratEejDovR1PUG1w4wLPgUGy14uTcUcC6zKlnOYQyJ5zNBuIcKTeaOC5Vf2EnAp8XjsmHc9eClFpuFHss70b7eQn2Jbqm4IGCexxhkx8ISSIPlScPk6aNStT67.tar",
         "download_original_url": "https://zenodo.org/record/6324489/files/yolov5.zip?download=1"
+    },
+    "BSData": {
+        "id": 939,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/a/j/LA/7qPyGvLfnLZKma6PsLfsngjFfBAw3Sw9qvqU4h823HT3S7PkAuDvQaZXM9JMqXOe5Ex8iy1MSVGaxiPp71bHVGVLNfVRsvddUCIb4B1VskjhoCMld5QX3Woy4fM3.tar",
+        "download_original_url": null
     }
 }
