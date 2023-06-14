@@ -113,5 +113,15 @@
         "id": 991,
         "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/i/I/AC/iFg8pQZNS3vxqTQsNJq8L3EJUG6A3sdfYGraFB0pRE3wHhRNQEGjpVbiB1aRujHmC5zQVke6KJynEyc7praanbjz6NN1ARkKXvIE0YAK3NrxzMg0TWmIPIj6xBE1.tar",
         "download_original_url": null
+    },
+    "Car License Plate": {
+        "id": 1005,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/5/R/m5/MzylmEpcZsWy0ijvl2WTbaM9E7gn8D0pVFCG7wcOUeDbmd221xLsRsJPyJAKOPpNE7GSpz3Eb1CkchBaVr7UdFx7PaPp5NQG172yK19VZDlAn2scCmYT1MZuygmI.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/andrewmvd/car-plate-detection/download?datasetVersionNumber=1"
+    },
+    "Road Vehicle": {
+        "id": 1006,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/Y/4/l3/yA5j13QxZXW5V16N8DUi3Rml4QIIBXMpA8tRtojPxw0HmzTJpv8pnppmASLkVAZPQpDMCy2L5opBxoAhsnwjwDPMkpG5ZSNTi81OqcIL5yAnSiPUbse4hu7Q3PVv.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/ashfakyeafi/road-vehicle-images-dataset/download?datasetVersionNumber=1"
     }
 }
