@@ -74,7 +74,7 @@ class VerticalGrid:
                     if type(label.geometry) == sly.Point:
                         label.draw(ann_mask, thickness=15)
                         label.draw(img, thickness=15)
-                    if type(label.geometry) == sly.Rectangle:
+                    elif self._is_detection_task:
                         bbox = label.geometry.to_bbox()
                         pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
                         cv2.rectangle(ann_mask, pt1, pt2, label.obj_class.color, thickness=10)
