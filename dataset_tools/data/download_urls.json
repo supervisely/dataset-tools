@@ -153,5 +153,14 @@
         "id": 1014,
         "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/K/r/h3/AxSYK5XceWzglHiDptKZmbOj8FO3leNIUEjd2lCuThKLTcp7WvkgEPjK9c0Y5Be8MKu7ev0mQpjCwXDQd2qFusM5NTIA6xPIyMEBOZ0HbXsWQYfjVgLsObAGMMvD.tar",
         "download_original_url": "https://www.kaggle.com/datasets/nischallal/rice-disease-dataset/download?datasetVersionNumber=1"
+    },
+    "NeonTreeEvaluation": {
+        "id": 1013,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/5/4/aR/NR5cOakOLfM3BUgsPe9i2XRoDCybkunQkn1EK1RHKQzvyvSxEf76juWjZuh8xykGgPWaM6iHd0aZFQJ1iGM8I01HIF0jkfs30S1ucti3IbaXLyMZaHo9cFixIcLa.tar",
+        "download_original_url": {
+            "annotations": "https://zenodo.org/record/5914554/files/annotations.zip?download=1",
+            "evaluation": "https://zenodo.org/record/5914554/files/evaluation.zip?download=1",
+            "training": "https://zenodo.org/record/5914554/files/training.zip?download=1"
+        }
     }
 }
