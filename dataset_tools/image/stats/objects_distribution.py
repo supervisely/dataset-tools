@@ -103,7 +103,7 @@ class ObjectsDistribution(BaseStats):
             res["options"]["xaxis"]["labels"] = {"show": False}
             res["options"]["xaxis"]["axisTicks"] = {"show": False}
             res["options"]["dataLabels"] = {"enabled": False}
-        # elif number_of_columns > 50:
-        #    return
+        elif number_of_columns > 50:
+            return
 
         return res
