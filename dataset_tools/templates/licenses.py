@@ -61,3 +61,10 @@ class License:
             self.name = "Open Data Commons Open Database License v1.0"
             self.url = "https://opendatacommons.org/licenses/odbl/1-0/"
             return self
+
+    class DbCL_1_0:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "Open Data Commons Database Contents License v1.0"
+            self.url = "https://opendatacommons.org/licenses/dbcl/1-0/"
+            return self
