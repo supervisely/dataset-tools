@@ -97,7 +97,11 @@ class ClassesHeatmaps(BaseVisual):
 
         img_width, img_height = Image.open(self.heatmap_image_paths[0]).size
         num_images = len(self.heatmap_image_paths)
-        if not any((rows, cols)):
+        if rows is None or cols is None:
+            if (rows is None) != (cols is None):
+                sly.logger.info(
+                    "Both rows and cols must be defined to set heatmaps grid manually. Rows and cols will be calculated automatically."
+                )
             rows, cols = self._get_grid_size(num_images)
 
         result_width = cols * (img_width + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
