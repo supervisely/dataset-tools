@@ -123,5 +123,15 @@
         "id": 1006,
         "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/Y/4/l3/yA5j13QxZXW5V16N8DUi3Rml4QIIBXMpA8tRtojPxw0HmzTJpv8pnppmASLkVAZPQpDMCy2L5opBxoAhsnwjwDPMkpG5ZSNTi81OqcIL5yAnSiPUbse4hu7Q3PVv.tar",
         "download_original_url": "https://www.kaggle.com/datasets/ashfakyeafi/road-vehicle-images-dataset/download?datasetVersionNumber=1"
+    },
+    "Cocoa Diseases YOLOv4": {
+        "id": 1007,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/Z/c/PP/DwqvFpk7QJdQVijvijcf5qi3kKm6pnuP6uLrbPFj2NALIlccvIUG2BvnUESmCpVnGzbI4zhPuYVdXyPL8ENq9QZamtOJNGk66BEP88s1FjTenpPzL47OWEQGutwd.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/serranosebas/enfermedades-cacao-yolov4/download?datasetVersionNumber=2"
+    },
+    "GC10-DET": {
+        "id": 1008,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/L/I/OE/eCmrVlWp164QdKO8SS8VxiAqHHKpd88Afrbap1qtbSnqvSIG3uz15lsz7CWnFk1hNlh9Fsn6Q2tLThzi4VT3tTk6D3m9DFjiyLTeA1gcOCJYOtuP2EMK2rAwa0rt.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/alex000kim/gc10det/download?datasetVersionNumber=1"
     }
 }
