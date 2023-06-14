@@ -217,9 +217,9 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     annotations = ",".join(annotations).strip()
 
     # collect content
-    content = f"**{name}**"
-    if fullname is not None:
-        content += f" ({fullname})"
+    content = f"**{fullname}**"
+    # if fullname is not None:
+    #    content += f" ({fullname})"
     content += f" is a dataset for {list2sentence(cv_tasks, 'tasks', keeptail=True)}. "
 
     if "general domain" in industries:
