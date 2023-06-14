@@ -5,6 +5,7 @@ from typing import Union
 import cv2
 import numpy as np
 from tqdm import tqdm
+from PIL import Image
 
 import supervisely as sly
 from supervisely.imaging import font as sly_font
@@ -209,8 +210,8 @@ class VerticalGrid:
         return image
 
     def _add_footer_with_logo(self, image):
-        image2 = cv2.imread(self._footer_path, cv2.IMREAD_UNCHANGED)
-        image2 = cv2.cvtColor(image2, cv2.COLOR_BGRA2RGBA)
+        pil_image = Image.open(self._footer_path)
+        image2 = np.array(pil_image)
 
         height1, width1 = image.shape[:2]
         height2, width2 = image2.shape[:2]
