@@ -5,7 +5,6 @@ import textwrap
 from typing import Dict, List, Optional, Union
 
 import inflect
-
 import supervisely as sly
 
 p = (
@@ -188,21 +187,21 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
             and "object detection" not in annotation_types
         ):
             annotations.append(
-                " pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into semantic segmentation (only one mask for every class) or object detection (bounding boxes for every object) tasks"
+                " pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into a semantic segmentation (only one mask for every class) or object detection (bounding boxes for every object) tasks"
             )
         elif (
             "semantic segmentation" in annotation_types
             and "object detection" not in annotation_types
         ):
             annotations.append(
-                " pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into object detection (bounding boxes for every object) task"
+                " pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into an object detection (bounding boxes for every object) task"
             )
         elif (
             "semantic segmentation" not in annotation_types
             and "object detection" in annotation_types
         ):
             annotations.append(
-                " pixel-level instance segmentation annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into semantic segmentation task (only one mask for every class)"
+                " pixel-level instance segmentation and bounding box annotations. Due to the nature of the instance segmentation task, it can be automatically transformed into a semantic segmentation task (only one mask for every class)"
             )
         else:
             annotations.append(" pixel-level instance segmentation annotations")
@@ -211,8 +210,8 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
             annotations.append(
                 " pixel-level semantic segmentation annotations. Due to the nature of the semantic segmentation task, it can be automatically transformed into object detection (bounding boxes for every object) task"
             )
-        if "object detection" in annotation_types:
-            annotations.append(" bounding boxes annotations")
+        elif "object detection" in annotation_types:
+            annotations.append(" bounding box annotations")
 
     annotations = ",".join(annotations).strip()
 
