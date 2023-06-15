@@ -85,7 +85,9 @@ class HorizontalGrid:
                         )
                         sly.image.draw_text(img, label.obj_class.name, anchor, font=font)
                 if not self._is_detection_task:
-                    ann.draw_pretty(ann_mask[:, :, :3], thickness=0, opacity=0.7, fill_rectangles=False)
+                    ann.draw_pretty(
+                        ann_mask[:, :, :3], thickness=0, opacity=0.7, fill_rectangles=False
+                    )
                     ann.draw_pretty(img, thickness=0, opacity=0.7, fill_rectangles=False)
 
                 self.np_frames.append(self._resize_image(tmp, self._row_height))  # for gif
@@ -166,12 +168,17 @@ class HorizontalGrid:
         current_width = 0
 
         for idx, (image, width) in enumerate(zip(images, image_widths)):
-            if current_width + width > self._row_width or idx == len(images) - 1:
+            if current_width + width > self._row_width:
                 rows.append(row_images)
 
                 row_images = []
                 current_width = 0
+                if len(rows) == self._rows:
+                    return rows
             row_images.append(image)
+            if idx == len(images) - 1:
+                rows.append(row_images)
+                return rows
             current_width += width + self._gap
 
         return rows

@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from typing import Dict
+from typing import Dict, List
 
 import supervisely as sly
 from supervisely.app.widgets import HeatmapChart
@@ -23,6 +23,7 @@ class ObjectsDistribution(BaseStats):
 
         self.project_meta = project_meta
         self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})
+        self._obj_classes = project_meta.obj_classes
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
         self._data = []
 
@@ -52,6 +53,7 @@ class ObjectsDistribution(BaseStats):
         columns = [i for i in range(max_column + 1)]
 
         series = list()
+        colors = list()
         for class_title, class_data in self._stats.items():
             row = {
                 "name": class_title,
@@ -60,6 +62,11 @@ class ObjectsDistribution(BaseStats):
             }
 
             series.append(row)
+            for obj_class in self._obj_classes:
+                if obj_class.name == class_title:
+                    color = obj_class.color
+                    break
+            colors.append(rgb_to_hex(color))
 
         references = defaultdict(dict)
 
@@ -97,6 +104,7 @@ class ObjectsDistribution(BaseStats):
         height = min(calculated_height, max_widget_height) + 150
         res["referencesCell"] = references
         res["options"]["chart"]["height"] = height
+        res["options"]["colors"] = colors
 
         # Disabling labels and ticks for x-axis if there are too many columns.
         if 80 > number_of_columns > 40:
@@ -107,3 +115,7 @@ class ObjectsDistribution(BaseStats):
             return
 
         return res
+
+
+def rgb_to_hex(rgb: List[int]) -> str:
+    return "#{:02x}{:02x}{:02x}".format(*rgb)
