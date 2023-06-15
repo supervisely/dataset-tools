@@ -407,5 +407,14 @@
             "Train": "https://zenodo.org/record/7781388/files/Train.zip?download=1",
             "Valid": "https://zenodo.org/record/7781388/files/Valid.zip?download=1"
         }
+    },
+    "Maize Cobs": {
+        "id": 1036,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/i/v/7s/jX7YyPGASrApmpWpdrvbboMocavugFcQyid7s9HXBNW3ZHqIz86eR6ynaXyMs1TseCOxqQNWoIXOMV4StlweTQwHYs78aaXmSopVaw2B4Q0wrKnd7FFmbvgQTcL2.tar",
+        "download_original_url": {
+            "ImgCross-training-data": "https://zenodo.org/record/4587304/files/ImgCross-training-data.zip?download=1",
+            "ImgOldImgNew-training-data": "https://zenodo.org/record/4587304/files/ImgCross-training-data.zip?download=1",
+            "ImgOldImgNew-validation-data": "https://zenodo.org/record/4587304/files/ImgOldImgNew-validation-data.zip?download=1"
+        }
     }
 }
