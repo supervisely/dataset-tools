@@ -53,7 +53,10 @@ class Previews:
 
             if image.width > self.MAX_WIDTH:
                 out_size = (int((image.height / image.width) * self.MAX_WIDTH), self.MAX_WIDTH)
-                ann = ann.resize(out_size)
+                try:
+                    ann = ann.resize(out_size)
+                except ValueError:
+                    continue
 
             render = np.zeros((ann.img_size[0], ann.img_size[1], 3), dtype=np.uint8)
 

@@ -76,7 +76,7 @@ class SideAnnotationsGrid:
         for label in ann.labels:
             if type(label.geometry) == sly.Point:
                 label.draw(mask_img, thickness=15)
-            if type(label.geometry) == sly.Rectangle:
+            elif self._is_detection_task:
                 bbox = label.geometry.to_bbox()
                 pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
                 cv2.rectangle(mask_img, pt1, pt2, label.obj_class.color, 7)
@@ -115,15 +115,16 @@ class SideAnnotationsGrid:
         for i, image in enumerate(rows):
             if i >= self._rows:
                 continue
-            if image.shape[1] > self._img_array.shape[1] - 2 * self._gap:
-                image = image[:, : self._img_array.shape[1] - 2 * self._gap]
+            if image.shape[1] > self._img_array.shape[1] - self._gap:
+                image = image[:, : self._img_array.shape[1] - self._gap]
 
             row_start = i * (self._row_height + self._gap) + self._gap
             row_end = row_start + self._row_height
             column_start = self._gap
-            column_end = column_start + image.shape[1]
+            column_end = self._img_array.shape[1]
 
             self._img_array[row_start:row_end, column_start:column_end] = image
+        self._img_array[:, - self._gap:] = 255
 
     def _create_rows(self):
         num_images = len(self.np_images)

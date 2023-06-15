@@ -71,7 +71,7 @@ class HorizontalGrid:
                     if type(label.geometry) == sly.Point:
                         label.draw(ann_mask, thickness=15)
                         label.draw(img, thickness=15)
-                    if type(label.geometry) == sly.Rectangle:
+                    elif self._is_detection_task:
                         bbox = label.geometry.to_bbox()
                         pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
                         cv2.rectangle(ann_mask, pt1, pt2, label.obj_class.color, thickness=10)
@@ -158,7 +158,7 @@ class HorizontalGrid:
         num_images = len(images)
         image_widths = [image.shape[1] for image in images]
 
-        one_big_row_width = sum(image_widths[: -self._rows]) + (num_images - 1) * self._gap
+        one_big_row_width = sum(image_widths) + (num_images - 1) * self._gap
         self._row_width = one_big_row_width // self._rows
 
         rows = []

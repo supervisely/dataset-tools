@@ -26,6 +26,7 @@ class ClassesHeatmaps(BaseVisual):
         self._ds_image_sizes = []
         self.heatmap_image_paths = []
         self._font = None
+        self.max_cols = 6
 
         if heatmap_img_size:
             self._heatmap_img_size = heatmap_img_size
@@ -99,15 +100,17 @@ class ClassesHeatmaps(BaseVisual):
             self._create_single_images_text_outside(path)
 
         img_width, img_height = Image.open(self.heatmap_image_paths[0]).size
-        num_images = len(self.heatmap_image_paths)
-        if self.rows is None or self.cols is None:
-            if (self.rows is None) != (self.cols is None):
-                sly.logger.info(
-                    "Both rows and cols must be defined to set heatmaps grid manually. Rows and cols will be calculated automatically."
-                )
-            self.rows, self.cols = self._get_grid_size(num_images)
+        self.num_images = len(self.heatmap_image_paths)
 
-        self._change_output_width_relative_to_cols()
+        if self.cols is not None and self.rows is None:
+            self._get_rows()
+        if self.cols is None and self.rows is not None:
+            self._get_cols()
+        if self.cols is None and self.rows is None:
+            self._get_grid_dimensions()
+
+        if self.cols < self.max_cols:
+            self._change_output_width_relative_to_cols()
 
         result_width = (
             self.cols * (img_width + grid_spacing) - grid_spacing + 2 * outer_grid_spacing
@@ -136,11 +139,21 @@ class ClassesHeatmaps(BaseVisual):
 
         result_image.save(path)
 
-    def _get_grid_size(self, num: int = 1, aspect_ratio: Union[float, int] = 1.9) -> tuple:
-        self.max_cols = 6
-        cols = min(max(int(math.sqrt(num) * aspect_ratio), 1), self.max_cols)
-        rows = max((num - 1) // cols + 1, 1)
-        return (rows, cols)
+    def _get_rows(self):
+        self.rows = math.ceil(self.num_images / self.cols)
+
+    def _get_cols(self):
+        self.cols = math.ceil(self.num_images / self.rows)
+        if self.cols > self.max_cols:
+            self.cols = self.max_cols
+            self._get_rows()
+            sly.logger.warn(
+                f"Your request readjusted to {self.rows}x{self.cols} dimensions due to max possible columns = 6"
+            )
+
+    def _get_grid_dimensions(self, aspect_ratio: Union[float, int] = 1.9):
+        self.cols = min(max(int(math.sqrt(self.num_images) * aspect_ratio), 1), self.max_cols)
+        self.rows = max((self.num_images - 1) // self.cols + 1, 1)
 
     def _change_output_width_relative_to_cols(self):
         self.output_width = math.ceil(self.output_width / self.max_cols * self.cols)
@@ -225,7 +238,7 @@ class ClassesHeatmaps(BaseVisual):
             self.heatmap_image_paths.append(image_path)
 
     def _get_optimal_font_size(self, text):
-        desired_text_width = self._heatmap_img_size[1]
+        desired_text_width = math.ceil(self._heatmap_img_size[1] * 0.92)
         text_height_percent = 10
         font_size = 10
 
