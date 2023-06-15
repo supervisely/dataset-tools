@@ -236,5 +236,20 @@
     "id": 1029,
     "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/E/A/rw/ZmdhfjcllHYVzZHe7gdj1Z7TUrXbQ4dDHKERzW3NuUEngo3Us5PtELr1DonYpz05fjfkHSEv9UCauxIdtTQ31DemzAaTqapPSMgku69c3H5UwkIrQpUITDbZeB99.tar",
     "download_original_url": "https://datashare.ed.ac.uk/bitstream/handle/10283/3280/PS%20Plant%20training%20data%20set.zip?sequence=4&isAllowed=y"
+  },
+  "Sheep Detection": {
+    "id": 1016,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/k/z/qu/LHQuKiniDmOXAXMZdmewNMw6UkQU8eETkDvK6pmZmyEh58Q4MM428jMlwYAMNkVRVNMIc0l3b0O86CvbIQ92R231u9SfXulG0WmrkUsC88oQVa8Z6arF71EwKgVg.tar",
+    "download_original_url": "https://www.kaggle.com/datasets/andrewmvd/sheep-detection/download?datasetVersionNumber=1"
+  },
+  "Plastic Bottles": {
+    "id": 1020,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/4/h/TD/EXhjZDolSHCMOZOOWwT3Llx5YO4BRBwiCJlQSkcfCCewB7t14a6JkTURmfQXGJB07KvJ0v0Pve9jbSETMOcytHkBg7KpLbM2J5KOPr7V4QDHNDWZlssE4Z9IVPdH.tar",
+    "download_original_url": "https://github.com/m0-n/Plastic-Bottles-Dataset/archive/master.zip"
+  },
+  "Crack Segmentation for UAV Inspection": {
+    "id": 1022,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/Y/S/SY/e0rC2557N5DFd2xvV44lMxf1YhN8XwQIKcibtmMJZM7XsfsjKbqyjAhCY8jJHLEew7dtTcGTmauSSRn2o1c1KhX7bUZhd8cxnbWqoDteMNJWzYswdgY736NG0IdW.tar",
+    "download_original_url": "https://drive.google.com/open?id=1RMf0GYXn7Mq1s9STGFG5iByavTr05SjF"
   }
 }
