@@ -276,6 +276,7 @@ class ClassTreemap(BaseStats):
         self.force = force
         self.project_meta = project_meta
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
+        self._number_of_classes = len(self._class_titles)
         self._class_rgbs = [obj_class.color for obj_class in project_meta.obj_classes]
         self._class_colors = [rgb_to_hex(rgb) for rgb in self._class_rgbs]
 
@@ -289,6 +290,9 @@ class ClassTreemap(BaseStats):
         colors = self._class_colors
         names = []
         values = []
+
+        if self._number_of_classes < 2:
+            return
 
         class_areas_pc = defaultdict(list)
         class_object_counts = defaultdict(int)
@@ -328,6 +332,20 @@ class ClassTreemap(BaseStats):
         tc.set_series(names, values)
 
         res = tc.get_json_data()
+
+        if 10 > self._number_of_classes >= 2:
+            class_height = 40
+        elif 20 > self._number_of_classes >= 10:
+            class_height = 30
+        else:
+            class_height = 20
+
+        max_widget_height = 800
+        calculated_height = self._number_of_classes * class_height
+        height = min(calculated_height, max_widget_height) + 150
+
+        res["options"]["colors"] = colors
+        res["options"]["chart"]["height"] = height
 
         return res
 

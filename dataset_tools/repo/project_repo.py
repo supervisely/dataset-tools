@@ -154,6 +154,7 @@ class ProjectRepo:
                 "ClassesHeatmaps",
                 "ClassesPreview",
                 "Previews",
+                "ClassesTreemap",
             ]
 
         sly.logger.info(f"Following stats are passed with force: {force}")
@@ -170,10 +171,15 @@ class ProjectRepo:
             dtools.ObjectsDistribution(self.project_meta),
             dtools.ObjectSizes(self.project_meta),
             dtools.ClassSizes(self.project_meta),
+            dtools.ClassTreemap(self.project_meta),
         ]
         heatmaps = dtools.ClassesHeatmaps(self.project_meta)
-        classes_previews = dtools.ClassesPreview(self.project_meta, self.project_info.name, **cls_prevs_settings)
-        previews = dtools.Previews(self.project_id, self.project_meta, self.api, self.team_id, **previews_settings)
+        classes_previews = dtools.ClassesPreview(
+            self.project_meta, self.project_info.name, **cls_prevs_settings
+        )
+        previews = dtools.Previews(
+            self.project_id, self.project_meta, self.api, self.team_id, **previews_settings
+        )
 
         for stat in stats:
             if (
