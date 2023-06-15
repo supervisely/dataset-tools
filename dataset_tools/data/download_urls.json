@@ -208,5 +208,10 @@
     "id": 1022,
     "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/Y/S/SY/e0rC2557N5DFd2xvV44lMxf1YhN8XwQIKcibtmMJZM7XsfsjKbqyjAhCY8jJHLEew7dtTcGTmauSSRn2o1c1KhX7bUZhd8cxnbWqoDteMNJWzYswdgY736NG0IdW.tar",
     "download_original_url": "https://drive.google.com/open?id=1RMf0GYXn7Mq1s9STGFG5iByavTr05SjF"
+  },
+  "Road Damage": {
+    "id": 1030,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/u/z/wx/QeUaB05Hom7rcF7U6xCWKay9kkL1Y2lE3rANgwXzSGJddvvJoOX4LP3rakhpxSTEJywO93AKhg60bisu7aSHKINwDjjYvpxEWHYcI2wPzbkJ2J26YgT4thoBHuyz.tar",
+    "download_original_url": "https://www.kaggle.com/datasets/alvarobasily/road-damage/download?datasetVersionNumber=1"
   }
 }
