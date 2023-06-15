@@ -84,6 +84,7 @@
     "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/1/N/pI/EqrSGHLjMYawkM7xHV7WBVeSm8oCXdJ4ZhIlmDtEhBMrMkOFAQ42kcsMqESt4Tg7RW8m4QYf5r7iJN5XdtiIWy3iY9yVPyFvDi78wVv1CjFpHVYGjkKZeanSTEGy.tar",
     "download_original_url": "https://www.kaggle.com/datasets/lemontyc/sweet-pepper/download?datasetVersionNumber=1"
   },
+<<<<<<< HEAD
   "TomatOD": {
     "id": 932,
     "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/3/E/jT/ZYpX9f7tkdaXWsjrfh0h98q8R8nTRF5PmKli3ly4pPN3Va7rWRKKoWJvjb1XKjbzYfNNynnPj8vDKVmp4lT1Nl8qdOnMK9k6VHWzxLZ7W0ps7efCbqdqJnDB7Wvt.tar",
@@ -92,6 +93,8 @@
       "Bounding box annotations (train and validation sets)": "https://datasets-u2m.s3.eu-west-3.amazonaws.com/tomatOD_annotations.zip"
     }
   },
+=======
+>>>>>>> refs/remotes/origin/main
   "LaboroTomato": {
     "id": 907,
     "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/e/R/qZ/2eZK8XSou8uIggZbWGrGX28rBwcdwtNODgOkyOXtOMug95TUmuwqIetS2FJfRtaytU6Ma8UeGbXqQABXyGBQbbb7bYkg93oTQVAGeoCZfjAE3JykHxHHfRqf7ll3.tar",
@@ -154,6 +157,11 @@
     "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/K/r/h3/AxSYK5XceWzglHiDptKZmbOj8FO3leNIUEjd2lCuThKLTcp7WvkgEPjK9c0Y5Be8MKu7ev0mQpjCwXDQd2qFusM5NTIA6xPIyMEBOZ0HbXsWQYfjVgLsObAGMMvD.tar",
     "download_original_url": "https://www.kaggle.com/datasets/nischallal/rice-disease-dataset/download?datasetVersionNumber=1"
   },
+  "TTPLA": {
+    "id": 1015,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/f/6/XX/q1H4bZb8EV44VC6v37CYCPwgptJ7LgIBiaUBwMXDZsj0GgKFKUxMrJBMUntFxdoVlSBdM4H2LGaSbJNp3LhZU4XAJpvMtLug2p8otDD7ZfOzAApNImD6jjKv3xtX.tar",
+    "download_original_url": "https://drive.google.com/uc?export=download&confirm=no_antivirus&id=1Yz59yXCiPKS0_X4K3x9mW22NLnxjvrr0"
+  },
   "NeonTreeEvaluation": {
     "id": 1013,
     "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/5/4/aR/NR5cOakOLfM3BUgsPe9i2XRoDCybkunQkn1EK1RHKQzvyvSxEf76juWjZuh8xykGgPWaM6iHd0aZFQJ1iGM8I01HIF0jkfs30S1ucti3IbaXLyMZaHo9cFixIcLa.tar",
@@ -197,5 +205,33 @@
     "id": 985,
     "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/e/E/10/v7PlMZCD4WbeIzM50YRUkwAuCyw8rVCnQvAOlprO9XvzxwdgHz2CXYXcTNte44FXCEjDjGt6D56r63HmwAqF303laqojuCorYGScmdAKDp4TEO0KtB8tOktHjnxY.tar",
     "download_original_url": "https://www.kaggle.com/datasets/animeshkumarnayak/pcb-fault-detection/download?datasetVersionNumber=1"
+  "Pylon Components": {
+    "id": 1019,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/j/Z/aJ/t4cRL52eoP8nviF9AI5IsP2i88KOeG8kyyUQbDdILupYJ4mZfvkCbVBw2Q7JtgK3pYlRtUFJvFNB3Gc2uz7q8jujn232GYS7YgE9rtx86j69quXUYT9M2GysytIK.tar",
+    "download_original_url": {
+      "Readme": "https://zenodo.org/record/4573988/files/README.md?download=1",
+      "UAS training data": "https://zenodo.org/record/4573988/files/UAS_training_data.zip?download=1"
+    }
+  },
+  "STN PLAD": {
+    "id": 1021,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/w/l/AJ/jEFYpS8kGivKVygJ0oCjbdbjN2xK7bORwSfxPM2oy3l8k1EM0XAa2xPb9f1v3CcaOaFIrYwEb1bdm87E67eEdIWnYpYi5Ygx9825N1h0sARI29AcEB5LQnBy4HAK.tar",
+    "download_original_url": {
+      "Full STN PLAD dataset": "https://github.com/andreluizbvs/PLAD/releases/download/1.0/plad.zip",
+      "Labels": "https://github.com/andreluizbvs/PLAD/files/8952243/labels.zip"
+    }
+  },
+  "Insulator-Defect Detection": {
+    "id": 1027,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/u/y/1j/dFVgX8asWh3QL4vVEBkbPKkJnqEPcqvlk2vH6ss6fneJj3snw9hzM1paZnBX8il1AVgWriXeMKEmnwTlipqvUAJjHQPLJijUarHCcSn9GzOEkbWO7Ln6jLXL6W0T.tar",
+    "download_original_url": "https://figshare.com/ndownloader/files/37587370"
+  },
+  "tomatOD": {
+    "id": 932,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/0/r/Z5/bb7R0aaqwow9YDsScIynpUUHRgxT11hvqCU3hMTOGve4BLOgQEtXum2oni5vPVbo88VhLK54WLxwUotooGjVtqhJfe6JfQqqRAtOmtrK3ep5MqB2gXOWkYFMusJh.tar",
+    "download_original_url": {
+      "Images": "https://datasets-u2m.s3.eu-west-3.amazonaws.com/tomatOD_images.zip",
+      "Bounding box annotations (train and validation sets)": "https://datasets-u2m.s3.eu-west-3.amazonaws.com/tomatOD_annotations.zip"
+    }
   }
 }
