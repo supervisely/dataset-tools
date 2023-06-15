@@ -137,14 +137,15 @@ def count_stats(
                 else:
                     anns = [dataset.get_ann(name, project_meta) for name in image_names]
 
-                resized_anns = [resize_ann_with_aspect_ratio(ann) for ann in anns]
+                # resized_anns = [resize_ann_with_aspect_ratio(ann) for ann in anns]
+                # FIXME: optimization is broken (resize labels area 0 px)
 
-                for img, ann, resized_ann in zip(batch, anns, resized_anns):
+                for img, ann in zip(batch, anns):
                     for stat in stats:
-                        if stat.__class__ in CLASSES_TO_OPTIMIZE:
-                            stat.update(img, resized_ann)
-                        else:
-                            stat.update(img, ann)
+                        # if stat.__class__ in CLASSES_TO_OPTIMIZE:
+                        #     stat.update(img, resized_anns)
+                        # else:
+                        stat.update(img, ann)
                     pbar.update(1)
 
 
