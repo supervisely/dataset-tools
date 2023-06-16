@@ -19,7 +19,7 @@ GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
-PARENT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(CURENT_DIR)))
+PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
 
 
 class ClassesPreview(BaseVisual):

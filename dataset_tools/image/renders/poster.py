@@ -13,7 +13,7 @@ from dataset_tools.image.renders.convert import compress_png
 from supervisely.imaging import font as sly_font
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
-PARENT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(CURENT_DIR)))
+PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
 
 
 class Poster:

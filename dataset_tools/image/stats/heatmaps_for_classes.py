@@ -11,7 +11,7 @@ from skimage.transform import resize
 from dataset_tools.image.stats.basestats import BaseVisual
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
-PARENT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(CURENT_DIR)))
+PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
 
 
 class ClassesHeatmaps(BaseVisual):
