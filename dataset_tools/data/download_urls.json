@@ -278,5 +278,15 @@
         "id": 1033,
         "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/C/K/ZK/kX1Kg2jegPYN1nAwz6K6PplAI91cE8XVDrp0jac6la2Az1fofqtpNWnqKzZpL3dNZe73IeyjLDLMzY4447DPEV3zgM5Jp5xEzlgRCGoFANCuZaSPA6cCI9DoKevd.tar",
         "download_original_url": null
+    },
+    "Damage Detection of Power Plants": {
+        "id": 1040,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/6/0/Tm/sTifj5UUfAuPTp2Pb9RROdj9sEf7TfVZ1CEKsx8QdHz883bA15f5uPrVBxpBkJ1F0RhYZokUDd5RGvKhEo1vppj33xXaFYKWqRS6m0OkGkfenK0bJXjwieyTdOgp.tar",
+        "download_original_url": "https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/GFYPQW#"
+    },
+    "Wind Turbines": {
+        "id": 1044,
+        "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/6/h/82/AAKFkSKcEcArEOknXvbMoSQNvNQlAI7FWsmgPKUHRj70DNBaI0sbDsodwFLrbW89h8dmapL9swoysvdkdnCIiE6xvDikUJyR1ayC1uPGqCe5t19aD925tO61j01q.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/kylegraupe/wind-turbine-image-dataset-for-computer-vision/download?datasetVersionNumber=12"
     }
 }
