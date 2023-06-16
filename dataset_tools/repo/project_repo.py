@@ -10,10 +10,10 @@ CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
     "please cite the following reference:\n\n"
     "``` bibtex \n@misc{{{project_name},\n"
-    '\tauthor = "TO BE FILLED MANUALLY!",\n'
-    '\ttitle = "{project_name_full}",\n'
-    "\tyear = {{{year}}},\n"
-    '\turl = "{homepage_url}"\n}}\n```\n\n'
+    '\tauthor="TO BE FILLED MANUALLY!",\n'
+    '\ttitle="{project_name_full}",\n'
+    "\tyear={{{year}}},\n"
+    '\turl="{homepage_url}"\n}}\n```\n\n'
     "[🔗 Source]({homepage_url})"
 )
 
