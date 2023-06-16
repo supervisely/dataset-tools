@@ -224,7 +224,7 @@ class ClassesPreview(BaseVisual):
         while True:
             row_cnt += 1
             cur_rows, cur_diff = _split_list_images(images, row_cnt)
-            if cur_diff >= diff * 0.7:
+            if cur_diff >= diff * 0.7 or row_cnt > len(images):
                 row_cnt -= 1
                 break
             rows, diff = cur_rows, cur_diff
@@ -369,6 +369,8 @@ class ClassesPreview(BaseVisual):
 
         while text_width > desired_text_width or text_height > desired_text_height:
             font_size -= 1
+            if font_size < 1:
+                break
             font = ImageFont.truetype(self._font, font_size)
             text_width, text_height = font.getsize(text)
 
