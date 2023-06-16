@@ -200,9 +200,15 @@ class ProjectRepo:
             if vstat.__class__.__name__ in force:
                 vstat.force = True
 
-        if not sly.fs.file_exists(f"./stats/{heatmaps.basename_stem}.png"):
+        if (
+            not sly.fs.file_exists(f"./stats/{heatmaps.basename_stem}.png")
+            or heatmaps.__class__.__name__ in force
+        ):
             heatmaps.force = True
-        if not sly.fs.file_exists(f"./visualizations/{classes_previews.basename_stem}.webm"):
+        if (
+            not sly.fs.file_exists(f"./visualizations/{classes_previews.basename_stem}.webm")
+            or classes_previews.__class__.__name__ in force
+        ):
             classes_previews.force = True
         if not self.api.file.dir_exists(self.team_id, f"/dataset/{self.project_id}/renders/"):
             previews.force = True
