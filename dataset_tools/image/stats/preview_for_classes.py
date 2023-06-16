@@ -175,18 +175,6 @@ class ClassesPreview(BaseVisual):
                     )
                     text_mask = np.array(tmp_canvas, dtype=np.uint8)
 
-                sly.image.write(
-                    "/Users/almaz/job/supervisely/dataset-ninja/car-license-plate/visualizations/classes_preview1.png",
-                    img,
-                )
-                sly.image.write(
-                    "/Users/almaz/job/supervisely/dataset-ninja/car-license-plate/visualizations/classes_preview2.png",
-                    ann_mask,
-                )
-                sly.image.write(
-                    "/Users/almaz/job/supervisely/dataset-ninja/car-license-plate/visualizations/classes_preview3.png",
-                    text_mask,
-                )
                 self._np_images[cls_name] = cropped_img
                 self._np_anns[cls_name] = ann_mask
                 self._np_texts[cls_name] = text_mask
