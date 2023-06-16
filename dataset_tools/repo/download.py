@@ -9,6 +9,7 @@ import tqdm
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(CURENT_DIR)
 urls_path = os.path.join(PARENT_DIR, "data", "download_urls.json")
+tf_urls_path = "/cache/download_urls.json"
 # urls_path = "./dataset_tools/data/download_urls.json"
 
 
@@ -16,11 +17,16 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
     team_id = sly.env.team_id()
     workspace_id = sly.env.workspace_id()
     agent_id = sly.env.agent_id()
-    # storage_dir = sly.app.get_data_dir()
-    # local_save_path = os.path.join(storage_dir, "download_links.json")
+    storage_dir = sly.app.get_data_dir()
+    local_save_path = os.path.join(storage_dir, "download_urls.json")
 
-    if os.path.exists(urls_path):
-        with open(urls_path, "r") as f:
+    # if os.path.exists(urls_path):
+    #     with open(urls_path, "r") as f:
+    #         urls = json.load(f)
+
+    if api.file.exists(team_id, tf_urls_path):
+        api.file.download(team_id, tf_urls_path, local_save_path)
+        with open(local_save_path, "r") as f:
             urls = json.load(f)
     else:
         keys = [project.name for project in api.project.get_list(workspace_id)]
@@ -85,25 +91,33 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
 def update_sly_url_dict(api: sly.Api, new_dict: dict) -> None:
     team_id = sly.env.team_id()
 
-    if os.path.exists(urls_path):
-        with open(urls_path, "r") as f:
+    # if os.path.exists(urls_path):
+    #     with open(urls_path, "r") as f:
+    #         data = json.load(f)
+    # else:
+    #     sly.logger.info(f"File '{urls_path}' not exists. Creating a new one...")
+    #     data = {}
+
+    storage_dir = sly.app.get_data_dir()
+    local_save_path = os.path.join(storage_dir, "download_urls.json")
+
+    if api.file.exists(team_id, tf_urls_path):
+        api.file.download(team_id, tf_urls_path, local_save_path)
+        with open(local_save_path, "r") as f:
             data = json.load(f)
-    else:
-        sly.logger.info(f"File '{urls_path}' not exists. Creating a new one...")
-        data = {}
 
     sly.logger.info("Updating dictionary with download links...")
     data.update(new_dict)
 
-    with open(urls_path, "w") as f:
+    with open(local_save_path, "w") as f:
         json.dump(data, f, indent=4)
 
-    sly.logger.info(f"Dictionary saved to pip '{urls_path}'")
+    # sly.logger.info(f"Dictionary saved to pip '{urls_path}'")
 
-    teamfiles_path = f"/cache/{os.path.basename(urls_path)}"
-    api.file.upload(team_id, urls_path, teamfiles_path)
+    # teamfiles_path = f"/cache/{os.path.basename(urls_path)}"
+    api.file.upload(team_id, local_save_path, tf_urls_path)
 
-    sly.logger.info(f"Dictionary saved to Team files: '{teamfiles_path}'")
+    sly.logger.info(f"Dictionary saved to Team files: '{tf_urls_path}'")
 
 
 def download(dataset_name: str, dst_path: str):
