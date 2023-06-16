@@ -85,8 +85,7 @@ setup(
     author_email="support@supervise.ly",
     url="https://github.com/supervisely/dataset-tools",
     package_data={
-        "": ["fonts/*.ttf"],
-        "dataset_tools": ["data/*.json"],
+        "dataset_tools": ["data/*.json", "fonts/*.ttf"],
     },
     # entry_points={
     #     "console_scripts": [
