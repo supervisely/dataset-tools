@@ -6,15 +6,16 @@ from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
-import supervisely as sly
 from PIL import Image, ImageDraw, ImageFont
-from supervisely.imaging import font as sly_font
 from tqdm import tqdm
 
+import supervisely as sly
 from dataset_tools.image.renders.convert import compress_mp4, from_mp4_to_webm
 from dataset_tools.image.stats.basestats import BaseVisual
 
 UNLABELED_COLOR = [0, 0, 0]
+GRADIEN_COLOR_1 = (225, 181, 62)
+GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -32,6 +33,8 @@ class ClassesPreview(BaseVisual):
         row_height: int = None,
         force: bool = False,
         pad: dict = {"top": "10%", "bottom": "10%", "left": "10%", "right": "10%"},
+        rows: int = None,
+        gap: int = 20,
     ):
         self.force = force
         self._meta = project_meta
@@ -41,7 +44,10 @@ class ClassesPreview(BaseVisual):
         self._title = f"{self._project_name} · {classes_cnt} {classes_text}"
         self._pad = pad
 
-        self._gap = 20
+        self._gap = gap
+        self._rows = rows
+        self._first_row_height = None
+        self._last_row_height = None
         self._img_width = 1920
         self._img_height = None
         self._row_height = row_height if row_height is not None else 480
@@ -120,26 +126,16 @@ class ClassesPreview(BaseVisual):
         return canvas, masks, texts
 
     def _collect_images(self) -> None:
+        classes_cnt = len(self._classname2images)
+        limit = classes_cnt if classes_cnt < 25 else 25
         with tqdm(
-            desc="Download and prepare images and annotations",
-            total=len(self._classname2images),
+            desc="ClassesPreview: download and prepare images with annotations",
+            total=limit,
         ) as pbar:
-            for cls_name, items in self._classname2images.items():
+            for cls_name, items in list(self._classname2images.items())[:limit]:
                 random.shuffle(items)
-                items: List[Tuple[sly.ImageInfo, sly.Annotation]]
-                items = sorted(
-                    items,
-                    key=lambda item: max(
-                        [
-                            label.area / (item[0].width * item[0].height)
-                            for label in item[1].labels
-                            if label.obj_class.name == cls_name
-                        ]
-                    ),
-                )
-                image, ann = items[len(items) // 2]
+                image, ann = items[0]
 
-                image_area = image.width * image.height
                 img = self._api.image.download_np(image.id, keep_alpha=True)
 
                 crops = sly.aug.instance_crop(
@@ -149,10 +145,11 @@ class ClassesPreview(BaseVisual):
                     save_other_classes_in_crop=False,
                     padding_config=self._pad,
                 )
-                crops = sorted(crops, key=lambda crop: crop[1].labels[0].area / image_area)
-                cropped_img, cropped_ann = crops[-1]
 
-                cropped_img = self._resize_image(cropped_img, self._row_height)
+                random.shuffle(crops)
+                cropped_img, cropped_ann = crops[0]
+
+                cropped_img = self._resize_image_by_height(cropped_img, self._row_height)
                 cropped_ann = cropped_ann.resize(cropped_img.shape[:2])
                 ann_mask = np.zeros((*cropped_img.shape[:2], 3), dtype=np.uint8)
                 text_mask = np.zeros((*cropped_img.shape[:2], 3), dtype=np.uint8)
@@ -164,33 +161,38 @@ class ClassesPreview(BaseVisual):
                         label.draw(ann_mask, thickness=5)
 
                     bbox = label.geometry.to_bbox()
+                    font_size = self._get_base_font_size(cls_name, ann_mask.shape[:2])
+                    font = ImageFont.truetype(self._font, int(font_size * 0.75))
 
-                    font_size = self._get_base_font_size(cls_name, ann_mask.shape[1])
-                    font = ImageFont.truetype(self._font, font_size // 2)
-
-                    color_white = (255, 255, 255, 255)
-                    color_black = (0, 0, 0, 0)
-                    x_pos, y_pos = bbox.center.col, bbox.center.row
+                    white = (255, 255, 255, 255)
+                    black = (0, 0, 0, 0)
+                    x, y = bbox.center.col, bbox.center.row
 
                     tmp_canvas = Image.fromarray(text_mask)
                     draw = ImageDraw.Draw(tmp_canvas)
                     draw.text(
-                        (x_pos, y_pos),
-                        cls_name,
-                        font=font,
-                        fill=color_white,
-                        stroke_width=1,
-                        stroke_fill=color_black,
-                        anchor="mm",
+                        (x, y), cls_name, white, font, "mm", stroke_width=1, stroke_fill=black
                     )
                     text_mask = np.array(tmp_canvas, dtype=np.uint8)
 
+                sly.image.write(
+                    "/Users/almaz/job/supervisely/dataset-ninja/car-license-plate/visualizations/classes_preview1.png",
+                    img,
+                )
+                sly.image.write(
+                    "/Users/almaz/job/supervisely/dataset-ninja/car-license-plate/visualizations/classes_preview2.png",
+                    ann_mask,
+                )
+                sly.image.write(
+                    "/Users/almaz/job/supervisely/dataset-ninja/car-license-plate/visualizations/classes_preview3.png",
+                    text_mask,
+                )
                 self._np_images[cls_name] = cropped_img
                 self._np_anns[cls_name] = ann_mask
                 self._np_texts[cls_name] = text_mask
                 pbar.update(1)
 
-    def _resize_image(self, image: np.ndarray, height: int) -> np.ndarray:
+    def _resize_image_by_height(self, image: np.ndarray, height: int) -> np.ndarray:
         img_h, img_w = image.shape[:2]
         img_aspect_ratio = height / img_h
         img_h = height
@@ -207,90 +209,92 @@ class ClassesPreview(BaseVisual):
         return canvas
 
     def _create_rows(self, images: List[np.ndarray]) -> List[List[np.ndarray]]:
-        num_images = len(images)
-        rows_num, _ = self._get_grid_size(num_images)
-        self._img_height = rows_num * (self._row_height + self._gap) + self._gap
-        image_widths = [image.shape[1] for image in images]
+        images = sorted(images, key=lambda x: x.shape[1], reverse=True)
 
-        if rows_num == 1:
-            one_big_row_width = sum(image_widths) + (num_images - 1) * self._gap
-        else:
-            one_big_row_width = sum(image_widths[:-rows_num]) + (num_images - 1) * self._gap
-        self._row_width = one_big_row_width // rows_num
-        if num_images == 1:
-            one_big_row_width = images[0].shape[1]
-            self._row_width = one_big_row_width
-            return [images]
+        def _split_list_images(images, n):
+            rows = [[] for _ in range(n)]
+            sums = [self._gap] * n
+            total_height = n * self._row_height + self._gap * (n + 1)
 
-        rows = []
-        row_images = []
-        current_width = 0
+            if len(images) == 1 and n > 1:
+                single_width = images[0].shape[1] + self._gap * 2
+                return [images], abs(single_width - total_height)
 
-        for idx, (image, width) in enumerate(zip(images, image_widths)):
-            if current_width + width > self._row_width:
-                rows.append(row_images)
+            for image in images:
+                min_sum_index = sums.index(min(sums))
+                rows[min_sum_index].append(image)
+                sums[min_sum_index] += image.shape[1] + self._gap
 
-                row_images = []
-                current_width = 0
-                if len(rows) == rows_num:
-                    return rows
-            row_images.append(image)
-            if idx == num_images - 1:
-                rows.append(row_images)
-                if len(rows) == rows_num:
-                    return rows
-            current_width += width + self._gap
+            aspect_diff = abs(max(sums) - total_height)
+            return rows, aspect_diff
 
+        if self._rows is not None:
+            rows, _ = _split_list_images(images, self._rows)
+            return rows
+        row_cnt = 1
+        rows, diff = _split_list_images(images, row_cnt)
+        while True:
+            row_cnt += 1
+            cur_rows, cur_diff = _split_list_images(images, row_cnt)
+            if cur_diff >= diff * 0.7:
+                row_cnt -= 1
+                break
+            rows, diff = cur_rows, cur_diff
+        self._rows = row_cnt
         return rows
 
-    def _get_grid_size(self, num: int = 1, aspect_ratio: Union[float, int] = 1.9) -> tuple:
-        cols = max(int(math.sqrt(num) * aspect_ratio), 1)
-        rows = max((num - 1) // cols + 1, 1)
-        return (rows, cols)
-
     def _merge_img_in_rows(self, rows: List[np.ndarray], channels: int = 3) -> List[np.ndarray]:
-        max_row_width = 0
-        img_widths = []
+        row_widths = []
+        img_height = self._gap
         for row in rows:
-            sum_widths = sum([img.shape[1] for img in row])
-            img_widths.append(sum_widths)
-            min_gap = self._gap * (len(row) + 1)
-            max_row_width = max(max_row_width, sum_widths + min_gap)
-        self._row_width = max_row_width
+            sum_widths = sum([img.shape[1] for img in row]) + self._gap * (len(row) + 1)
+            row_widths.append(sum_widths)
+        avg_row_width = sorted(row_widths)[len(row_widths) // 2]
+        avg_row_width = min(avg_row_width, self._img_width)
 
         combined_rows = []
-        for row, width in zip(rows, img_widths):
+        for row in rows:
             if len(row) == 0:
                 continue
-            if len(row) == 1:
-                return row
-            gap = (self._row_width - width) // max((len(row) - 1), 1)
-            separator = np.ones((self._row_height, gap, channels), dtype=np.uint8) * 255
+
+            separator = np.ones((self._row_height, self._gap, channels), dtype=np.uint8) * 255
             combined_images = []
 
-            for image in row:
+            for image in row[::-1]:
                 combined_images.append(image)
                 combined_images.append(separator)
             combined_images.pop()
             combined_image = np.hstack(combined_images)
+            SCALE_TRIGGER = 0.7
+            if combined_image.shape[1] > avg_row_width * SCALE_TRIGGER:
+                aspect_ratio = avg_row_width / combined_image.shape[1]
+                img_h = int(aspect_ratio * combined_image.shape[0])
+                combined_image = self._resize_image_by_height(combined_image, img_h)
+            img_height += combined_image.shape[0] + self._gap
             combined_rows.append(combined_image)
 
+        self._row_width = avg_row_width
+        self._img_height = img_height
+        self._first_row_height = combined_rows[0].shape[0]
+        self._last_row_height = combined_rows[-1].shape[0]
         return combined_rows
 
     def _merge_rows_in_canvas(self, rows, channels: int = 3) -> np.ndarray:
         canvas = np.ones([self._img_height, self._row_width, channels], dtype=np.uint8) * 255
-        for i, image in enumerate(rows):
-            if image.shape[1] != canvas.shape[1] - self._gap * 2:
+        y = self._gap
+        for image in rows:
+            if image.shape[1] > canvas.shape[1] - self._gap * 2:
                 image = image[:, : canvas.shape[1] - self._gap * 2]
 
-            row_start = i * (self._row_height + self._gap) + self._gap
-            row_end = row_start + self._row_height
+            row_start = y
+            row_end = row_start + image.shape[0]
             column_start = self._gap
             column_end = image.shape[1] + self._gap
+            y = row_end + self._gap
 
             if row_end > canvas.shape[0]:
                 continue
-            canvas[row_start:row_end, column_start:column_end] = image
+            canvas[row_start:row_end, column_start:column_end, :channels] = image[:, :, :channels]
 
         return canvas
 
@@ -306,15 +310,15 @@ class ClassesPreview(BaseVisual):
         return result_image
 
     def _add_logo(self, image):
-        height = max(self._row_height // 5, 80)
+        height = self._last_row_height // 5
         image2 = cv2.imread(self._logo_path, cv2.IMREAD_UNCHANGED)
         image2 = cv2.cvtColor(image2, cv2.COLOR_BGRA2RGBA)
-        image2 = self._resize_image(image2, height)
+        image2 = self._resize_image_by_height(image2, height)
 
         height_r = height
         while image2.shape[1] > image.shape[1] * 0.25:
             height_r = int(0.95 * height_r)
-            image2 = self._resize_image(image2, height_r)
+            image2 = self._resize_image_by_height(image2, height_r)
 
         h1, w1 = image.shape[:2]
         h2, w2 = image2.shape[:2]
@@ -331,7 +335,7 @@ class ClassesPreview(BaseVisual):
 
     def _draw_title(self, image, text):
         _, image_w = image.shape[:2]
-        font_size = self._get_base_font_size(text, image_w)
+        font_size = self._get_base_font_size(text, (self._first_row_height, image_w))
         font = ImageFont.truetype(self._font, int(font_size * 0.75))
         _, top, _, _ = font.getbbox(text)
 
@@ -351,43 +355,44 @@ class ClassesPreview(BaseVisual):
         )
 
         tmp_canvas = Image.fromarray(tmp_canvas)
+        canvas_w, canvas_h = tmp_canvas.size
         draw = ImageDraw.Draw(tmp_canvas)
         text_width, text_height = draw.textsize(text, font=font)
         x, y = (x_pos_center - int(text_width / 2), y_pos_percent)
-        draw.text((half_offset, -half_offset // 3), text, font=font, fill=text_color)
+        draw.text((canvas_w // 2, canvas_h // 2), text, text_color, font, "mm")
 
         tmp_canvas = np.array(tmp_canvas, dtype=np.uint8)
-        canvas_h, canvas_w = tmp_canvas.shape[:2]
 
         image[y - 3 : y + canvas_h + 3, x - 3 : x + canvas_w + 3, :3] = 255
         image[y : y + canvas_h, x : x + canvas_w, :3] = tmp_canvas
 
         return image
 
-    def _get_base_font_size(self, text, image_w):
+    def _get_base_font_size(self, text: str, size: Tuple[int, int]):
+        image_h, image_w = size
         desired_text_width = image_w * 0.85
-        desired_text_height = self._row_height * 0.2
+        desired_text_height = image_h * 0.2
         text_height_percent = 25
         font_size = 30
 
         font = ImageFont.truetype(self._font, font_size)
 
-        text_width, title_height = font.getsize(text)
+        text_width, text_height = font.getsize(text)
 
-        while text_width > desired_text_width or title_height > desired_text_height:
+        while text_width > desired_text_width or text_height > desired_text_height:
             font_size -= 1
             font = ImageFont.truetype(self._font, font_size)
-            text_width, title_height = font.getsize(text)
+            text_width, text_height = font.getsize(text)
 
-        desired_font_height = math.ceil((self._row_height * text_height_percent) // 100)
+        desired_font_height = math.ceil((image_h * text_height_percent) // 100)
         desired_font_size = math.ceil(font_size * desired_text_width / text_width)
         desired_font_size = min(desired_font_size, desired_font_height)
 
         return desired_font_size
 
     def _gradient(self, img, left, top, right, bottom):
-        c1 = np.array((225, 181, 62))  # rgb
-        c2 = np.array((219, 84, 150))  # rgb
+        c1 = np.array(GRADIEN_COLOR_1)  # rgb
+        c2 = np.array(GRADIEN_COLOR_2)  # rgb
         im = np.zeros((bottom - top, right - left, 3), dtype=np.uint8)
         row = np.linspace(0, 1, right - left)
         kernel_1d = np.tile(row, (bottom - top, 1))
@@ -402,10 +407,10 @@ class ClassesPreview(BaseVisual):
         height, width = frames[0].shape[:2]
         video_writer = cv2.VideoWriter(videopath, fourcc, 15, (width, height))
 
-        with tqdm(desc="Saving video...", total=len(frames)) as vid_pbar:
+        with tqdm(desc="Saving classes preview video...", total=len(frames)) as vid_pbar:
             for frame in frames:
                 if frame.shape[:2] != (height, width):
-                    raise Exception("Not all frame sizes are not equal to each other.")
+                    continue
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
                 video_writer.write(frame)
                 vid_pbar.update(1)
