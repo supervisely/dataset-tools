@@ -89,7 +89,7 @@ class ClassesHeatmaps(BaseVisual):
         :type font: str, optional
         """
         self._calculate_output_img_size()
-        self._font = font
+        self._font = ImageFont.truetype(font) 
         self.output_width = output_width
         self.cols = cols
         self.rows = rows
@@ -178,7 +178,7 @@ class ClassesHeatmaps(BaseVisual):
         image_height = image.size[1]
         text_height = math.ceil(image_height * text_height_percent / 100)
 
-        font = ImageFont.truetype(self._font, text_height)
+        font = self._font.font_variant(size=text_height)
 
         characters = list(text)
         lines = []
@@ -227,7 +227,7 @@ class ClassesHeatmaps(BaseVisual):
 
             image = Image.open(image_path)
             draw = ImageDraw.Draw(image)
-            font = ImageFont.truetype(self._font, font_size)
+            font = self._font.font_variant(size=font_size)
             text = f"{heatmap}"
             text_color = (255, 255, 255)
             text_width, _ = draw.textsize(text, font=font)
@@ -242,13 +242,14 @@ class ClassesHeatmaps(BaseVisual):
         text_height_percent = 10
         font_size = 10
 
-        font = ImageFont.truetype(self._font, font_size)
+        font = self._font.font_variant(size=font_size)
         text_width, _ = font.getsize(text)
 
         while text_width > desired_text_width:
             font_size -= 1
-            font = ImageFont.truetype(self._font, font_size)
+            font = font.font_variant(size=font_size)
             text_width, _ = font.getsize(text)
+            font.font_variant
 
         desired_font_height = math.ceil((self._heatmap_img_size[0] * text_height_percent) // 100)
         desired_font_size = math.ceil(font_size * desired_text_width / text_width)
