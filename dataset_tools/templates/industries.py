@@ -30,3 +30,7 @@ class Industry:
     class Livestock:
         def __new__(cls):
             return "livestock"
+
+    class Tourism:
+        def __new__(cls):
+            return "tourism"
