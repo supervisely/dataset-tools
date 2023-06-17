@@ -293,5 +293,10 @@
     "id": 1045,
     "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/O/f/QI/aJWzwZ4EDEnmRL9e37GzddyWqc0FSJF507vAsyMOTyRakcUSUEeec52Gp5GpQkqGcvMs8f0RcJ0l9FrqBMvPvEWHKlPnXx9FdpHA0tAtpxDTXIIjCFFKtj1s27IF.tar",
     "download_original_url": "https://universe.roboflow.com/roboflow-100/fish-market-ggjso/dataset/6/download/coco"
+  },
+  "Wind Turbines 2": {
+    "id": 1063,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/m/V/HX/X0AtA4zUfwvDQ8dAjTA0wGtNhbYxykujC6uuN37Exp5t7hvzJ3LN2Zhk50JX8UQhCgRj8lrXSXvo9OltytS8bpnb9YlRORafzPfpGmIbyYKMWlBPfymp3HIt0U6h.tar",
+    "download_original_url": "https://figshare.com/ndownloader/files/24118271"
   }
 }
