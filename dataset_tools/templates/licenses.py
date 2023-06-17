@@ -10,7 +10,7 @@ class License:
         def __new__(cls):
             self = super().__new__(cls)
             self.name = "CC0 1.0"
-            self.url = "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+            self.url = "https://creativecommons.org/publicdomain/zero/1.0/"
             return self
 
     class CC_BY_NC_2_0:
