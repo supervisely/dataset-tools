@@ -96,3 +96,10 @@ class License:
             self.name = "GNU General Public License Version 3"
             self.url = "https://www.gnu.org/licenses/gpl-3.0.en.html"
             return self
+
+    class CC_BY_NC_4_0:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "CC BY-NC 4.0"
+            self.url = "https://creativecommons.org/licenses/by-nc/4.0/legalcode"
+            return self
