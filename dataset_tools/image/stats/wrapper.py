@@ -20,6 +20,8 @@ def sample_images(
     total = 0
     samples = []
     for dataset in datasets:
+        if dataset.items_count == 0:
+            continue
         k = int(
             max(
                 1,
