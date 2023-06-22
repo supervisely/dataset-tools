@@ -350,6 +350,7 @@ class ProjectRepo:
             "ClassesPreview": "visualizations/classes_preview.webm",
             "HorizontalGrid": "visualizations/horizontal_grid.png",
             "SideAnnotationsGrid": "visualizations/side_annotations_grid.png",
+            "Poster": "visualizations/poster.png",
         }
 
         summary_data = dtools.get_summary_data_sly(self.project_info)

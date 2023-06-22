@@ -262,7 +262,9 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         content += f"The dataset was released in {release_year}."
 
     if vis_url is not None and isinstance(vis_url, str):
-        if vis_url.endswith(".png"):
+        if vis_url.endswith("poster.png"):
+            content += f'\n\n<img src="{vis_url}">\n'
+        elif vis_url.endswith(".png"):
             content += f"\n\nHere is the visualized example grid with annotations:\n\n"
             content += f'<img src="{vis_url}">\n'
         else:
