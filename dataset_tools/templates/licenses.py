@@ -1,6 +1,6 @@
 class License:
     class Custom:
-        def __new__(cls, url: str=None):
+        def __new__(cls, url: str = None):
             self = super().__new__(cls)
             self.name = "custom"
             self.url = url
@@ -77,10 +77,10 @@ class License:
             return self
 
     class MIT:
-        def __new__(cls):
+        def __new__(cls, url: str = None):
             self = super().__new__(cls)
             self.name = "MIT License"
-            self.url = "https://spdx.org/licenses/MIT.html"
+            self.url = url or "https://spdx.org/licenses/MIT.html"
             return self
 
     class Apache_2_0:

@@ -299,9 +299,163 @@
     "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/m/V/HX/X0AtA4zUfwvDQ8dAjTA0wGtNhbYxykujC6uuN37Exp5t7hvzJ3LN2Zhk50JX8UQhCgRj8lrXSXvo9OltytS8bpnb9YlRORafzPfpGmIbyYKMWlBPfymp3HIt0U6h.tar",
     "download_original_url": "https://figshare.com/ndownloader/files/24118271"
   },
+  "Trail Camera": {
+    "id": 1056,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/C/D/Kq/jBilnIvW348wBML6XffPU7ScUYcDCxlXzu63PrJHwAhyw3x9QQwEv22kc3727HJYHS31mkCYibI8FtOWj9akQwndGcOo0Eo7gLvNXA5ihRs5OtCJp9SUhWxBfGID.tar",
+    "download_original_url": "https://universe.roboflow.com/roboflow-100/trail-camera/dataset/2/download"
+  },
+  "Aerial Cows": {
+    "id": 1059,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/h/7/nl/ub8YopkOzIHTURYIpZ0uEG5VqDk4hVU7fOxwkLMCdxFMMqbrbsYcMkwsdO1bKszf7hcTUG8Qm2y1ucnXV7eULaZJHgFOML205yiMbXYvDtpC4bklxBtmhrCF92SG.tar",
+    "download_original_url": "https://universe.roboflow.com/roboflow-100/aerial-cows/dataset/2/download"
+  },
+  "Animal Drone": {
+    "id": 1062,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/S/4/iI/U3XmMkTsXkuD7GrbNq4lbPb8EvnKCsU6ZCZUoxK2FPEVqCMRzdThwHfl1DMU5BVdpHu86EWUVTWMkPUbQTr9w0IrhnimkKpvMub4Xi8CQ07PudjVLuvMWuHowKGd.tar",
+    "download_original_url": "https://universe.roboflow.com/folio3-krxsh/animal-drone-5gqre/dataset/2/download"
+  },
+  "Cattle Face": {
+    "id": 1050,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/C/A/v1/WRX7RVblAbc4AxcG1ikFVJ9nrIXcck0nFiyIXUNbO2TeTVzDPPIMvIdCbrVxFLnbFUhbs8Dcuyb1fkUwmyzXcAvkREOIZshTgduWzJ0jnXvCLL09M4kWBUXdHxmx.tar",
+    "download_original_url": "https://universe.roboflow.com/kstate-kdd/cattle-face-dataset/dataset/2/download"
+  },
+  "Cattle Face Detection": {
+    "id": 1051,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/p/C/Kz/LPanFStkZlpSDjh2hBlvuoFW7wzQAgUNkClY0SlLfqTqSdenQrBRyQEQhcEtrRhFJsTMZ2zm48ULK3gHCKKhYPK0YHeUVfmJsyxUKmcpwihBOyA1El2ziqi9Ge8T.tar",
+    "download_original_url": "https://universe.roboflow.com/universidade-federal-de-santa-maria-dbq3m/cattle-face-detection/dataset/1/download"
+  },
+  "kcow1": {
+    "id": 1052,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/w/v/qG/GO3ABO5VJWVrj07DeZYD7YTqFOhiCA3pEhAyAFKlbfJoAtPfkkTIZ6tfp99PwImXNKt33huJMCGD4kv9ZGQnYe4DK71XNYGbCyMFF4ZJycpC2qIMVgmCUtPSvy7P.tar",
+    "download_original_url": "https://universe.roboflow.com/sungho/kcow1/dataset/2/download"
+  },
+  "chw": {
+    "id": 1053,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/p/V/0L/kvIDvvWEdUSVTaPqVOfZYNVLdjb4XoqIKXWhnFow4ytFGsZB4L3lopUyt5y6SJLBSlF3ZKNqS84f5mKQL7IvU7s4unAP8gROfTKW9RzySkkXhjShRvQN15yMxQHb.tar",
+    "download_original_url": "https://universe.roboflow.com/jack-v5j2k/chw/dataset/3/download"
+  },
+  "Thecowface": {
+    "id": 1054,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/l/K/uT/CHpSvOaMM6Kfoh6Fp4NEMYH1qaGz08PsESyyxNWNNm69DXvVosebDFBqtl7EfolqgLp8b19bllTgjN5DnPG51645yOxkXdSEIBXMxZG9VWhuanR1Sw3xC5mh0oQ9.tar",
+    "download_original_url": "https://universe.roboflow.com/face-cow/thecowface/dataset/1/download"
+  },
+  "Cattle (j1qzu)": {
+    "id": 1055,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/l/Q/Xe/UC6Uz2G0OQ1T1Wr0zoa3NCXVQbhUumUxyB7Uxilf8A1rj2FCUWZABwtJ3nZkDnyFqWv9I31AFBBfXibQQboQtjVosa4zjgidBb3gOMWe6MlNotcu2IM8nQMSKZsZ.tar",
+    "download_original_url": "https://universe.roboflow.com/cattledetector/cattle-j1qzu/dataset/1/download"
+  },
+  "Aerial Sheep": {
+    "id": 1060,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/E/8/mu/ue6RWTcjqkjij4RcGwanrW8UBWuuZGJkyAEGf6kgHGXhMaj0nrKcLNCQeody9jTnfKlHtGviaRgiAKY6ZBa5XueUDU1d0XIABT5s7iIji0QGdmxEHoRDJ4CJVFJu.tar",
+    "download_original_url": "https://universe.roboflow.com/riis/aerial-sheep/dataset/1/download"
+  },
   "Wind Turbines 3": {
     "id": 1064,
     "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/x/D/6p/4pZUeB8ruNTokW6cwidVED2449D1HMX91QoTJP4CiHgLoWzHKvZ2dn4rBEb8kmV3h2RCiwsF7YaWcKFryONbwJ8Ip9EU8tIbhyLXp6P0s8TJugrGnPQGru9L88Ct.tar",
     "download_original_url": "https://figshare.com/ndownloader/files/24121976"
+  },
+  "Elec APC2": {
+    "id": 1065,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/z/z/gS/3okbThYx4GfmJ7vSciQyMby3ZWUUBwUmR2SrzoDwnXnNuRpIn6rjskplSf1UOrIDFlkfVIsFBm1oyqe7C7R1wO4oRiG8wfaHGJtZ0cjxclw98b9nRy5fu4Q9E2fj.tar",
+    "download_original_url": null
+  },
+  "Deer (z7klu)": {
+    "id": 1057,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/1/o/wr/urT4irvEgpefRx8yXdwljujZJxjSWTMYPCiIpYgenoIqNzfyv8NkfeUBDtc3lns3cms50p3fSg1slnKj0qoyHxfphnshacCZxgsNy02E136vWTR2s9zJHFpoZPOo.tar",
+    "download_original_url": "https://universe.roboflow.com/galen-marsh-vvdvx/deer-z7klu/dataset/3/download"
+  },
+  "Deer (yidlt)": {
+    "id": 1066,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/g/3/TV/ywHVJclMeHDOGZ3sHhxtboGgDrwBC1yeO400R70ewavnRy6LHsEa40vbHcLgnA5atl1sfNz3Wcw7rIpWKxCjwJQAjBbvJrMXIxjWkd29BfxBu9AZrl2ATqapecKV.tar",
+    "download_original_url": "https://universe.roboflow.com/deertracker/deer-yidlt/dataset/1/download"
+  },
+  "Utility Pole Label": {
+    "id": 1068,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/u/p/Ni/hgIyVYPciW9OHmIC3Uct3bB4h0kqEGjom1APtktSUCiaMGcZrCgfj0Sa1Zz3yMmEsejkpzTiUYyhru4N2IlCy1NsUVFBynWWBk3gh91CaBlJS43bRiy30ZoNidwi.tar",
+    "download_original_url": "https://universe.roboflow.com/new-workspace-en1on/utility-pole-label/dataset/4/download"
+  },
+  "Detect (caxah)": {
+    "id": 1069,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/l/E/qO/xim4ZdDIwbymzUrrROfjn5dkGYflxsCXz02X7LemItFvXwb5oj6O3MRErPN3Ta5NDA87w7CCnNKgqc8qgZV7D0zKaTlrOGQhuWfLrJCHEu3QEtItM8VMiSsdeu5f.tar",
+    "download_original_url": "https://universe.roboflow.com/s-o33ou/detect-caxah/dataset/1/download"
+  },
+  "Powerline Detection": {
+    "id": 1071,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/u/z/yU/m57MKPVmdCqksGlWsqIxHCJfNN5NQUZruh0qNroPcAtDUdvVQqp1YV8lad6bTXV49rMhOpBHTOZMnaGgRGq2B4bwxdpGAIJHvd90Q0lRwRgCpb2xHhu087JzNNo2.tar",
+    "download_original_url": "https://universe.roboflow.com/college-2t4kc/powerline-detection/dataset/5/download"
+  },
+  "Electric Pole": {
+    "id": 1067,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/a/K/68/dPMCbsboaaRoHmONhQBrXnhgynPjXakizlKOhJdjIUCyJAktLfnDMP8NNGunWKtTx7utMmS8IGoqIcxb5I1Z2hlAEjTYNWnMKGAiPuLMeizuMUyX7paR1eE5uD0s.tar",
+    "download_original_url": "https://universe.roboflow.com/ritsumeikan-university/electric-pole/dataset/1/download"
+  },
+  "Animals (kapzz)": {
+    "id": 1046,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/5/O/KE/rmUrFVQCChTEmtpm3FFJOY9XAPln5Rl5yZKIy4p7uQ3XqIXwRFgHIwz45YFkb9X6MtQOx7wmteJVw0y2gnsqxEzEz8O7oKtcO5MIjiIAUL5Kzkns8eqcRX2AxPUJ.tar",
+    "download_original_url": "https://universe.roboflow.com/graduation-nnzal/animals-kapzz/dataset/2/download/coco"
+  },
+  "deepNIR": {
+    "id": 978,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/z/E/jd/phjN7e0SLy2ZQZ0z3DSdYhwkWYvRtxna4MqT6Mmb99qdaQreTX7TXGMCzTeJ1vkiZnYouAQSopsmJQkS3kIo5up7S1HRFxlTqjTxDbJlyhScqf89hnPI0khVP63e.tar",
+    "download_original_url": "https://zenodo.org/record/6324489/files/yolov5.zip?download=1"
+  },
+  "Animal Object Detection": {
+    "id": 1076,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/P/5/mT/ZegADSyA1TWr0EaVRxdfc1umyN9ukZ5SuVP8eLbdl6sMPP7h5fUiKzMY6KkPg2E1pUpU8Dd0lQJFtouVEaZ3wunVvC7teUilIALaBAXVk5LxfJGx1yV4sHqGltbn.tar",
+    "download_original_url": "https://universe.roboflow.com/animal-detection-yvpsn/animal-object-detection-gbwme/dataset/2/download"
+  },
+  "Wind Turbines 4": {
+    "id": 1105,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/V/i/ph/LBp7VzqZt4ZJuTJUiZMsOzLnxOTOqhRznAPjECNlkQQbVPTWpL0p0sdqdINQSFOV93USnRHTcktp9HOFwkXYsEbelPzcGxzrVvBt8qnxUID0CT68IjooF6lEpGAk.tar",
+    "download_original_url": "https://figshare.com/ndownloader/files/24118220"
+  },
+  "Wind Turbines 5": {
+    "id": 1106,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/o/z/vU/yDH6R00TXWq2JVlvKMcPdDlvkZYv6oUlHZ00Eapw1E6akF6gmStAcRRUxbGm2rKW3kOGDIV3NxAy6KjoIlZSUDU8tbbhwh8bkxCBNW7z2ENiE2UtRU9vTxnQCRz9.tar",
+    "download_original_url": "https://www.kaggle.com/datasets/saurabhshahane/wind-turbine-obj-detection/download?datasetVersionNumber=1"
+  },
+  "Wind Turbines 6": {
+    "id": 1107,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/u/B/dB/HtpVOF7YPOLV3oEOtRSRh9m62GDUtAV8pWgJIjeCcqRGThWtJt3LvpgXM0nXb5fyRHZVm8aP5RtNhAInY4OcBg8PvQVxeQ3L2MgWoxdPmgFdzy87bTlDiU6HjW5k.tar",
+    "download_original_url": "https://zenodo.org/record/7808269/files/windTurbineDataSet.zip?download=1"
+  },
+  "Wind Turbine 7": {
+    "id": 1110,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/1/V/c6/PolXznewivXoVZQoPMmNREvsxz1VejeIfy32PlUZv4k45Det9r2JtxcufnP8LbK3F0lXZ3cqiN8iP7xIiNiVSLBH1oRafEAdkQZrZvi8ewaODtFMaSED9H1YWTDv.tar",
+    "download_original_url": "https://www.kaggle.com/datasets/ajifoster3/yolo-annotated-wind-turbines-586x371/download?datasetVersionNumber=1"
+  },
+  "Wind Turbines 8": {
+    "id": 1128,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/K/d/nT/uBzlQzdCRhu9ph3KHQghbGFKxBfmKh9pTEn06CnAbDUbmo36kvykfDUuVwG1LV4qPFa6qKIlvPY5sz9d8eUexfLPb0M0abSQjH6oDqiyABoJIwqgRoKSLaLsBYIs.tar",
+    "download_original_url": null
+  },
+  "SARAS-ESAD 2020": {
+    "id": 1124,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/p/r/kz/eHeXvQwxQSB38OZuf2eOQDjVzsKKGqGMDLHZuC9qvh9SApTeAa4tKh9GKpcrjtAnc5IuZl7u9duukXipIKdEQe19AmjujEfTg6mgpKrmCbw89KlOoE7xSdTMk3M2.tar",
+    "download_original_url": {
+      "Training_Dataset": "https://drive.google.com/file/d/1CnYAzZRVEDGK1TycGBb8SnMgyvzeZrie/view?usp=sharing",
+      "Validation dataset": "https://drive.google.com/file/d/17rWwuWKFZFxQ0DTRs5cmUzU2Vb5PScol/view?usp=sharing",
+      "Test dataset Images": "https://drive.google.com/file/d/1gho-oGzUbNgnZmBZ2GDKWWOcs1VI-z0O/view?usp=sharing",
+      "Test dataset Labels": "https://drive.google.com/file/d/16srrq1NIso1mI2YKtHMIPyn5bZbcCyo3/view?usp=sharing"
+    }
+  },
+  "Wind Turbines 9": {
+    "id": 1133,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/T/x/VX/c3e76sozsdvOl6yInn8bGGDptJmQleZIH4hSIOCDcpYba9zXxEN8HfmUi7nd2K4VO183Y9UCmRKGlBrBjfWfSNeuobXnxZRZRXMleEtjSs2Olozam58LW4rmdZHr.tar",
+    "download_original_url": "https://github.com/lbborkowski/wind-turbine-detector/archive/refs/heads/master.zip"
+  },
+  "DeepBacs": {
+    "id": 1142,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/r/Q/QZ/sdaWMZcXZ75ki8rrIsRAC5jSHtoZ5lgXvkkm9fP2xf9yWS7OkYzBDMjkfzgx4zgKYwDAvI4Kqpu54zG1hhtqtgeEvfkBfIVQbjikuPQGu6IKxZutelD8ZOD8iJbV.tar",
+    "download_original_url": {
+      "Antibiotic_profiling_examples.png": "https://zenodo.org/record/5551057/files/Antibiotic_profiling_examples.png?download=1",
+      "DeepBacs_Data_Object_Detection_E.coli_Antibiotic_Phenotyping.zip": "https://zenodo.org/record/5551057/files/DeepBacs_Data_Object_Detection_E.coli_Antibiotic_Phenotyping.zip?download=1",
+      "DeepBacs_Model_Object_Detection_E.coli_Antibiotic_Phenotyping.zip": "https://zenodo.org/record/5551057/files/DeepBacs_Model_Object_Detection_E.coli_Antibiotic_Phenotyping.zip?download=1"
+    }
+  },
+  "BCCD": {
+    "id": 1147,
+    "download_sly_url": "https://assets.supervise.ly/supervisely-supervisely-assets-public/teams_storage/d/Q/i0/4P7VSYcX7dnqjt6Z642VPAR5hrtTFzvyEJTcIdfNTZzzTfNRow5sdkRP6ibC1S5EfBn69z8IE7U65Vlc6yoNUpfr6hPbfdXSXxOGF24sTbwGPnB2ra7CxXk9cWyY.tar",
+    "download_original_url": "https://github.com/Shenggan/BCCD_Dataset/archive/refs/tags/v1.0.zip"
   }
 }
