@@ -19,7 +19,9 @@ def unpack_if_archive(path: str) -> str:
             total_files = len(zip_ref.infolist())
 
             with tqdm.tqdm(
-                desc=f"Unpacking {get_file_name_with_ext(path)}...", total=total_files, unit="file"
+                desc=f"Unpacking '{get_file_name_with_ext(path)}'...",
+                total=total_files,
+                unit="file",
             ) as pbar:
                 for file in zip_ref.infolist():
                     zip_ref.extract(file, extraction_path)
@@ -34,7 +36,9 @@ def unpack_if_archive(path: str) -> str:
             total_files = len(tar_ref.getnames())
 
             with tqdm.tqdm(
-                desc=f"Unpacking {get_file_name_with_ext(path)}...", total=total_files, unit="file"
+                desc=f"Unpacking '{get_file_name_with_ext(path)}'...",
+                total=total_files,
+                unit="file",
             ) as pbar:
                 for file in tar_ref.getnames():
                     tar_ref.extract(file, extraction_path)
