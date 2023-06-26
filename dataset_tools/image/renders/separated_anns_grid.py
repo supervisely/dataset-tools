@@ -79,7 +79,8 @@ class SideAnnotationsGrid:
             elif self._is_detection_task:
                 bbox = label.geometry.to_bbox()
                 pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
-                cv2.rectangle(mask_img, pt1, pt2, label.obj_class.color, 7)
+                thickness = ann._get_thickness()
+                cv2.rectangle(mask_img, pt1, pt2, label.obj_class.color, thickness)
                 font_size = int(sly_font.get_readable_font_size(mask_img.shape[:2]) * 1.4)
                 font = sly_font.get_font(font_size=font_size)
                 _, _, _, bottom = font.getbbox(label.obj_class.name)
@@ -124,7 +125,7 @@ class SideAnnotationsGrid:
             column_end = self._img_array.shape[1]
 
             self._img_array[row_start:row_end, column_start:column_end] = image
-        self._img_array[:, - self._gap:] = 255
+        self._img_array[:, -self._gap :] = 255
 
     def _create_rows(self):
         num_images = len(self.np_images)
@@ -138,10 +139,10 @@ class SideAnnotationsGrid:
         current_width = 0
 
         for idx, (image, width) in enumerate(zip(self.np_images, image_widths)):
-            if len(rows) == self._rows:
-                return rows
             if current_width + width > self._row_width:
                 rows.append(row_images)
+                if len(rows) == self._rows:
+                    return rows
 
                 row_images = []
                 current_width = 0
@@ -149,6 +150,7 @@ class SideAnnotationsGrid:
             row_images.append(image)
             if idx == num_images - 1:
                 rows.append(row_images)
+                return rows
             current_width += width + self._gap
 
         return rows
@@ -196,7 +198,6 @@ class SideAnnotationsGrid:
         self._img_array[:height2, x : x + width2, :3] = (
             1 - alpha_channel[:, :, np.newaxis]
         ) * region + alpha_channel[:, :, np.newaxis] * image2[:, :, :3]
-
 
     def _add_logo(self, image):
         height = max(self._row_height // 5, 80)
