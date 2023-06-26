@@ -11,6 +11,8 @@ p = (
     inflect.engine()
 )  # correctly generate plurals, singular nouns, ordinals, indefinite articles; convert numbers to words.
 
+MAX_CLASSES_IN_TEXT = 25
+
 
 def list2sentence(
     lst: Union[List[str], str],
@@ -44,6 +46,13 @@ def list2sentence(
         sentence = lst[0]
     elif len(lst) == 2:
         sentence = " and ".join(lst)
+    elif len(lst) > MAX_CLASSES_IN_TEXT * 2:
+        sentence = (
+            ", ".join(lst[:MAX_CLASSES_IN_TEXT])
+            + ", and "
+            + str(len(lst) - MAX_CLASSES_IN_TEXT)
+            + " more"
+        )
     else:
         sentence = ", ".join(lst[:-1]) + ", and " + lst[-1]
 
@@ -261,14 +270,20 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     elif organization_name is None and organization_url is None:
         content += f"The dataset was released in {release_year}."
 
+    total_classes = totals.get("total_classes", 0)
     if vis_url is not None and isinstance(vis_url, str):
         if vis_url.endswith("poster.png"):
             content += f'\n\n<img src="{vis_url}">\n'
         elif vis_url.endswith(".png"):
             content += f"\n\nHere is the visualized example grid with annotations:\n\n"
             content += f'<img src="{vis_url}">\n'
+        elif total_classes > MAX_CLASSES_IN_TEXT:
+            content += f"\n\nHere is a visualized example for {MAX_CLASSES_IN_TEXT} randomly selected sample classes:\n\n"
+            content += f"[Dataset classes]({vis_url})\n"
         else:
-            content += f"\n\nHere are the visualized examples for each of the {totals.get('total_classes', 0)} classes:\n\n"
+            content += (
+                f"\n\nHere are the visualized examples for each of the {total_classes} classes:\n\n"
+            )
             content += f"[Dataset classes]({vis_url})\n"
 
     return content
