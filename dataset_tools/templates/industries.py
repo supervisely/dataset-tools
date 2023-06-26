@@ -38,3 +38,7 @@ class Industry:
     class Eco:
         def __new__(cls):
             return "eco"
+
+    class AirDetection:
+        def __new__(cls):
+            return "air detection"
