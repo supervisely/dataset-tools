@@ -241,7 +241,9 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         content += f"(*{top_classes[0]}*)."
     else:
         content += f"including {list2sentence(top_classes[:3], char2wrap='*')}."
-    content += f"\n\nEach {p.singular_noun(modality)} in the {name} dataset has {annotations}. "
+    content += (
+        f"\n\n{p.plural_noun(modality).capitalize()} in the {name} dataset has {annotations}. "
+    )
     if unlabeled_assets_num == 0:
         content += f"All {modality} are labeled (i.e. with annotations). "
     elif unlabeled_assets_num == 1:
