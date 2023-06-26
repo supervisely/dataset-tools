@@ -134,6 +134,7 @@ class ProjectRepo:
                     "ClassesHeatmaps",
                     "ClassesPreview",
                     "Previews",
+                    "ClassTreemap",
                 ]
             ]
         ] = None,
@@ -154,7 +155,7 @@ class ProjectRepo:
                 "ClassesHeatmaps",
                 "ClassesPreview",
                 "Previews",
-                "ClassesTreemap",
+                "ClassTreemap",
             ]
 
         sly.logger.info(f"Following stats are passed with force: {force}")
