@@ -208,8 +208,7 @@ class Poster:
 
     def _draw_title(self, text):
         image_h, image_w = self._size
-        font_size = self._get_base_font_size(self._title_font, text)
-        font = ImageFont.truetype(self._title_font, int(font_size))
+        font = self._get_base_font_size(self._title_font, text)
         _, top, _, _ = font.getbbox(text)
 
         full_offset = top
@@ -253,21 +252,22 @@ class Poster:
 
         while text_width > desired_text_width or text_height > desired_text_height:
             font_size -= 1
-            font = ImageFont.truetype(font_family, font_size)
+            font = font.font_variant(size=font_size)
             text_width, text_height = font.getsize(text)
 
         desired_font_height = math.ceil((image_h * text_height_percent) // 100)
         desired_font_size = math.ceil(font_size * desired_text_width / text_width)
         desired_font_size = min(desired_font_size, desired_font_height)
 
-        return desired_font_size
+        font = font.font_variant(size=desired_font_size)
+        return font
 
     def _draw_subtitles(self, text):
-        font_subs_size = self._get_base_font_size(self._subs_font, text)
-        font_subs = ImageFont.truetype(self._subs_font, int(font_subs_size * 0.7))
-        _, _, _, box_b = font_subs.getbbox(text)
+        font_subs = self._get_base_font_size(self._subs_font, text)
+        font_subs_for_box = font_subs.font_variant(size=int(font_subs.size * 0.7))
+        _, _, _, box_b = font_subs_for_box.getbbox(text)
 
-        font_subs = ImageFont.truetype(self._subs_font, int(font_subs.size * 0.6))
+        font_subs = font_subs.font_variant(size=int(font_subs_for_box.size * 0.6))
         _, _, r, b = font_subs.getbbox(text)
         offset = box_b - b
         image = np.ones((box_b, r + offset, 3), dtype=np.uint8) * 255
