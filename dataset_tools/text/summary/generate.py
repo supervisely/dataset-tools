@@ -208,7 +208,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     else:
         if "semantic segmentation" in annotation_types:
             annotations.append(
-                " pixel-level semantic segmentation annotations. Due to the nature of the semantic segmentation task, it can be automatically transformed into object detection (bounding boxes for every object) task"
+                " pixel-level semantic segmentation annotations. Due to the nature of the semantic segmentation task, it can be automatically transformed into an object detection (bounding boxes for every object) task"
             )
         elif "object detection" in annotation_types:
             annotations.append(" bounding box annotations")
@@ -241,7 +241,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         content += f"(*{top_classes[0]}*)."
     else:
         content += f"including {list2sentence(top_classes[:3], char2wrap='*')}."
-    content += f"\n\n{modality.capitalize()} in the {name} dataset has {annotations}. "
+    content += f"\n\n{modality.capitalize()} in the {name} dataset have {annotations}. "
     if unlabeled_assets_num == 0:
         content += f"All {modality} are labeled (i.e. with annotations). "
     elif unlabeled_assets_num == 1:
