@@ -11,6 +11,10 @@ class Industry:
         def __new__(cls):
             return "agriculture"
 
+    class Aviation:
+        def __new__(cls):
+            return "aviation"
+
     class Medical:
         def __new__(cls):
             return "medical"
@@ -34,7 +38,7 @@ class Industry:
     class Tourism:
         def __new__(cls):
             return "tourism"
-            
+
     class Eco:
         def __new__(cls):
             return "eco"
