@@ -111,7 +111,12 @@ class Poster:
                 np_img = sly.image.resize(np_img, (img_h, img_w))
 
                 background = sly.image.resize(background, np_img.shape[:2])
-                ann = ann.resize(np_img.shape[:2])
+                try:
+                    ann = ann.resize(np_img.shape[:2])
+                except Exception:
+                    sly.logger.warn(f"Skipping image: can not resize annotation. Image name: {img_info.name}")
+                    i += 1
+                    continue
 
                 ann: sly.Annotation
                 thickness = ann._get_thickness()
