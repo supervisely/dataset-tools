@@ -6,6 +6,7 @@ import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseStats
 
 UNLABELED_COLOR = [0, 0, 0]
+CLASSES_CNT_LIMIT = 100
 
 
 class ClassesPerImage(BaseStats):
@@ -44,6 +45,11 @@ class ClassesPerImage(BaseStats):
         self._classname_to_index = {}
 
         for idx, obj_class in enumerate(self._meta.obj_classes):
+            if idx >= CLASSES_CNT_LIMIT:
+                sly.logger.warn(
+                    f"{self.__class__.__name__}: will use first {CLASSES_CNT_LIMIT} classes."
+                )
+                break
             self._class_names.append(obj_class.name)
             class_index = idx + 1
             self._class_indices_colors.append([class_index, class_index, class_index])
@@ -133,10 +139,12 @@ class ClassesPerImage(BaseStats):
             "postfix": "%",
         }
 
-        for obj_class in self._meta.obj_classes:
+        for class_name in self._class_names:
+            if class_name == "unlabeled":
+                continue
             columns_options.append({"subtitle": "objects count"})
             columns_options.append({"subtitle": "covered area", "postfix": "%"})
-            columns.extend([obj_class.name] * 2)
+            columns.extend([class_name] * 2)
 
         options = {"fixColumns": 1}
         res = {

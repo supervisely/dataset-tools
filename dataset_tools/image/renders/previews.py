@@ -5,7 +5,6 @@ import cv2
 import numpy as np
 
 import supervisely as sly
-from supervisely.imaging import font as sly_font
 
 
 class Previews:

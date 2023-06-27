@@ -18,6 +18,8 @@ GRADIEN_COLOR_1 = (225, 181, 62)
 GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
+CLASSES_CNT_LIMIT = 25
+
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
 
@@ -127,7 +129,7 @@ class ClassesPreview(BaseVisual):
 
     def _collect_images(self) -> None:
         classes_cnt = len(self._classname2images)
-        limit = classes_cnt if classes_cnt < 25 else 25
+        limit = classes_cnt if classes_cnt < CLASSES_CNT_LIMIT else CLASSES_CNT_LIMIT
         with tqdm(
             desc="ClassesPreview: download and prepare images with annotations",
             total=limit,

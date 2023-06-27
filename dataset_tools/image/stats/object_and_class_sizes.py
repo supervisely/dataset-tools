@@ -222,7 +222,7 @@ class ClassSizes(BaseStats):
         options = {
             "fixColumns": 1,
             "sort": {"columnIndex": 1, "order": "desc"},
-            "pageSize": len(self._class_titles),
+            "pageSize": 10,
         }
 
         res = {
