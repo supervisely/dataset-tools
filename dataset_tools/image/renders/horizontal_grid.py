@@ -67,15 +67,16 @@ class HorizontalGrid:
                 img = self._resize_image(img, self._row_height)
                 ann = ann.resize(img.shape[:2])
                 ann: sly.Annotation
+                thickness = ann._get_thickness()
                 for label in ann.labels:
                     if type(label.geometry) == sly.Point:
-                        label.draw(ann_mask, thickness=15)
-                        label.draw(img, thickness=15)
+                        label.draw(ann_mask, thickness=int(thickness * 1.5))
+                        label.draw(img, thickness=int(thickness * 1.5))
                     elif self._is_detection_task:
                         bbox = label.geometry.to_bbox()
                         pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
-                        cv2.rectangle(ann_mask, pt1, pt2, label.obj_class.color, thickness=10)
-                        cv2.rectangle(img, pt1, pt2, label.obj_class.color, thickness=10)
+                        cv2.rectangle(ann_mask, pt1, pt2, label.obj_class.color, thickness=thickness)
+                        cv2.rectangle(img, pt1, pt2, label.obj_class.color, thickness=thickness)
                         font_size = int(sly_font.get_readable_font_size(img.shape[:2]) * 1.4)
                         font = sly_font.get_font(font_size=font_size)
                         _, _, _, bottom = font.getbbox(label.obj_class.name)

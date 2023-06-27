@@ -114,13 +114,14 @@ class Poster:
                 ann = ann.resize(np_img.shape[:2])
 
                 ann: sly.Annotation
+                thickness = ann._get_thickness()
                 for label in ann.labels:
                     if type(label.geometry) == sly.Point:
-                        label.draw(np_img, thickness=15)
+                        label.draw(np_img, thickness=int(thickness * 2))
                     if self._is_detection_task:
                         bbox = label.geometry.to_bbox()
                         pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
-                        cv2.rectangle(np_img, pt1, pt2, label.obj_class.color, 7)
+                        cv2.rectangle(np_img, pt1, pt2, label.obj_class.color, thickness)
                         font_size = int(sly_font.get_readable_font_size(np_img.shape[:2]) * 1.4)
                         font = sly_font.get_font(font_size=font_size)
                         _, _, _, bottom = font.getbbox(label.obj_class.name)
