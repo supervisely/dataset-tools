@@ -55,8 +55,10 @@ class VerticalGrid:
         join_data = [(ds, img, ann) for ds, list1, list2 in data for img, ann in zip(list1, list2)]
 
         random.shuffle(join_data)
+        i = 0
         with tqdm(desc="Downloading images", total=cnt) as p:
-            for ds, img_info, ann in join_data[:cnt]:
+            while len(self.np_images) < cnt:
+                ds, img_info, ann = join_data[i]
                 ann: sly.Annotation
                 img = (
                     sly.image.read(ds.get_img_path(img_info.name))
@@ -68,8 +70,13 @@ class VerticalGrid:
 
                 ann_mask = self._resize_image(ann_mask, self._column_width)
                 img = self._resize_image(img, self._column_width)
-                ann = ann.resize(img.shape[:2])
-                ann: sly.Annotation
+
+                try:
+                    ann = ann.resize(img.shape[:2])
+                except Exception:
+                    sly.logger.error(f"Skipping image: can not resize annotation. Image: {img_info.name}")
+                    i += 1
+                    continue
                 thickness = ann._get_thickness()
                 for label in ann.labels:
                     if type(label.geometry) == sly.Point:
@@ -96,7 +103,7 @@ class VerticalGrid:
                 self.np_anns.append(ann_mask)  # for gif
                 self.np_images.append(img)  # for grid
 
-
+                i += 1
                 p.update(1)
 
     def to_image(self, path: str = None):

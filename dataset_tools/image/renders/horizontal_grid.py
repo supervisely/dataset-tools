@@ -51,21 +51,27 @@ class HorizontalGrid:
         join_data = [(ds, img, ann) for ds, list1, list2 in data for img, ann in zip(list1, list2)]
 
         random.shuffle(join_data)
+        i = 0
         with tqdm(desc="Downloading images", total=cnt) as p:
-            for ds, img_info, ann in join_data[:cnt]:
+            while len(self.np_images) < cnt:
+                ds, img_info, ann = join_data[i]
                 img = (
                     sly.image.read(ds.get_img_path(img_info.name))
                     if self._local
                     else self._api.image.download_np(img_info.id)
                 )
-                p.update(1)
                 ann: sly.Annotation
                 tmp = np.dstack((img, np.ones((*img.shape[:2], 1), dtype=np.uint8) * 255))
                 ann_mask = np.ones((*img.shape[:2], 4), dtype=np.uint8) * 255
 
                 ann_mask = self._resize_image(ann_mask, self._row_height)
                 img = self._resize_image(img, self._row_height)
-                ann = ann.resize(img.shape[:2])
+                try:
+                    ann = ann.resize(img.shape[:2])
+                except Exception:
+                    sly.logger.warn(f"Skipping image: can not resize annotation. Image name: {img_info.name}")
+                    i += 1
+                    continue
                 ann: sly.Annotation
                 thickness = ann._get_thickness()
                 for label in ann.labels:
@@ -95,6 +101,8 @@ class HorizontalGrid:
                 self.np_anns.append(ann_mask)  # for gif
                 # img = self._resize_image(img, self._row_height)
                 self.np_images.append(img)  # for grid
+                i += 1
+                p.update(1)
 
     def to_image(self, path: str = None):
         path_part, ext = os.path.splitext(path)
