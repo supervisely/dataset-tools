@@ -160,7 +160,7 @@ class ClassBalance(BaseStats):
         options = {
             "fixColumns": 1,
             "sort": {"columnIndex": 1, "order": "desc"},
-            "pageSize": len(self._class_names),
+            "pageSize": 10,
         }  # asc
 
         res = {
