@@ -50,3 +50,7 @@ class Industry:
     class Security:
         def __new__(cls):
             return "security"
+
+    class Satellite:
+        def __new__(cls):
+            return "satellite"

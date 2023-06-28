@@ -130,11 +130,13 @@ class ClassesPreview(BaseVisual):
     def _collect_images(self) -> None:
         classes_cnt = len(self._classname2images)
         limit = classes_cnt if classes_cnt < CLASSES_CNT_LIMIT else CLASSES_CNT_LIMIT
+        i = 0
         with tqdm(
             desc="ClassesPreview: download and prepare images with annotations",
             total=limit,
         ) as pbar:
-            for cls_name, items in list(self._classname2images.items())[:limit]:
+            while len(self._np_images) < limit:
+                cls_name, items = list(self._classname2images.items())[i]
                 random.shuffle(items)
                 image, ann = items[0]
 
@@ -152,7 +154,12 @@ class ClassesPreview(BaseVisual):
                 cropped_img, cropped_ann = crops[0]
 
                 cropped_img = self._resize_image_by_height(cropped_img, self._row_height)
-                cropped_ann = cropped_ann.resize(cropped_img.shape[:2])
+                try:
+                    cropped_ann = cropped_ann.resize(cropped_img.shape[:2])
+                except Exception:
+                    sly.logger.warn(f"Skipping image: can not resize annotation. Image id: {image.id}")
+                    i += 1
+                    continue
                 ann_mask = np.zeros((*cropped_img.shape[:2], 3), dtype=np.uint8)
                 text_mask = np.zeros((*cropped_img.shape[:2], 3), dtype=np.uint8)
 
@@ -180,6 +187,7 @@ class ClassesPreview(BaseVisual):
                 self._np_images[cls_name] = cropped_img
                 self._np_anns[cls_name] = ann_mask
                 self._np_texts[cls_name] = text_mask
+                i += 1
                 pbar.update(1)
 
     def _resize_image_by_height(self, image: np.ndarray, height: int) -> np.ndarray:

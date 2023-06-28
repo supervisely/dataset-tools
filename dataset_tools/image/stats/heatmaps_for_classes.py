@@ -2,6 +2,7 @@ import math
 import os
 from typing import Union
 
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import supervisely as sly
@@ -47,14 +48,15 @@ class ClassesHeatmaps(BaseVisual):
             sly.Bitmap.name(),
             sly.Point.name(),
         ]
-        ann = ann.resize(self._heatmap_img_size)
+
         for label in ann.labels:
-            temp_canvas = np.zeros(self._heatmap_img_size + (3,), dtype=np.uint8)
+            temp_canvas = np.zeros(ann.img_size + (3,), dtype=np.uint8)
             if label.geometry.name() in geometry_types_to_heatmap:
                 if label.geometry.name() == sly.Point.name():
                     label.draw(temp_canvas, color=(1, 1, 1), thickness=5)
                 else:
                     label.draw(temp_canvas, color=(1, 1, 1))
+                temp_canvas = cv2.resize(temp_canvas, self._heatmap_img_size[::-1])
                 self.classname_heatmap[label.obj_class.name] += temp_canvas
 
     def to_image(
@@ -89,7 +91,7 @@ class ClassesHeatmaps(BaseVisual):
         :type font: str, optional
         """
         self._calculate_output_img_size()
-        self._font = ImageFont.truetype(font) 
+        self._font = ImageFont.truetype(font)
         self.output_width = output_width
         self.cols = cols
         self.rows = rows
@@ -159,9 +161,10 @@ class ClassesHeatmaps(BaseVisual):
         self.output_width = math.ceil(self.output_width / self.max_cols * self.cols)
 
     def _create_single_images_text_outside(self, path):
-        for heatmap in self.classname_heatmap:
+        for heatmap in list(self.classname_heatmap.keys()):
             resized_image = resize(self.classname_heatmap[heatmap], self._heatmap_img_size)
-            image_path = os.path.join(os.path.dirname(path), f"{heatmap}.png")
+            heatmap_name = heatmap.replace("/", "_")
+            image_path = os.path.join(os.path.dirname(path), f"{heatmap_name}.png")
             plt.imsave(image_path, resized_image[:, :, 0])
 
             image = Image.open(image_path)
@@ -169,6 +172,7 @@ class ClassesHeatmaps(BaseVisual):
             image.save(image_path)
 
             self.heatmap_image_paths.append(image_path)
+            del self.classname_heatmap[heatmap]
 
     def _draw_text_below_image(self, text, image):
         text_color = (0, 0, 0)
@@ -216,13 +220,14 @@ class ClassesHeatmaps(BaseVisual):
         return result_image
 
     def _create_single_images_text_inside(self, path):
-        for heatmap in self.classname_heatmap:
+        for heatmap in list(self.classname_heatmap.keys()):
             font_size = self._get_optimal_font_size(heatmap)
             resized_image = resize(self.classname_heatmap[heatmap], self._heatmap_img_size)
             x_pos_center = int(resized_image.shape[1] * 0.5)
             y_pos_percent = int((resized_image.shape[0] - font_size) * 0.95)
 
-            image_path = os.path.join(os.path.dirname(path), f"{heatmap}.png")
+            heatmap_name = heatmap.replace("/", "_")
+            image_path = os.path.join(os.path.dirname(path), f"{heatmap_name}.png")
             plt.imsave(image_path, resized_image[:, :, 0])
 
             image = Image.open(image_path)
@@ -236,6 +241,7 @@ class ClassesHeatmaps(BaseVisual):
             image.save(image_path)
 
             self.heatmap_image_paths.append(image_path)
+            del self.classname_heatmap[heatmap]
 
     def _get_optimal_font_size(self, text):
         desired_text_width = math.ceil(self._heatmap_img_size[1] * 0.92)
