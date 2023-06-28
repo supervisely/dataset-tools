@@ -163,7 +163,8 @@ class ClassesHeatmaps(BaseVisual):
     def _create_single_images_text_outside(self, path):
         for heatmap in list(self.classname_heatmap.keys()):
             resized_image = resize(self.classname_heatmap[heatmap], self._heatmap_img_size)
-            image_path = os.path.join(os.path.dirname(path), f"{heatmap}.png")
+            heatmap_name = heatmap.replace("/", "_")
+            image_path = os.path.join(os.path.dirname(path), f"{heatmap_name}.png")
             plt.imsave(image_path, resized_image[:, :, 0])
 
             image = Image.open(image_path)
@@ -225,7 +226,8 @@ class ClassesHeatmaps(BaseVisual):
             x_pos_center = int(resized_image.shape[1] * 0.5)
             y_pos_percent = int((resized_image.shape[0] - font_size) * 0.95)
 
-            image_path = os.path.join(os.path.dirname(path), f"{heatmap}.png")
+            heatmap_name = heatmap.replace("/", "_")
+            image_path = os.path.join(os.path.dirname(path), f"{heatmap_name}.png")
             plt.imsave(image_path, resized_image[:, :, 0])
 
             image = Image.open(image_path)
