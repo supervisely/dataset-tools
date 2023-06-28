@@ -46,3 +46,7 @@ class Industry:
     class AirDetection:
         def __new__(cls):
             return "air detection"
+
+    class Security:
+        def __new__(cls):
+            return "security"
