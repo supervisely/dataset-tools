@@ -117,3 +117,10 @@ class License:
             self.name = "GNU General Public License Version 3"
             self.url = "https://www.gnu.org/licenses/gpl-3.0.en.html"
             return self
+
+    class CDLA_Permissive_1_0:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "Community Data License Agreement - Permissive - Version 1.0"
+            self.url = "https://cdla.dev/permissive-1-0/"
+            return self
