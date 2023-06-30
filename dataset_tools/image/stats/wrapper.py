@@ -3,7 +3,7 @@ import random
 from typing import List, Union
 
 import supervisely as sly
-from tqdm import tqdm
+import tqdm
 
 from dataset_tools import (
     ClassBalance,
@@ -133,7 +133,7 @@ def count_stats(
 
     samples, total = sample_images(api, project, datasets, sample_rate)
     desc = "Calculating stats" + (f" [sample={sample_rate}]" if sample_rate != 1 else "")
-    with tqdm(desc=desc, total=total) as pbar:
+    with tqdm.tqdm(desc=desc, total=total) as pbar:
         for dataset, images in samples:
             for batch in sly.batched(images):
                 image_ids = [image.id for image in batch]
