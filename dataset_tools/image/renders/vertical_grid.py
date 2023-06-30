@@ -58,6 +58,8 @@ class VerticalGrid:
         i = 0
         with tqdm(desc="Downloading images", total=cnt) as p:
             while len(self.np_images) < cnt:
+                if i >= len(join_data):
+                    raise RuntimeError("Not enough images for grid render")
                 ds, img_info, ann = join_data[i]
                 ann: sly.Annotation
                 img = (

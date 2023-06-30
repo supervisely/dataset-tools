@@ -14,13 +14,9 @@ def sample_images(
 ):
     total = 0
     samples = []
-    for dataset in datasets:
-        dataset: sly.Dataset
-        k = min(
-            sample_cnt // len(datasets),
-            (dataset.items_count if isinstance(project, int) else len(os.listdir(dataset.ann_dir))),
-        )
+    datasets_with_labels = []
 
+    for dataset in datasets:
         ds_images = (
             api.image.get_list(
                 dataset.id,
@@ -32,6 +28,19 @@ def sample_images(
                 for img in os.listdir(dataset.ann_dir)
                 if dataset.get_image_info(sly.fs.get_file_name(img)).labels_count > 0
             ]
+        )
+        if len(ds_images) < sample_cnt // len(datasets):
+            continue
+        datasets_with_labels.append((dataset, ds_images))
+
+    if len(datasets_with_labels) == 0:
+        raise Exception("There are not enought images with labels on them in the project.")
+
+    for dataset, ds_images in datasets_with_labels:
+        dataset: sly.Dataset
+        k = min(
+            sample_cnt // len(datasets_with_labels),
+            (dataset.items_count if isinstance(project, int) else len(os.listdir(dataset.ann_dir))),
         )
 
         s = random.sample(ds_images, min(k, len(ds_images)))
@@ -47,7 +56,7 @@ def sample_images(
             else [dataset.get_ann(img.name, meta) for img in s]
         )
         samples.append((dataset, s, anns))
-        total += k
+        total += len(s)
     return samples, total
 
 
