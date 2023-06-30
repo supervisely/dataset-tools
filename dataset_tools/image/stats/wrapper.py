@@ -2,14 +2,20 @@ import os
 import random
 from typing import List, Union
 
+import supervisely as sly
 from tqdm import tqdm
 
-import supervisely as sly
-from dataset_tools import ClassBalance, ClassCooccurrence, ClassesPerImage, ObjectsDistribution
+from dataset_tools import (
+    ClassBalance,
+    ClassCooccurrence,
+    ClassesPerImage,
+    ObjectsDistribution,
+)
 
 CLASSES_TO_OPTIMIZE = [ClassBalance, ClassCooccurrence, ClassesPerImage, ObjectsDistribution]
 MAX_HEIGHT = 500
 MAX_WIDTH = 500
+
 
 def sample_images(
     api: sly.Api,
