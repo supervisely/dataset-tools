@@ -52,7 +52,7 @@ class HorizontalGrid:
 
         random.shuffle(join_data)
         i = 0
-        with tqdm(desc="Downloading images", total=cnt) as p:
+        with tqdm(desc="HorizontalGrid: downloading images", total=cnt) as p:
             while len(self.np_images) < cnt:
                 ds, img_info, ann = join_data[i]
                 img = (
@@ -259,7 +259,7 @@ class HorizontalGrid:
         height, width = frames[0].shape[:2]
         video_writer = cv2.VideoWriter(videopath, fourcc, 15, (width, height))
 
-        with tqdm(desc="Saving video...", total=len(frames)) as vid_pbar:
+        with tqdm(desc="HorizontalGrid: Saving video...", total=len(frames)) as vid_pbar:
             for frame in frames:
                 if frame.shape[:2] != (height, width):
                     raise Exception("Not all frame sizes are not equal to each other.")

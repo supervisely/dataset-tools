@@ -56,7 +56,7 @@ class VerticalGrid:
 
         random.shuffle(join_data)
         i = 0
-        with tqdm(desc="Downloading images", total=cnt) as p:
+        with tqdm(desc="VerticalGrid: downloading images", total=cnt) as p:
             while len(self.np_images) < cnt:
                 if i >= len(join_data):
                     raise RuntimeError("Not enough images for grid render")
@@ -255,7 +255,7 @@ class VerticalGrid:
         height, width = frames[0].shape[:2]
         video_writer = cv2.VideoWriter(videopath, fourcc, 15, (width, height))
 
-        with tqdm(desc="Saving video...", total=len(frames)) as vid_pbar:
+        with tqdm(desc="VerticalGrid: saving video...", total=len(frames)) as vid_pbar:
             for frame in frames:
                 if frame.shape[:2] != (height, width):
                     raise Exception("Not all frame sizes are not equal to each other.")

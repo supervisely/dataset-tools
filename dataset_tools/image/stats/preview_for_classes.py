@@ -407,7 +407,7 @@ class ClassesPreview(BaseVisual):
         height, width = frames[0].shape[:2]
         video_writer = cv2.VideoWriter(videopath, fourcc, 15, (width, height))
 
-        with tqdm(desc="Saving classes preview video...", total=len(frames)) as vid_pbar:
+        with tqdm(desc="ClassesPreview: saving classes preview video...", total=len(frames)) as vid_pbar:
             for frame in frames:
                 if frame.shape[:2] != (height, width):
                     continue
