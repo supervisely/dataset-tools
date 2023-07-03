@@ -36,17 +36,45 @@ class BaseStats:
         """Get name of your class for your file system"""
         return camel_to_snake(self.__class__.__name__)
 
+    def _get_summated_canvas(self, bitmap_masks_rgb: List[np.ndarray]) -> np.ndarray:
+        masks_1channel = [mask[:, :, 0] for mask in bitmap_masks_rgb]
+        stacked = np.stack(masks_1channel, axis=0)
+        return np.sum(stacked, axis=0)
+
     def check_overlap(self, masks: List[np.ndarray]) -> bool:
-        nonzero_masks = [mask for mask in masks if np.any(mask != 0)]
-        num_masks = len(nonzero_masks)
+        """Each mask is a bitmap"""
+        canvas = self._get_summated_canvas(masks)
+        is_overlap = ~np.isin(np.unique(canvas), [0, 1]).all()
+        return is_overlap
 
-        for i in range(num_masks):
-            for j in range(i + 1, num_masks):
-                overlap = np.logical_and(nonzero_masks[i], nonzero_masks[j])
-                if np.any(overlap):
-                    return True
+    def calc_unlabeled_area_in_overlapped(self, masks: List[np.ndarray]) -> float:
+        """Each mask is a bitmap"""
+        canvas = self._get_summated_canvas(masks)
+        zeros_count = np.count_nonzero(canvas == 0)
+        ones_count = np.count_nonzero(canvas == 1)
+        total_area = zeros_count + ones_count
+        return (total_area / canvas.size) * 100
 
-        return False
+    def group_equal_masks(self, masks: List[np.ndarray]) -> List[int]:
+        masks_1channel = [mask[:, :, 0] for mask in masks]
+
+        groups = {}
+        group_id = 0
+
+        for mask in masks_1channel:
+            found_match = False
+
+            for key, value in groups.items():
+                if np.array_equal(mask.tobytes(), key):
+                    found_match = True
+                    groups[mask.tobytes()] = value
+                    break
+
+            if not found_match:
+                groups[mask.tobytes()] = group_id
+                group_id += 1
+
+        return [groups[mask.tobytes()] for mask in masks_1channel]
 
 
 class BaseVisual:
