@@ -51,9 +51,7 @@ class BaseStats:
         """Each mask is a bitmap"""
         canvas = self._get_summated_canvas(masks)
         zeros_count = np.count_nonzero(canvas == 0)
-        ones_count = np.count_nonzero(canvas == 1)
-        total_area = zeros_count + ones_count
-        return (total_area / canvas.size) * 100
+        return (zeros_count / canvas.size) * 100
 
     def group_equal_masks(self, masks: List[np.ndarray]) -> List[int]:
         masks_1channel = [mask[:, :, 0] for mask in masks]
