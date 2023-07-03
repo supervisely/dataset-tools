@@ -86,7 +86,7 @@ class Poster:
         join_data = [(ds, img, ann) for ds, list1, list2 in data for img, ann in zip(list1, list2)]
         random.shuffle(join_data)
         i = 0
-        with tqdm(desc="Downloading 7 sample images.", total=7) as pbar:
+        with tqdm(desc="Poster: download 7 sample images", total=7) as pbar:
             while len(np_images) < 7:
                 if i > len(join_data) * 3:
                     raise Exception("There not enought images with labels in the project.")

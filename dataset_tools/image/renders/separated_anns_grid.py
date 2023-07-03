@@ -52,7 +52,7 @@ class SideAnnotationsGrid:
         join_data = [(ds, img, ann) for ds, list1, list2 in data for img, ann in zip(list1, list2)]
 
         random.shuffle(join_data)
-        with tqdm(desc="Downloading images", total=cnt) as p:
+        with tqdm(desc="SideAnnotationsGrid: download images", total=cnt) as p:
             for ds, img_info, ann in join_data[:cnt]:
                 img = (
                     sly.image.read(ds.get_img_path(img_info.name))
