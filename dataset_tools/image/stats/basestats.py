@@ -37,8 +37,8 @@ class BaseStats:
         return camel_to_snake(self.__class__.__name__)
 
     def _get_summated_canvas(self, bitmap_masks_rgb: List[np.ndarray]) -> np.ndarray:
-        masks_1channel = [mask[:, :, 0] for mask in bitmap_masks_rgb]
-        stacked = np.stack(masks_1channel, axis=0)
+        masks1channel = [mask[:, :, 0] for mask in bitmap_masks_rgb]
+        stacked = np.stack(masks1channel, axis=0)
         return np.sum(stacked, axis=0)
 
     def check_overlap(self, masks: List[np.ndarray]) -> bool:
@@ -47,7 +47,7 @@ class BaseStats:
         is_overlap = ~np.isin(np.unique(canvas), [0, 1]).all()
         return is_overlap
 
-    def calc_unlabeled_area_in_overlapped(self, masks: List[np.ndarray]) -> float:
+    def calc_unlabeled_area_in(self, masks: List[np.ndarray]) -> float:
         """Each mask is a bitmap"""
         canvas = self._get_summated_canvas(masks)
         zeros_count = np.count_nonzero(canvas == 0)
