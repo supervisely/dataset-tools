@@ -62,3 +62,7 @@ class Industry:
     class UrbanPlanning:
         def __new__(cls):
             return "urban planning"
+
+    class Construction:
+        def __new__(cls):
+            return "construction"
