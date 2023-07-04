@@ -149,6 +149,7 @@ def count_stats(
                 # FIXME: optimization is broken (resize labels area 0 px)
 
                 for img, ann in zip(batch, anns):
+                    pbar.set_postfix_str(img.name)
                     for stat in stats:
                         # if stat.__class__ in CLASSES_TO_OPTIMIZE:
                         #     stat.update(img, resized_anns)
