@@ -6,10 +6,10 @@ from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
+import supervisely as sly
 from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 
-import supervisely as sly
 from dataset_tools.image.renders.convert import compress_mp4, from_mp4_to_webm
 from dataset_tools.image.stats.basestats import BaseVisual
 
@@ -140,7 +140,7 @@ class ClassesPreview(BaseVisual):
                 random.shuffle(items)
                 image, ann = items[0]
 
-                img = self._api.image.download_np(image.id, keep_alpha=True)
+                img = self._api.image.download_np(image.id)
 
                 crops = sly.aug.instance_crop(
                     img=img,
@@ -157,7 +157,9 @@ class ClassesPreview(BaseVisual):
                 try:
                     cropped_ann = cropped_ann.resize(cropped_img.shape[:2])
                 except Exception:
-                    sly.logger.warn(f"Skipping image: can not resize annotation. Image id: {image.id}")
+                    sly.logger.warn(
+                        f"Skipping image: can not resize annotation. Image id: {image.id}"
+                    )
                     i += 1
                     continue
                 ann_mask = np.zeros((*cropped_img.shape[:2], 3), dtype=np.uint8)
@@ -199,7 +201,8 @@ class ClassesPreview(BaseVisual):
 
         return image
 
-    def _create_grid(self, images: List[np.ndarray], channels: int = 3) -> np.ndarray:
+    def _create_grid(self, images: List[np.ndarray]) -> np.ndarray:
+        channels = images[0].shape[-1]
         rows = self._create_rows(images)
         rows = self._merge_img_in_rows(rows, channels)
         canvas = self._merge_rows_in_canvas(rows, channels)
