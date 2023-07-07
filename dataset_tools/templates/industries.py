@@ -1,3 +1,6 @@
+# add classes Domain and Research
+
+
 class Industry:
     class GeneralDomain:
         def __new__(cls):

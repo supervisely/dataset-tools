@@ -271,7 +271,7 @@ class ClassSizes(BaseStats):
         return res
 
 
-class ClassTreemap(BaseStats):
+class ClassesTreemap(BaseStats):
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False):
         self.force = force
         self.project_meta = project_meta

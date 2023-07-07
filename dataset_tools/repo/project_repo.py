@@ -1,8 +1,9 @@
 import json
 from typing import List, Literal, Optional
 
-import dataset_tools as dtools
 import supervisely as sly
+
+import dataset_tools as dtools
 from dataset_tools.repo import download
 from dataset_tools.templates import License
 
@@ -142,21 +143,28 @@ class ProjectRepo:
     ):
         sly.logger.info("Starting to build stats...")
 
+        literal_stats = [
+            "ClassBalance",
+            "ClassCooccurrence",
+            "ClassesPerImage",
+            "ObjectsDistribution",
+            "ObjectSizes",
+            "ClassSizes",
+            "ClassesHeatmaps",
+            "ClassesPreview",
+            "Previews",
+            "ClassesTreemap",
+        ]
+        for element in force:
+            if element not in literal_stats:
+                raise ValueError(
+                    f"Element '{element}' is not present in the literal stats list: {literal_stats}"
+                )
+
         if force is None:
             force = []
         elif "all" in force:
-            force = [
-                "ClassBalance",
-                "ClassCooccurrence",
-                "ClassesPerImage",
-                "ObjectsDistribution",
-                "ObjectSizes",
-                "ClassSizes",
-                "ClassesHeatmaps",
-                "ClassesPreview",
-                "Previews",
-                "ClassTreemap",
-            ]
+            force = literal_stats
 
         sly.logger.info(f"Following stats are passed with force: {force}")
 
@@ -172,7 +180,7 @@ class ProjectRepo:
             dtools.ObjectsDistribution(self.project_meta),
             dtools.ObjectSizes(self.project_meta),
             dtools.ClassSizes(self.project_meta),
-            dtools.ClassTreemap(self.project_meta),
+            dtools.ClassesTreemap(self.project_meta),
         ]
         heatmaps = dtools.ClassesHeatmaps(self.project_meta)
         classes_previews = dtools.ClassesPreview(
@@ -213,7 +221,8 @@ class ProjectRepo:
             classes_previews.force = True
         if not self.api.file.dir_exists(self.team_id, f"/dataset/{self.project_id}/renders/"):
             previews.force = True
-        vstats = [stat for stat in [heatmaps, classes_previews, previews] if stat.force]
+        # [heatmaps, classes_previews, previews]
+        vstats = [stat for stat in vstats if stat.force]
 
         dtools.count_stats(
             self.project_id,
@@ -250,6 +259,13 @@ class ProjectRepo:
         settings: dict = {},
     ):
         sly.logger.info("Starting to build visualizations...")
+
+        literal_vstats = ["Poster", "SideAnnotationsGrid", "HorizontalGrid", "VerticalGrid"]
+        for element in force:
+            if element not in literal_vstats:
+                raise ValueError(
+                    f"Element '{element}' is not present in the literal visualizations list: {literal_vstats}"
+                )
 
         if force is None:
             force = []
