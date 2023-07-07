@@ -95,7 +95,7 @@ class ProjectRepo:
             "fullname": self.project_name_full,
             "cv_tasks": self.cv_tasks,
             "annotation_types": self.annotation_types,
-            "industries": self.industries,
+            "applications": [vars(application) for application in self.applications],
             "release_year": self.release_year,
             "homepage_url": self.homepage_url,
             "license": self.license.name,
@@ -155,11 +155,6 @@ class ProjectRepo:
             "Previews",
             "ClassesTreemap",
         ]
-        for element in force:
-            if element not in literal_stats:
-                raise ValueError(
-                    f"Element '{element}' is not present in the literal stats list: {literal_stats}"
-                )
 
         if force is None:
             force = []
@@ -259,13 +254,6 @@ class ProjectRepo:
         settings: dict = {},
     ):
         sly.logger.info("Starting to build visualizations...")
-
-        literal_vstats = ["Poster", "SideAnnotationsGrid", "HorizontalGrid", "VerticalGrid"]
-        for element in force:
-            if element not in literal_vstats:
-                raise ValueError(
-                    f"Element '{element}' is not present in the literal visualizations list: {literal_vstats}"
-                )
 
         if force is None:
             force = []

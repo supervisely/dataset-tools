@@ -1,3 +1,4 @@
+import itertools
 import operator
 import os
 import re
@@ -77,7 +78,7 @@ def get_summary_data(
     fullname: str,
     cv_tasks: List[str],
     annotation_types: List[str],
-    industries: str,
+    applications: str,
     release_year: int,
     homepage_url: str,
     license: str,
@@ -125,7 +126,7 @@ def get_summary_data(
         "fullname": fullname,
         "cv_tasks": cv_tasks,
         "annotation_types": annotation_types,
-        "industries": industries,
+        "applications": applications,
         "release_year": release_year,
         "homepage_url": homepage_url,
         "license": license,
@@ -160,7 +161,21 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     fullname = data.get("fullname", None)
     cv_tasks = [standardize(cv_task) for cv_task in data.get("cv_tasks", [])]
     annotation_types = [standardize(ann_type) for ann_type in data.get("annotation_types", [])]
-    industries = data.get("industries", None)
+    if data.get("industries") is not None:
+        raise DeprecationWarning(
+            "Field 'industries' is deprecated. Please use 'applications' instead"
+        )
+
+    sorted_ = sorted(data.get("applications"), key=lambda x: x["is_used"])
+    grouped_ = itertools.groupby(sorted_, key=lambda x: x["is_used"])
+    applications = {}
+    for key, group in grouped_:
+        postfix_group = itertools.groupby(group, key=lambda x: x["postfix"])
+        applications[key] = {
+            postfix: [elem["text"] for elem in postfix_group]
+            for postfix, postfix_group in postfix_group
+        }
+
     release_year = data.get("release_year", None)
     homepage_url = data.get("homepage_url", None)
     license = data.get("license", None)
@@ -224,19 +239,39 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
 
     annotations = ",".join(annotations).strip()
 
-    # collect content
     content = f"**{fullname}**"
-    # if fullname is not None:
-    #    content += f" ({fullname})"
+
     content += f" is a dataset for {list2sentence(cv_tasks, 'tasks', keeptail=True)}. "
 
-    if "general domain" in industries:
-        content += "It is applicable or relevant across various domains."
-        if len(industries) > 1:
-            industries.pop("general domain")
-            content += f"Also, it is used in {list2sentence(industries, 'industries')}."
+    if (
+        applications.get(True) is not None
+        and applications[True].get("domain") is not None
+        and "general" in applications[True]["domain"]
+    ):
+        content += "It is applicable or relevant across various domains. "
+        extended = [item for sublist in applications[True].values() for item in sublist]
+        if len(extended) > 1:
+            applications[True]["domain"].remove("general")
+            content += f"Also, it is used in the "
+            tmp_list = []
+            for postfix, text in applications[True].items():
+                if text:
+                    tmp_list.append(f"{list2sentence(text, postfix)}")
+            content += list2sentence(tmp_list) + ". "
     else:
-        content += f"It is used in the {list2sentence(industries, 'industries')}."
+        if applications.get(True) is not None:
+            content += "It is used in the "
+            tmp_list = []
+            for postfix, text in applications[True].items():
+                tmp_list.append(f"{list2sentence(text, postfix)}")
+            content += list2sentence(tmp_list) + ". "
+
+    if applications.get(False) is not None:
+        content += "Possible applications of the dataset could be in "
+        tmp_list = []
+        for postfix, text in applications[False].items():
+            tmp_list.append(f"{list2sentence(text, postfix)}")
+        content += list2sentence(tmp_list) + ". "
 
     content += "\n\n"
     content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} "
@@ -291,51 +326,3 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
 
 def get_summary_data_sly(project_info: sly.ProjectInfo) -> Dict:
     return get_summary_data(**project_info.custom_data, project_id=project_info.id)
-
-
-# def generate_meta_from_local():
-
-#     modality ="images"
-
-#     with open("./stats/class_balance.json") as f:
-#         json_data = json.load(f)
-#     df = pd.DataFrame(data=json_data["data"], columns=json_data["columns"])
-
-#     with open("./stats/classes_per_image.json") as f:
-#         json_data = json.load(f)
-#     df_img = pd.DataFrame(data=json_data["data"], columns=json_data["columns"])
-
-
-#     totals_dct = {
-#        "total_modality_files": df_img.shape[0],
-#        "total_objects": df["Objects"].sum(),
-#        "total_classes": df["Class"].count(),
-#        "top_classes": df.sort_values('Objects', ascending=False)['Class'].tolist()
-#     }
-
-#     unlabeled_num = df_img.shape[0] - sum(df_img.drop(columns=["Image","Split", "Height", "Width", "Unlabeled"]).sum(axis=1)==0)
-#     unlabeled_percent = unlabeled_num / df_img.shape[0]
-#     splits_list = [
-#         {
-#         "name": "training",
-#         "split_size": 800
-#         },
-#         {
-#         "name": "validation",
-#         "split_size": 200
-#         }
-#     ]
-
-#     return {
-#         "name": "PASCAL VOC",
-#         "fullname": "PASCAL Visual Object Classes Challenge",
-#         "cv_tasks": ["semantic-segmentation"],
-#         "modality": modality,
-#         "release_year": "2012",
-#         "organization": "Dong et al",
-#         "organization_link": "https://arxiv.org/pdf/2012.07131v2.pdf",
-#         "totals": totals_dct,
-#         "unlabeled_assets_num": unlabeled_num,
-#         "unlabeled_assets_percent": unlabeled_percent,
-#         "splits": splits_list
-#     }
