@@ -1,5 +1,7 @@
 from supervisely._utils import camel_to_snake
 
+from supervisely import logger
+
 
 class DatasetApplications:
     """
@@ -37,15 +39,17 @@ class Research:
 class Industry:
     class GeneralDomain:
         def __new__(cls):
-            raise DeprecationWarning(
+            logger.warn(
                 "'Industry.GeneralDomain()' is deprecated. Please use 'Domain.General()' instead."
             )
+            return Domain.General()
 
     class Industrial:
         def __new__(cls):
-            raise DeprecationWarning(
+            logger.warn(
                 "'Industry.Industrial()' is deprecated. Please use 'Domain.Industry()' instead."
             )
+            return Domain.Industrial()
 
     class Agriculture(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):

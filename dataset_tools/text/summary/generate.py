@@ -6,6 +6,7 @@ import textwrap
 from typing import Dict, List, Optional, Union
 
 import inflect
+
 import supervisely as sly
 
 p = (
@@ -250,7 +251,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
 
     # backward compatibility
     if data.get("industries") is not None:
-        if "general domain" in industries:
+        if "general" in industries:
             content += "It is applicable or relevant across various domains."
             if len(industries) > 1:
                 industries.pop("general domain")
