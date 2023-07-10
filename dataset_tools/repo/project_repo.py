@@ -1,9 +1,8 @@
 import json
 from typing import List, Literal, Optional
 
-import supervisely as sly
-
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.templates import License
 
@@ -49,6 +48,12 @@ class ProjectRepo:
         self.team_id = sly.env.team_id()
 
         self.__dict__.update(settings)
+
+        # backward compatibility
+        if self.__dict__.get("domains") is not None:
+            self.applications = self.domains
+        elif self.__dict__.get("industries") is not None:
+            self.applications = []
 
         if self.class2color:
             self._update_colors()
@@ -114,6 +119,10 @@ class ProjectRepo:
             "organization_url": self.organization_url,
             "tags": self.tags,
         }
+        # backward compatibility
+        if len(self.applications) == 0:
+            custom_data["industries"] = [industry.text for industry in self.industries]
+
         self.api.project.update_custom_data(self.project_id, custom_data)
         self.project_info = self.api.project.get_info_by_id(self.project_id)
         self.custom_data = self.project_info.custom_data

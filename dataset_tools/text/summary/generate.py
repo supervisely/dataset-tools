@@ -143,6 +143,10 @@ def get_summary_data(
         "splits": splits_list,
     }
 
+    # backward compatibility
+    if len(applications) == 0:
+        fields["industries"] = kwargs.get("industries")
+
     # optional fields
     for key, value in zip(
         ["download_original_url", "paper", "organization_name", "organization_url", "tags"],
@@ -161,20 +165,21 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     fullname = data.get("fullname", None)
     cv_tasks = [standardize(cv_task) for cv_task in data.get("cv_tasks", [])]
     annotation_types = [standardize(ann_type) for ann_type in data.get("annotation_types", [])]
-    if data.get("industries") is not None:
-        raise DeprecationWarning(
-            "Field 'industries' is deprecated. Please use 'applications' instead"
-        )
 
-    sorted_ = sorted(data.get("applications"), key=lambda x: x["is_used"])
-    grouped_ = itertools.groupby(sorted_, key=lambda x: x["is_used"])
-    applications = {}
-    for key, group in grouped_:
-        postfix_group = itertools.groupby(group, key=lambda x: x["postfix"])
-        applications[key] = {
-            postfix: [elem["text"] for elem in postfix_group]
-            for postfix, postfix_group in postfix_group
-        }
+    # backward compatibility
+    if data.get("industries") is not None:
+        sly.logger.warn("Field 'INDUSTRIES' is deprecated. Please use 'APPLICATIONS' instead")
+        industries = data["industries"]
+    else:
+        sorted_ = sorted(data.get("applications"), key=lambda x: x["is_used"])
+        grouped_ = itertools.groupby(sorted_, key=lambda x: x["is_used"])
+        applications = {}
+        for key, group in grouped_:
+            postfix_group = itertools.groupby(group, key=lambda x: x["postfix"])
+            applications[key] = {
+                postfix: [elem["text"] for elem in postfix_group]
+                for postfix, postfix_group in postfix_group
+            }
 
     release_year = data.get("release_year", None)
     homepage_url = data.get("homepage_url", None)
@@ -243,35 +248,45 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
 
     content += f" is a dataset for {list2sentence(cv_tasks, 'tasks', keeptail=True)}. "
 
-    if (
-        applications.get(True) is not None
-        and applications[True].get("domain") is not None
-        and "general" in applications[True]["domain"]
-    ):
-        content += "It is applicable or relevant across various domains. "
-        extended = [item for sublist in applications[True].values() for item in sublist]
-        if len(extended) > 1:
-            applications[True]["domain"].remove("general")
-            content += f"Also, it is used in the "
-            tmp_list = []
-            for postfix, text in applications[True].items():
-                if text:
-                    tmp_list.append(f"{list2sentence(text, postfix)}")
-            content += list2sentence(tmp_list) + ". "
+    # backward compatibility
+    if data.get("industries") is not None:
+        if "general domain" in industries:
+            content += "It is applicable or relevant across various domains."
+            if len(industries) > 1:
+                industries.pop("general domain")
+                content += f"Also, it is used in {list2sentence(industries, 'industries')}."
+        else:
+            content += f"It is used in the {list2sentence(industries, 'industries')}."
     else:
-        if applications.get(True) is not None:
-            content += "It is used in the "
+        if (
+            applications.get(True) is not None
+            and applications[True].get("domain") is not None
+            and "general" in applications[True]["domain"]
+        ):
+            content += "It is applicable or relevant across various domains. "
+            extended = [item for sublist in applications[True].values() for item in sublist]
+            if len(extended) > 1:
+                applications[True]["domain"].remove("general")
+                content += f"Also, it is used in the "
+                tmp_list = []
+                for postfix, text in applications[True].items():
+                    if text:
+                        tmp_list.append(f"{list2sentence(text, postfix)}")
+                content += list2sentence(tmp_list) + ". "
+        else:
+            if applications.get(True) is not None:
+                content += "It is used in the "
+                tmp_list = []
+                for postfix, text in applications[True].items():
+                    tmp_list.append(f"{list2sentence(text, postfix)}")
+                content += list2sentence(tmp_list) + ". "
+
+        if applications.get(False) is not None:
+            content += "Possible applications of the dataset could be in "
             tmp_list = []
-            for postfix, text in applications[True].items():
+            for postfix, text in applications[False].items():
                 tmp_list.append(f"{list2sentence(text, postfix)}")
             content += list2sentence(tmp_list) + ". "
-
-    if applications.get(False) is not None:
-        content += "Possible applications of the dataset could be in "
-        tmp_list = []
-        for postfix, text in applications[False].items():
-            tmp_list.append(f"{list2sentence(text, postfix)}")
-        content += list2sentence(tmp_list) + ". "
 
     content += "\n\n"
     content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} "
