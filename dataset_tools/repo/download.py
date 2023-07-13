@@ -3,8 +3,9 @@ import os
 from urllib.parse import urljoin
 
 import requests
-import supervisely as sly
 import tqdm
+
+import supervisely as sly
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(CURENT_DIR)
@@ -41,6 +42,7 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
 
     if (
         urls.get(project_info.name) is not None
+        and urls[project_info.name].get("id") == project_info.id
         and urls[project_info.name].get("download_sly_url") is not None
     ):
         sly.logger.info("URL already exists. Skipping creation of download link...")

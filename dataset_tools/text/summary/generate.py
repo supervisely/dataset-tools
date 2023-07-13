@@ -6,7 +6,6 @@ import textwrap
 from typing import Dict, List, Optional, Union
 
 import inflect
-
 import supervisely as sly
 
 p = (
@@ -27,8 +26,10 @@ def list2sentence(
         lst = [lst]
     if isinstance(url, str):
         url = [url]
-    assert isinstance(lst, list) and all(
-        isinstance(item, str) for item in lst
+    assert (
+        isinstance(lst, list)
+        or isinstance(lst, tuple)
+        and all(isinstance(item, str) for item in lst)
     ), "All items in the list must be strings."
 
     anytail = " " + anytail if anytail != "" else anytail
@@ -92,6 +93,7 @@ def get_summary_data(
     citation_url: str = None,
     organization_name: str = None,
     organization_url: str = None,
+    slytagsplit: Dict[str, List[str]] = None,
     tags: List[str] = None,
     **kwargs,
 ) -> Dict:
@@ -116,10 +118,28 @@ def get_summary_data(
     unlabeled_num = stats["images"]["total"]["imagesNotMarked"]
     unlabeled_percent = round(unlabeled_num / totals_dct["total_assets"] * 100)
 
-    splits_list = [
+    slydssplits_list = [
         {"name": item["name"], "split_size": item["imagesCount"]}
         for item in stats["datasets"]["items"]
     ]
+
+    slytagsplits_dict = {}
+    if slytagsplit is not None:
+        for group_name, slytag_names in slytagsplit.items():
+            slytagsplits_dict[group_name] = [
+                {
+                    "name": item["tagMeta"]["name"],
+                    "split_size": item["total"],
+                    "datasets": item["datasets"],
+                }
+                for item in stats["imageTags"]["items"]
+                if item["tagMeta"]["name"] in slytag_names
+            ]
+
+    splits = {
+        "slyds": slydssplits_list,
+        "slytag": slytagsplits_dict,
+    }
 
     fields = {
         # preset fields
@@ -141,7 +161,7 @@ def get_summary_data(
         "totals": totals_dct,
         "unlabeled_assets_num": unlabeled_num,
         "unlabeled_assets_percent": unlabeled_percent,
-        "splits": splits_list,
+        "splits": splits,
     }
 
     # backward compatibility
@@ -205,9 +225,22 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     top_classes = totals.get("top_classes", [])
     unlabeled_assets_num = data.get("unlabeled_assets_num", None)
     unlabeled_assets_percent = data.get("unlabeled_assets_percent", None)
-    splits = [
-        f'*{split["name"]}* ({split["split_size"]} {modality})' for split in data.get("splits", [])
+
+    slyds_splits = [
+        f'*{split["name"]}* ({split["split_size"]} {modality})'
+        for split in data["splits"].get("slyds", [])
     ]
+
+    slytag_splits = {}
+    for group_name, splits in data["splits"].get("slytag", {}).items():
+        # extras = [[(ds["name"], ds["count"]) for ds in split["datasets"]] for split in splits]
+        # for extra in extras:
+        #     slyds, count = extra
+        #     arr = [f"[i]{s},{c}[/i]" for s, c in zip(slyds, count)]
+
+        slytag_splits[group_name] = [
+            f'*{split["name"]}* ({split["split_size"]} {modality})' for split in splits
+        ]
 
     # prepare data
     annotations = []
@@ -283,7 +316,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
                 content += list2sentence(tmp_list) + ". "
 
         if applications.get(False) is not None:
-            content += "Possible applications of the dataset could be in "
+            content += "Possible applications of the dataset could be in the "
             tmp_list = []
             for postfix, text in applications[False].items():
                 tmp_list.append(f"{list2sentence(text, postfix)}")
@@ -305,13 +338,27 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     if unlabeled_assets_num == 0:
         content += f"All {modality} are labeled (i.e. with annotations). "
     elif unlabeled_assets_num == 1:
-        content += f"There is 1 unlabled {p.singular_noun(modality)} (i.e. without annotations). "
+        content += f"There is 1 unlabeled {p.singular_noun(modality)} (i.e. without annotations). "
     else:
         content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
-    if len(splits) == 1:
-        content += f"There is 1 split in the dataset: {list2sentence(splits)}. "
+
+    if len(slyds_splits) == 1:
+        content += f"There are no pre-defined splits in the dataset. "
     else:
-        content += f"There are {len(splits)} splits in the dataset: {list2sentence(splits)}. "
+        content += (
+            f"There are {len(slyds_splits)} splits in the dataset: {list2sentence(slyds_splits)}. "
+        )
+
+    if len(slytag_splits) > 0:
+        content += f"Alternatively, dataset could be splitted by "
+        for idx, items in enumerate(slytag_splits.items()):
+            if idx == 0:
+                content += f"<i>{items[0]}</i> "
+            else:
+                content += f", or <i>{items[0]}</i> "
+            content += f"criteria: {list2sentence(items[1])}"
+        content += ". "
+
     if organization_name is not None and organization_url is not None:
         content += f"The dataset was released in {release_year} by the {list2sentence(organization_name, url=organization_url)}."
     elif organization_name is not None and organization_url is None:

@@ -1,8 +1,9 @@
 import json
 from typing import List, Literal, Optional
 
-import dataset_tools as dtools
 import supervisely as sly
+
+import dataset_tools as dtools
 from dataset_tools.repo import download
 from dataset_tools.templates import License
 
@@ -54,6 +55,8 @@ class ProjectRepo:
             self.applications = self.domains
         elif self.__dict__.get("industries") is not None:
             self.applications = []
+        if self.__dict__.get("slytagsplit") is None:
+            self.slytagsplit = None
 
         if self.class2color:
             self._update_colors()
@@ -70,7 +73,11 @@ class ProjectRepo:
                 items.append(obj_class.clone(color=self.class2color[obj_class.name]))
             else:
                 items.append(obj_class)
-        project_meta = sly.ProjectMeta(obj_classes=items)
+        project_meta = sly.ProjectMeta(
+            obj_classes=items,
+            tag_metas=self.project_meta.tag_metas,
+            project_type=self.project_meta.project_type,
+        )
         self.api.project.update_meta(self.project_id, project_meta)
         self.project_meta = project_meta
 
@@ -117,6 +124,7 @@ class ProjectRepo:
             "citation_url": self.citation_url,
             "organization_name": self.organization_name,
             "organization_url": self.organization_url,
+            "slytagsplit": self.slytagsplit,
             "tags": self.tags,
         }
         # backward compatibility

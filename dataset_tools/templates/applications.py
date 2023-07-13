@@ -1,6 +1,5 @@
-from supervisely._utils import camel_to_snake
-
 from supervisely import logger
+from supervisely._utils import camel_to_snake
 
 
 class DatasetApplications:
@@ -27,6 +26,10 @@ class Domain:
 
 
 class Research:
+    class Agricultural(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
     class Biological(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
@@ -51,9 +54,16 @@ class Industry:
             )
             return Domain.Industrial()
 
-    class Agriculture(DatasetApplications):
+    class Agricultural(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
+
+    class Agriculture(DatasetApplications):
+        def __new__(cls):
+            logger.warn(
+                "'Industry.Agriculture()' is deprecated. Please use 'Industry.Agricultural()' instead."
+            )
+            return Industry.Agricultural()
 
     class Aviation(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
