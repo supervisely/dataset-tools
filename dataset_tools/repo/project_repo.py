@@ -1,9 +1,8 @@
 import json
 from typing import List, Literal, Optional
 
-import supervisely as sly
-
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.templates import License
 
@@ -61,6 +60,13 @@ class ProjectRepo:
         if self.class2color:
             self._update_colors()
 
+        self.const_tags = [self.category.text]
+
+        if self.category.featured:
+            self.const_tags.append("Featured")
+
+        self.download_archive_size = int(self.project_info.size)
+
         self._process_download_link()
         self._update_custom_data()
 
@@ -116,12 +122,16 @@ class ProjectRepo:
             "github_url": self.github_url,
             "github": self.github_url[self.github_url.index("dataset-ninja") :],
             "download_sly_url": self.download_sly_url,
+            "download_archive_size": self.download_archive_size,
+            "const_tags": self.const_tags,
             #####################
             # ? optional fields #
             #####################
+            "release_date": self.release_date,
             "download_original_url": self.download_original_url,
             "paper": self.paper,
             "citation_url": self.citation_url,
+            "authors": self.authors,
             "organization_name": self.organization_name,
             "organization_url": self.organization_url,
             "slytagsplit": self.slytagsplit,

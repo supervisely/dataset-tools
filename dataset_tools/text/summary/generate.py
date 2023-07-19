@@ -343,7 +343,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
 
     if len(slyds_splits) == 1:
-        content += f"There are no pre-defined splits in the dataset. "
+        content += f"There are no pre-defined <i>train/val/test</i> splits in the dataset. "
     else:
         content += (
             f"There are {len(slyds_splits)} splits in the dataset: {list2sentence(slyds_splits)}. "
