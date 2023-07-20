@@ -1,20 +1,19 @@
 import json
 from typing import List, Literal, Optional
 
-import supervisely as sly
-
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.templates import License
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
     "please cite the following reference:\n\n"
-    "``` bibtex \n@misc{{{project_name},\n"
-    '\tauthors="{authors}",\n'
-    '\ttitle="{project_name_full}",\n'
+    "``` bibtex \n@dataset{{{project_name},\n"
+    "\tauthors={{{authors}}},\n"
+    "\ttitle={{{project_name_full}}},\n"
     "\tyear={{{year}}},\n"
-    '\turl="{homepage_url}"\n}}\n```\n\n'
+    "\turl={{{homepage_url}}}\n}}\n```\n\n"
     "[🔗 Source]({homepage_url})"
 )
 
@@ -416,7 +415,7 @@ class ProjectRepo:
         else:
             citation_content = CITATION_TEMPLATE.format(
                 project_name_full=self.project_name_full,
-                authors=", ".join(self.authors),
+                authors="and ".join(self.authors),
                 project_name=self.project_name,
                 homepage_url=self.homepage_url,
                 year=self.release_year,
