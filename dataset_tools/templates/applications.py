@@ -24,6 +24,11 @@ class Domain:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class GIS(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+            self.text = "geoinformational systems (GIS)"
+
 
 class Research:
     class Agricultural(DatasetApplications):
