@@ -426,7 +426,8 @@ class ProjectRepo:
             citation_file.write(citation_content)
 
         sly.logger.info("Successfully built and saved citation.")
-        sly.logger.warning("You must update CITATION.md manually.")
+        if self.citation_url is not None:
+            sly.logger.warning("You must update CITATION.md manually.")
 
     def _build_license(self, license_path):
         sly.logger.info("Starting to build license...")
