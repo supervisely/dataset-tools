@@ -10,7 +10,7 @@ CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
     "please cite the following reference:\n\n"
     "``` bibtex \n@dataset{{{project_name},\n"
-    "\tauthors={{{authors}}},\n"
+    "\tauthor={{{authors}}},\n"
     "\ttitle={{{project_name_full}}},\n"
     "\tyear={{{year}}},\n"
     "\turl={{{homepage_url}}}\n}}\n```\n\n"

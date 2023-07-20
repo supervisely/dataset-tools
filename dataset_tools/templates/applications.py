@@ -43,6 +43,10 @@ class Research:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class SurfaceDefectDetection(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
 
 class Industry:
     class GeneralDomain:
