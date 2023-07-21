@@ -415,7 +415,7 @@ class ProjectRepo:
         else:
             citation_content = CITATION_TEMPLATE.format(
                 project_name_full=self.project_name_full,
-                authors="and ".join(self.authors),
+                authors=" and ".join(self.authors),
                 project_name=self.project_name,
                 homepage_url=self.homepage_url,
                 year=self.release_year,
