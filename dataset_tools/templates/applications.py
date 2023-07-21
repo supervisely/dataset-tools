@@ -47,6 +47,10 @@ class Research:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class AnomalyDetection(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
 
 class Industry:
     class GeneralDomain:
@@ -63,6 +67,10 @@ class Industry:
             )
             return Domain.Industrial()
 
+    class AirDetection(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
     class Agricultural(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
@@ -78,7 +86,11 @@ class Industry:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
-    class Medical(DatasetApplications):
+    class Construction(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
+    class Eco(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
@@ -86,7 +98,7 @@ class Industry:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
-    class Manufacturing(DatasetApplications):
+    class Environmental(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
@@ -98,15 +110,23 @@ class Industry:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class Manufacturing(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
+    class Medical(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
     class Tourism(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
-    class Eco(DatasetApplications):
+    class Safety(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
-    class AirDetection(DatasetApplications):
+    class Satellite(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
@@ -115,18 +135,10 @@ class Industry:
             super().__init__(is_used)
             self.text = "Search and Rescue (SAR)"
 
-    class Satellite(DatasetApplications):
-        def __init__(self, is_used: bool = DatasetApplications().is_used):
-            super().__init__(is_used)
-
-    class Environmental(DatasetApplications):
-        def __init__(self, is_used: bool = DatasetApplications().is_used):
-            super().__init__(is_used)
-
     class UrbanPlanning(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
-    class Construction(DatasetApplications):
+    class Utilities(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)

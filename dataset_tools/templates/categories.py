@@ -35,6 +35,10 @@ class Category:
         def __init__(self, featured=DatasetCategory().featured):
             super().__init__(featured)
 
+    class Entertainment(DatasetCategory):
+        def __init__(self, featured=DatasetCategory().featured):
+            super().__init__(featured)
+
     class Environmental(DatasetCategory):
         def __init__(self, featured=DatasetCategory().featured):
             super().__init__(featured)
