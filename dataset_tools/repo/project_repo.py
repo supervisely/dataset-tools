@@ -1,10 +1,11 @@
 import json
 from typing import List, Literal, Optional
 
-import dataset_tools as dtools
 import supervisely as sly
+
+import dataset_tools as dtools
 from dataset_tools.repo import download
-from dataset_tools.templates import License
+from dataset_tools.templates import Category, License
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
@@ -61,9 +62,15 @@ class ProjectRepo:
             self._update_colors()
 
         self.const_tags = [self.category.text]
-
         if self.category.featured:
             self.const_tags.append("Featured")
+        if self.category.benchmark:
+            self.const_tags.append("Benchmark")
+        if self.category.extra is not None:
+            if isinstance(self.category.extra, list):
+                [self.const_tags.append(elem.text) for elem in self.category.extra]
+            elif isinstance(self.category.extra, Category):
+                self.const_tags.append(self.category.extra.text)
 
         self.download_archive_size = int(self.project_info.size)
 
@@ -415,7 +422,7 @@ class ProjectRepo:
         else:
             citation_content = CITATION_TEMPLATE.format(
                 project_name_full=self.project_name_full,
-                authors=" and ".join(self.authors),
+                authors=" and ".join(self.authors or []),
                 project_name=self.project_name,
                 homepage_url=self.homepage_url,
                 year=self.release_year,

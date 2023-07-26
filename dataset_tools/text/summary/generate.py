@@ -313,7 +313,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
                 tmp_list = []
                 for postfix, text in applications[True].items():
                     tmp_list.append(f"{list2sentence(text, postfix)}")
-                content += list2sentence(tmp_list) + ". "
+                content += ", and ".join(tmp_list) + ". "
 
         if applications.get(False) is not None:
             content += "Possible applications of the dataset could be in the "
