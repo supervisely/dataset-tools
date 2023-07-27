@@ -69,6 +69,15 @@ class Category:
         ):
             super().__init__(benchmark, featured, extra)
 
+    class Drones(DatasetCategory):
+        def __init__(
+            self,
+            benchmark=DatasetCategory().benchmark,
+            featured=DatasetCategory().featured,
+            extra=DatasetCategory().extra,
+        ):
+            super().__init__(benchmark, featured, extra)
+
     class Entertainment(DatasetCategory):
         def __init__(
             self,
@@ -124,6 +133,15 @@ class Category:
             super().__init__(benchmark, featured, extra)
 
     class Medical(DatasetCategory):
+        def __init__(
+            self,
+            benchmark=DatasetCategory().benchmark,
+            featured=DatasetCategory().featured,
+            extra=DatasetCategory().extra,
+        ):
+            super().__init__(benchmark, featured, extra)
+
+    class Satellite(DatasetCategory):
         def __init__(
             self,
             benchmark=DatasetCategory().benchmark,

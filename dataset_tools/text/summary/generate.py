@@ -11,6 +11,7 @@ import supervisely as sly
 p = (
     inflect.engine()
 )  # correctly generate plurals, singular nouns, ordinals, indefinite articles; convert numbers to words.
+p.defnoun("research", "research")
 
 MAX_CLASSES_IN_TEXT = 25
 
@@ -19,6 +20,7 @@ def list2sentence(
     lst: Union[List[str], str],
     anytail: str = "",
     keeptail=False,
+    article=False,
     url: Optional[Union[List[str], str]] = None,
     char2wrap: Optional[str] = None,
 ):
@@ -46,6 +48,10 @@ def list2sentence(
         lst = [char2wrap + elem + char2wrap for elem in lst]
 
     if len(lst) == 1:
+        if article:
+            splitted = lst[0].split()
+            splitted[0] = p.a(splitted[0])
+            lst[0] = " ".join(splitted)
         sentence = lst[0]
     elif len(lst) == 2:
         sentence = " and ".join(lst)
@@ -280,7 +286,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
 
     content = f"**{fullname}**"
 
-    content += f" is a dataset for {list2sentence(cv_tasks, 'tasks', keeptail=True)}. "
+    content += f" is a dataset for {list2sentence(cv_tasks, 'tasks', article=True)}. "
 
     # backward compatibility
     if data.get("industries") is not None:
@@ -313,7 +319,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
                 tmp_list = []
                 for postfix, text in applications[True].items():
                     tmp_list.append(f"{list2sentence(text, postfix)}")
-                content += ", and ".join(tmp_list) + ". "
+                content += ", and in the ".join(tmp_list) + ". "
 
         if applications.get(False) is not None:
             content += "Possible applications of the dataset could be in the "
