@@ -11,204 +11,250 @@ class Category:
 class DatasetCategory:
     def __init__(
         self,
+        extra: Union[Category, List[Category]] = None,
         benchmark: bool = False,
         featured: bool = False,
-        extra: Union[Category, List[Category]] = None,
+        original_source: bool = True,
+        sensitive_content: bool = True,
     ):
         # self.postfix = self.__class__.__qualname__.split(".")[0].lower()
         self.text = camel_to_snake(self.__class__.__name__).replace("_", " ").capitalize()
 
+        self.extra = extra
         self.benchmark = benchmark
         self.featured = featured
-        self.extra = extra
+        self.original_source = original_source
+        self.sensitive_content = sensitive_content
 
 
 class Category:
     class General(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Agriculture(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Aerial(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Biology(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Construction(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Drones(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Entertainment(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Environmental(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class EnergyAndUtilities(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Food(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Gaming(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Manufacturing(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Medical(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Satellite(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Surveillance(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Sports(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Livestock(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Retail(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Robotics(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class SelfDriving(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)
 
     class Safety(DatasetCategory):
         def __init__(
             self,
+            extra=DatasetCategory().extra,
             benchmark=DatasetCategory().benchmark,
             featured=DatasetCategory().featured,
-            extra=DatasetCategory().extra,
+            original_source=DatasetCategory().original_source,
+            sensitive_content=DatasetCategory().sensitive_content,
         ):
-            super().__init__(benchmark, featured, extra)
+            super().__init__(extra, benchmark, featured, original_source, sensitive_content)

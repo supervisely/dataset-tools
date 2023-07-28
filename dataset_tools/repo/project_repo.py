@@ -131,6 +131,8 @@ class ProjectRepo:
             "download_sly_url": self.download_sly_url,
             "download_archive_size": self.download_archive_size,
             "const_tags": self.const_tags,
+            "original_source": self.category.original_source,
+            "sensitive": self.category.sensitive_content,
             #####################
             # ? optional fields #
             #####################
