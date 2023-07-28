@@ -11,20 +11,20 @@ class Category:
 class DatasetCategory:
     def __init__(
         self,
-        # extra: Union[Category, List[Category]] = None,
-        # benchmark: bool = False,
-        # featured: bool = False,
-        # original_source: bool = True,
-        # sensitive_content: bool = True,
+        extra: Union[Category, List[Category]] = None,
+        benchmark: bool = False,
+        featured: bool = False,
+        original_source: bool = True,
+        sensitive_content: bool = True,
     ):
         # self.postfix = self.__class__.__qualname__.split(".")[0].lower()
         self.text = camel_to_snake(self.__class__.__name__).replace("_", " ").capitalize()
 
-        # self.extra = extra
-        # self.benchmark = benchmark
-        # self.featured = featured
-        # self.original_source = original_source
-        # self.sensitive_content = sensitive_content
+        self.extra = extra
+        self.benchmark = benchmark
+        self.featured = featured
+        self.original_source = original_source
+        self.sensitive_content = sensitive_content
 
 
 class Category:
