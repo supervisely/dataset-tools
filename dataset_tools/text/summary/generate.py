@@ -87,7 +87,7 @@ def get_summary_data(
     cv_tasks: List[str],
     annotation_types: List[str],
     applications: str,
-    original_source: bool,
+    is_original_dataset: bool,
     release_year: int,
     homepage_url: str,
     license: str,
@@ -155,7 +155,7 @@ def get_summary_data(
         "cv_tasks": cv_tasks,
         "annotation_types": annotation_types,
         "applications": applications,
-        "original_source": original_source,  # default value == True
+        "original_source": is_original_dataset,  # default value == True
         "release_year": release_year,
         "homepage_url": homepage_url,
         "license": license,
@@ -218,7 +218,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     github_url = data.get("github_url", None)
     citation_url = data.get("citation_url", None)
     download_sly_url = data.get("download_sly_url", None)
-    is_original_source = data.get("original_source", None)
+    is_original_dataset = data.get("is_original_dataset", None)
 
     # optional
     download_original_url = data.get("download_original_url", None)
@@ -331,7 +331,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
                 tmp_list.append(f"{list2sentence(text, postfix)}")
             content += list2sentence(tmp_list) + ". "
 
-    if not is_original_source:
+    if not is_original_dataset:
         content += f"The dataset presented here is a remix of the original dataset. Learn more on the dataset's [homepage]({homepage_url})."
 
     content += "\n\n"
@@ -373,7 +373,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
             content += f"criteria: {list2sentence(items[1])}"
         content += ". "
 
-    ds_str = "dataset" if is_original_source else "original dataset"
+    ds_str = "dataset" if is_original_dataset else "original dataset"
     if organization_name is not None and organization_url is not None:
         content += f"The {ds_str} was released in {release_year} by the {list2sentence(organization_name, url=organization_url)}."
     elif organization_name is not None and organization_url is None:
