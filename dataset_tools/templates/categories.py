@@ -15,7 +15,7 @@ class DatasetCategory:
         benchmark: bool = False,
         featured: bool = False,
         is_original_dataset: bool = True,
-        sensitive_content: bool = True,
+        sensitive_content: bool = False,
     ):
         # self.postfix = self.__class__.__qualname__.split(".")[0].lower()
         self.text = camel_to_snake(self.__class__.__name__).replace("_", " ").capitalize()
@@ -35,7 +35,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -46,7 +46,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -57,7 +57,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -68,7 +68,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -79,7 +79,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -90,7 +90,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -101,7 +101,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -112,7 +112,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -123,7 +123,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -134,7 +134,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -145,7 +145,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -156,7 +156,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -167,7 +167,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -178,7 +178,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -189,7 +189,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -200,7 +200,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -211,7 +211,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -222,7 +222,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -233,7 +233,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -244,7 +244,7 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
@@ -255,6 +255,6 @@ class Category:
             benchmark: bool = False,
             featured: bool = False,
             is_original_dataset: bool = True,
-            sensitive_content: bool = True,
+            sensitive_content: bool = False,
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)

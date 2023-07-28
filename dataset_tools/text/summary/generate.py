@@ -155,7 +155,7 @@ def get_summary_data(
         "cv_tasks": cv_tasks,
         "annotation_types": annotation_types,
         "applications": applications,
-        "original_source": is_original_dataset,  # default value == True
+        "is_original_dataset": is_original_dataset,  # default value == True
         "release_year": release_year,
         "homepage_url": homepage_url,
         "license": license,
