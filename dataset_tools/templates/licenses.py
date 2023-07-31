@@ -1,9 +1,10 @@
 class License:
     class Custom:
-        def __new__(cls, url: str = None):
+        def __new__(cls, url: str = None, redistributable=True):
             self = super().__new__(cls)
             self.name = "custom"
             self.url = url
+            self.redistributable = redistributable
             return self
 
     class CC0_1_0:
@@ -11,6 +12,7 @@ class License:
             self = super().__new__(cls)
             self.name = "CC0 1.0"
             self.url = "https://creativecommons.org/publicdomain/zero/1.0/"
+            self.redistributable = True
             return self
 
     class CC_BY_NC_2_0:
@@ -18,6 +20,7 @@ class License:
             self = super().__new__(cls)
             self.name = "CC BY-NC 2.0"
             self.url = "https://creativecommons.org/licenses/by-nc/2.0/"
+            self.redistributable = True
             return self
 
     class CC_BY_NC_SA_3_0:
@@ -25,6 +28,7 @@ class License:
             self = super().__new__(cls)
             self.name = "CC BY-NC-SA 3.0 US"
             self.url = "https://creativecommons.org/licenses/by-nc-sa/3.0/"
+            self.redistributable = True
             return self
 
     class CC_BY_NC_SA_3_0_IGO:
@@ -32,6 +36,7 @@ class License:
             self = super().__new__(cls)
             self.name = "CC BY-NC-SA 3.0 IGO"
             self.url = "https://creativecommons.org/licenses/by-nc-sa/3.0/igo/"
+            self.redistributable = True
             return self
 
     class CC_BY_NC_SA_3_0_US:
@@ -39,6 +44,7 @@ class License:
             self = super().__new__(cls)
             self.name = "CC BY-NC-SA 3.0 US"
             self.url = "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+            self.redistributable = True
             return self
 
     class CC_BY_SA_4_0:
@@ -46,6 +52,7 @@ class License:
             self = super().__new__(cls)
             self.name = "CC BY-SA 4.0"
             self.url = "https://creativecommons.org/licenses/by-sa/4.0/legalcode"
+            self.redistributable = True
             return self
 
     class CC_BY_NC_ND_4_0:
@@ -53,6 +60,7 @@ class License:
             self = super().__new__(cls)
             self.name = "CC BY-NC-ND 4.0"
             self.url = "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode"
+            self.redistributable = True
             return self
 
     class CC_BY_NC_SA_4_0:
@@ -60,6 +68,7 @@ class License:
             self = super().__new__(cls)
             self.name = "CC BY-NC-SA 4.0"
             self.url = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            self.redistributable = True
             return self
 
     class CC_BY_4_0:
@@ -67,6 +76,7 @@ class License:
             self = super().__new__(cls)
             self.name = "CC BY 4.0"
             self.url = "https://creativecommons.org/licenses/by/4.0/legalcode"
+            self.redistributable = True
             return self
 
     class CC_BY_NC_4_0:
@@ -74,6 +84,7 @@ class License:
             self = super().__new__(cls)
             self.name = "CC BY-NC 4.0"
             self.url = "https://creativecommons.org/licenses/by-nc/4.0/legalcode"
+            self.redistributable = True
             return self
 
     class BY_NC_SA_4_0:
@@ -81,6 +92,7 @@ class License:
             self = super().__new__(cls)
             self.name = "CC BY-NC-SA 4.0"
             self.url = "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode"
+            self.redistributable = True
             return self
 
     class ODbL_1_0:
@@ -88,6 +100,7 @@ class License:
             self = super().__new__(cls)
             self.name = "Open Data Commons Open Database License v1.0"
             self.url = "https://opendatacommons.org/licenses/odbl/1-0/"
+            self.redistributable = True
             return self
 
     class DbCL_1_0:
@@ -95,6 +108,7 @@ class License:
             self = super().__new__(cls)
             self.name = "Open Data Commons Database Contents License v1.0"
             self.url = "https://opendatacommons.org/licenses/dbcl/1-0/"
+            self.redistributable = True
             return self
 
     class MIT:
@@ -102,6 +116,7 @@ class License:
             self = super().__new__(cls)
             self.name = "MIT License"
             self.url = url or "https://spdx.org/licenses/MIT.html"
+            self.redistributable = True
             return self
 
     class Apache_2_0:
@@ -109,6 +124,7 @@ class License:
             self = super().__new__(cls)
             self.name = "Apache License Version 2.0"
             self.url = "https://www.apache.org/licenses/LICENSE-2.0"
+            self.redistributable = True
             return self
 
     class GNU_GPL_v3:
@@ -116,6 +132,7 @@ class License:
             self = super().__new__(cls)
             self.name = "GNU General Public License Version 3"
             self.url = "https://www.gnu.org/licenses/gpl-3.0.en.html"
+            self.redistributable = True
             return self
 
     class CDLA_Permissive_1_0:
@@ -123,4 +140,5 @@ class License:
             self = super().__new__(cls)
             self.name = "Community Data License Agreement - Permissive - Version 1.0"
             self.url = "https://cdla.dev/permissive-1-0/"
+            self.redistributable = True
             return self

@@ -95,6 +95,10 @@ class Research:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class Materials(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
     class Medical(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
@@ -109,30 +113,9 @@ class Research:
 
 
 class Industry:
-    class GeneralDomain:
-        def __new__(cls):
-            logger.warn(
-                "'Industry.GeneralDomain()' is deprecated. Please use 'Domain.General()' instead."
-            )
-            return Domain.General()
-
-    class Industrial:
-        def __new__(cls):
-            logger.warn(
-                "'Industry.Industrial()' is deprecated. Please use 'Domain.Industry()' instead."
-            )
-            return Domain.Industrial()
-
     class Agricultural(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
-
-    class Agriculture(DatasetApplications):
-        def __new__(cls):
-            logger.warn(
-                "'Industry.Agriculture()' is deprecated. Please use 'Industry.Agricultural()' instead."
-            )
-            return Industry.Agricultural()
 
     class Aviation(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
@@ -186,10 +169,6 @@ class Industry:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
-    class Tourism(DatasetApplications):
-        def __init__(self, is_used: bool = DatasetApplications().is_used):
-            super().__init__(is_used)
-
     class Safety(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
@@ -203,11 +182,23 @@ class Industry:
             super().__init__(is_used)
             self.text = "search and rescue (SAR)"
 
+    class Security(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
     class Shipping(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class Surveillance(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
     class Textile(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
+    class Tourism(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 

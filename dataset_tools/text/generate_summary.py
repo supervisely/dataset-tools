@@ -6,6 +6,7 @@ import textwrap
 from typing import Dict, List, Optional, Union
 
 import inflect
+
 import supervisely as sly
 
 p = (
@@ -172,10 +173,6 @@ def get_summary_data(
         "splits": splits,
     }
 
-    # backward compatibility
-    if len(applications) == 0:
-        fields["industries"] = kwargs.get("industries")
-
     # optional fields
     for key, value in zip(
         ["download_original_url", "paper", "organization_name", "organization_url", "tags"],
@@ -195,20 +192,15 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     cv_tasks = [standardize(cv_task) for cv_task in data.get("cv_tasks", [])]
     annotation_types = [standardize(ann_type) for ann_type in data.get("annotation_types", [])]
 
-    # backward compatibility
-    if data.get("industries") is not None:
-        sly.logger.warn("Field 'INDUSTRIES' is deprecated. Please use 'APPLICATIONS' instead")
-        industries = data["industries"]
-    else:
-        sorted_ = sorted(data.get("applications"), key=lambda x: x["is_used"])
-        grouped_ = itertools.groupby(sorted_, key=lambda x: x["is_used"])
-        applications = {}
-        for key, group in grouped_:
-            postfix_group = itertools.groupby(group, key=lambda x: x["postfix"])
-            applications[key] = {
-                postfix: [elem["text"] for elem in postfix_group]
-                for postfix, postfix_group in postfix_group
-            }
+    sorted_ = sorted(data.get("applications"), key=lambda x: x["is_used"])
+    grouped_ = itertools.groupby(sorted_, key=lambda x: x["is_used"])
+    applications = {}
+    for key, group in grouped_:
+        postfix_group = itertools.groupby(group, key=lambda x: x["postfix"])
+        applications[key] = {
+            postfix: [elem["text"] for elem in postfix_group]
+            for postfix, postfix_group in postfix_group
+        }
 
     release_year = data.get("release_year", None)
     homepage_url = data.get("homepage_url", None)
@@ -248,8 +240,10 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         #     arr = [f"[i]{s},{c}[/i]" for s, c in zip(slyds, count)]
 
         slytag_splits[group_name] = [
-            f'*{split["name"]}* ({split["split_size"]} {modality})' for split in splits
+            f'<span style="background-color: #dcbeff; padding: 2px 4px; border-radius: 4px;">{split["name"]}</span> ({split["split_size"]} {modality})'
+            for split in splits
         ]
+        # <span style="background-color: #bfef45; padding: 2px 4px; border-radius: 4px;">tubingen</span>
 
     # prepare data
     annotations = []
@@ -291,48 +285,38 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
 
     content += f" is a dataset for {list2sentence(cv_tasks, 'tasks', article=True)}. "
 
-    # backward compatibility
-    if data.get("industries") is not None:
-        if "general" in industries:
-            content += "It is applicable or relevant across various domains."
-            if len(industries) > 1:
-                industries.pop("general domain")
-                content += f"Also, it is used in {list2sentence(industries, 'industries')}."
-        else:
-            content += f"It is used in the {list2sentence(industries, 'industries')}."
-    else:
-        if (
-            applications.get(True) is not None
-            and applications[True].get("domain") is not None
-            and "general" in applications[True]["domain"]
-        ):
-            content += "It is applicable or relevant across various domains. "
-            extended = [item for sublist in applications[True].values() for item in sublist]
-            if len(extended) > 1:
-                applications[True]["domain"].remove("general")
-                content += f"Also, it is used in the "
-                tmp_list = []
-                for postfix, text in applications[True].items():
-                    if text:
-                        tmp_list.append(f"{list2sentence(text, postfix)}")
-                content += list2sentence(tmp_list) + ". "
-        else:
-            if applications.get(True) is not None:
-                content += "It is used in the "
-                tmp_list = []
-                for postfix, text in applications[True].items():
-                    tmp_list.append(f"{list2sentence(text, postfix)}")
-                content += ", and in the ".join(tmp_list) + ". "
-
-        if applications.get(False) is not None:
-            content += "Possible applications of the dataset could be in the "
+    if (
+        applications.get(True) is not None
+        and applications[True].get("domain") is not None
+        and "general" in applications[True]["domain"]
+    ):
+        content += "It is applicable or relevant across various domains. "
+        extended = [item for sublist in applications[True].values() for item in sublist]
+        if len(extended) > 1:
+            applications[True]["domain"].remove("general")
+            content += f"Also, it is used in the "
             tmp_list = []
-            for postfix, text in applications[False].items():
-                tmp_list.append(f"{list2sentence(text, postfix)}")
+            for postfix, text in applications[True].items():
+                if text:
+                    tmp_list.append(f"{list2sentence(text, postfix)}")
             content += list2sentence(tmp_list) + ". "
+    else:
+        if applications.get(True) is not None:
+            content += "It is used in the "
+            tmp_list = []
+            for postfix, text in applications[True].items():
+                tmp_list.append(f"{list2sentence(text, postfix)}")
+            content += ", and in the ".join(tmp_list) + ". "
+
+    if applications.get(False) is not None:
+        content += "Possible applications of the dataset could be in the "
+        tmp_list = []
+        for postfix, text in applications[False].items():
+            tmp_list.append(f"{list2sentence(text, postfix)}")
+        content += list2sentence(tmp_list) + ". "
 
     if not is_original_dataset:
-        content += f"The dataset presented here is a remix of the original dataset. Learn more on the dataset's [homepage]({homepage_url})."
+        content += f"The dataset presented here is not the original one. Learn more on the dataset's [homepage]({homepage_url})."
 
     content += "\n\n"
 
@@ -348,6 +332,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         content += f"(*{top_classes[0]}*)."
     else:
         content += f"including {list2sentence(top_classes[:3], char2wrap='*')}."
+
     content += f"\n\n{modality.capitalize()} in the {name} dataset have {annotations}. "
     if unlabeled_assets_num == 0:
         content += f"All {modality} are labeled (i.e. with annotations). "
@@ -364,15 +349,24 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         )
 
     if len(slytag_splits) > 0:
-        content += f"Alternatively, dataset could be splitted by "
+        content += f"Alternatively, dataset could be splitted "
         for idx, items in enumerate(slytag_splits.items()):
-            if idx == 0:
-                content += f"<i>{items[0]}</i> "
+            if p.singular_noun(items[0]):
+                group_name = items[0] if len(items[1]) > 1 else p.singular_noun(items[0])
             else:
-                content += f", or <i>{items[0]}</i> "
-            content += f"criteria: {list2sentence(items[1])}"
+                group_name = p.plural_noun(items[0]) if len(items[1]) > 1 else items[0]
+
+            if idx == 0:
+                content += f"by {len(items[1])} {group_name} "
+            else:
+                content += f", or by {len(items[1])} {group_name} "
+            content += f": {list2sentence(items[1])}"
         content += ". "
 
+    if not is_original_dataset:
+        sly.logger.warn(
+            "Please do not fill 'ORGANIZATION_NAME' and 'ORGANIZATION_URL' fields if the dataset was derived from multiple sources."
+        )
     ds_str = "dataset" if is_original_dataset else "original dataset"
     if organization_name is not None and organization_url is not None:
         content += f"The {ds_str} was released in {release_year} by the {list2sentence(organization_name, url=organization_url)}."

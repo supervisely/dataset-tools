@@ -19,7 +19,7 @@ from dataset_tools.image.stats.objects_distribution import ObjectsDistribution
 from dataset_tools.image.stats.preview_for_classes import ClassesPreview
 from dataset_tools.image.stats.wrapper import count_stats  # , initialize
 from dataset_tools.repo.project_repo import ProjectRepo
-from dataset_tools.text.summary.generate import (
+from dataset_tools.text.generate_summary import (
     generate_summary_content,
     get_summary_data,
     get_summary_data_sly,

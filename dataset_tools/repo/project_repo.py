@@ -1,9 +1,8 @@
 import json
 from typing import List, Literal, Optional
 
-import supervisely as sly
-
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.templates import Category, License
 
@@ -37,6 +36,10 @@ DOWNLOAD_ORIGINAL_TEMPLATE = (
     "dtools.download(dataset='{project_name}', dst_path='~/dtools/datasets/{project_name}.tar')\n```\n"
 )
 
+DOWNLOAD_NONREDISTRIBUTABLE_TEMPLATE = (
+    "Please visit dataset [homepage]({homepage_url}) to download the data. \n"
+)
+
 
 class ProjectRepo:
     def __init__(self, api: sly.Api, project_id: int, settings: dict):
@@ -49,14 +52,6 @@ class ProjectRepo:
         self.team_id = sly.env.team_id()
 
         self.__dict__.update(settings)
-
-        # backward compatibility
-        if self.__dict__.get("domains") is not None:
-            self.applications = self.domains
-        elif self.__dict__.get("industries") is not None:
-            self.applications = []
-        if self.__dict__.get("slytagsplit") is None:
-            self.slytagsplit = None
 
         if self.class2color:
             self._update_colors()
@@ -146,9 +141,6 @@ class ProjectRepo:
             "slytagsplit": self.slytagsplit,
             "tags": self.tags,
         }
-        # backward compatibility
-        if len(self.applications) == 0:
-            custom_data["industries"] = [industry.text for industry in self.industries]
 
         self.api.project.update_custom_data(self.project_id, custom_data)
         self.project_info = self.api.project.get_info_by_id(self.project_id)
@@ -472,22 +464,26 @@ class ProjectRepo:
     def _build_download(self, download_path):
         sly.logger.info("Starting to build download...")
 
-        licensecheck = True
-        if self.download_original_url is not None and licensecheck:
-            download_content = DOWNLOAD_SLY_TEMPLATE.format(
-                project_name=self.project_name,
-                download_sly_url=self.download_sly_url,
-            )
-            if isinstance(self.download_original_url, str):
-                download_content += f"The data in original format can be 🔗[downloaded here]({self.download_original_url})"
-            if isinstance(self.download_original_url, dict):
-                download_content += "The data in original format can be downloaded here:\n\n"
-                for key, val in self.download_original_url.items():
-                    download_content += f"- 🔗[{key}]({val})\n"
-        elif self.download_original_url is None:
-            download_content = DOWNLOAD_ORIGINAL_TEMPLATE.format(
+        if self.license.redistributable:
+            if self.download_original_url is not None:
+                download_content = DOWNLOAD_SLY_TEMPLATE.format(
+                    project_name=self.project_name,
+                    download_sly_url=self.download_sly_url,
+                )
+                if isinstance(self.download_original_url, str):
+                    download_content += f"The data in original format can be 🔗[downloaded here]({self.download_original_url})"
+                if isinstance(self.download_original_url, dict):
+                    download_content += "The data in original format can be downloaded here:\n\n"
+                    for key, val in self.download_original_url.items():
+                        download_content += f"- 🔗[{key}]({val})\n"
+            else:
+                download_content = DOWNLOAD_ORIGINAL_TEMPLATE.format(
+                    homepage_url=self.homepage_url,
+                    project_name=self.project_name,
+                )
+        else:
+            download_content = DOWNLOAD_NONREDISTRIBUTABLE_TEMPLATE.format(
                 homepage_url=self.homepage_url,
-                project_name=self.project_name,
             )
 
         with open(download_path, "w") as download_file:
