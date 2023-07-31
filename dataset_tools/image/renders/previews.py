@@ -62,7 +62,7 @@ class Previews:
                 thickness_factor = 0.005
                 render_height, render_width, _ = render.shape
                 thickness = int(max(render_height, render_width) * thickness_factor)
-                ann.draw_pretty(render, thickness=thickness, opacity=0.3)
+                ann.draw_pretty(render, thickness=thickness, opacity=0.15)
             else:
                 for label in ann.labels:
                     label: sly.Label
