@@ -240,7 +240,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         #     arr = [f"[i]{s},{c}[/i]" for s, c in zip(slyds, count)]
 
         slytag_splits[group_name] = [
-            f'<span style="background-color: #dcbeff; padding: 2px 4px; border-radius: 4px;">{split["name"]}</span> ({split["split_size"]} {modality})'
+            f'<span style="background-color: #ecdefc; padding: 2px 4px; border-radius: 4px;">{split["name"]}</span> ({split["split_size"]} {modality})'
             for split in splits
         ]
         # <span style="background-color: #bfef45; padding: 2px 4px; border-radius: 4px;">tubingen</span>
@@ -319,8 +319,6 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         content += f"The dataset presented here is not the original one. Learn more on the dataset's [homepage]({homepage_url})."
 
     content += "\n\n"
-
-    content += "\n\n"
     content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} "
     if len(top_classes) == 1:
         content += f"single class "
@@ -369,7 +367,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         )
     ds_str = "dataset" if is_original_dataset else "original dataset"
     if organization_name is not None and organization_url is not None:
-        content += f"The {ds_str} was released in {release_year} by the {list2sentence(organization_name, url=organization_url)}."
+        content += f"The {ds_str} was released in {release_year} by the {list2sentence(organization_name)}."
     elif organization_name is not None and organization_url is None:
         content += f"The {ds_str} was released in {release_year} by the {list2sentence(organization_name)}."
     elif organization_name is None and organization_url is None:

@@ -3,6 +3,7 @@ import tarfile
 import zipfile
 
 import tqdm
+
 from supervisely.io.fs import get_file_name_with_ext
 
 
@@ -19,7 +20,7 @@ def unpack_if_archive(path: str) -> str:
             total_files = len(zip_ref.infolist())
 
             with tqdm.tqdm(
-                desc=f"Unpacking '{get_file_name_with_ext(path)}'...",
+                desc=f"Unpacking '{get_file_name_with_ext(path)}'",
                 total=total_files,
                 unit="file",
             ) as pbar:
@@ -36,7 +37,7 @@ def unpack_if_archive(path: str) -> str:
             total_files = len(tar_ref.getnames())
 
             with tqdm.tqdm(
-                desc=f"Unpacking '{get_file_name_with_ext(path)}'...",
+                desc=f"Unpacking '{get_file_name_with_ext(path)}'",
                 total=total_files,
                 unit="file",
             ) as pbar:

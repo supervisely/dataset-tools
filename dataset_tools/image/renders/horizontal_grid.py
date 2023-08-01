@@ -7,8 +7,12 @@ import numpy as np
 from tqdm import tqdm
 
 import supervisely as sly
+from dataset_tools.image.renders.convert import (
+    compress_mp4,
+    compress_png,
+    from_mp4_to_webm,
+)
 from supervisely.imaging import font as sly_font
-from dataset_tools.image.renders.convert import from_mp4_to_webm, compress_mp4, compress_png
 
 
 class HorizontalGrid:
@@ -48,6 +52,7 @@ class HorizontalGrid:
 
     def update(self, data: tuple):
         cnt = self._cols * self._rows
+        # data = [data[1]]  # hack to get pull of images only from specific ds
         join_data = [(ds, img, ann) for ds, list1, list2 in data for img, ann in zip(list1, list2)]
 
         random.shuffle(join_data)
@@ -69,7 +74,9 @@ class HorizontalGrid:
                 try:
                     ann = ann.resize(img.shape[:2])
                 except Exception:
-                    sly.logger.warn(f"Skipping image: can not resize annotation. Image name: {img_info.name}")
+                    sly.logger.warn(
+                        f"Skipping image: can not resize annotation. Image name: {img_info.name}"
+                    )
                     i += 1
                     continue
                 ann: sly.Annotation
@@ -81,7 +88,9 @@ class HorizontalGrid:
                     elif self._is_detection_task:
                         bbox = label.geometry.to_bbox()
                         pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
-                        cv2.rectangle(ann_mask, pt1, pt2, label.obj_class.color, thickness=thickness)
+                        cv2.rectangle(
+                            ann_mask, pt1, pt2, label.obj_class.color, thickness=thickness
+                        )
                         cv2.rectangle(img, pt1, pt2, label.obj_class.color, thickness=thickness)
                         font_size = int(sly_font.get_readable_font_size(img.shape[:2]) * 1.4)
                         font = sly_font.get_font(font_size=font_size)

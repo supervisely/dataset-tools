@@ -1,8 +1,9 @@
 import json
 from typing import List, Literal, Optional
 
-import dataset_tools as dtools
 import supervisely as sly
+
+import dataset_tools as dtools
 from dataset_tools.repo import download
 from dataset_tools.templates import Category, License
 
@@ -14,7 +15,7 @@ CITATION_TEMPLATE = (
     "\ttitle={{{project_name_full}}},\n"
     "\tyear={{{year}}},\n"
     "\turl={{{homepage_url}}}\n}}\n```\n\n"
-    "[🔗 Source]({homepage_url})"
+    "[Source]({homepage_url})"
 )
 
 LICENSE_TEMPLATE = "{project_name_full} is under [{license_name}]({license_url}) license."
@@ -25,7 +26,7 @@ DOWNLOAD_SLY_TEMPLATE = (
     "Dataset **{project_name}** can be downloaded in Supervisely format:\n\n [Download]({download_sly_url})\n\n"
     "As an alternative, it can be downloaded with *dataset-tools* package:\n``` bash\npip install --upgrade dataset-tools\n```"
     "\n\n... using following python code:\n``` python\nimport dataset_tools as dtools\n\ndtools.download(dataset='{project_name}', "
-    "dst_path='~/dtools/datasets/{project_name}.tar')\n```\n"
+    "dst_dir='~/dataset-ninja/')\n```\n"
 )
 
 DOWNLOAD_ORIGINAL_TEMPLATE = (
@@ -33,7 +34,7 @@ DOWNLOAD_ORIGINAL_TEMPLATE = (
     "Afterward, you have the option to download it in the universal supervisely format by utilizing the *dataset-tools* package:\n``` "
     "bash\npip install --upgrade dataset-tools\n```"
     "\n\n... using following python code:\n``` python\nimport dataset_tools as dtools\n\n"
-    "dtools.download(dataset='{project_name}', dst_path='~/dtools/datasets/{project_name}.tar')\n```\n"
+    "dtools.download(dataset='{project_name}', dst_dir='~/dataset-ninja/')\n```\n"
 )
 
 DOWNLOAD_NONREDISTRIBUTABLE_TEMPLATE = (
@@ -250,7 +251,7 @@ class ProjectRepo:
         dtools.count_stats(
             self.project_id,
             stats=stats + vstats,
-            sample_rate=1,
+            sample_rate=settings.get("Other", 1).get("sample_rate", 1),
         )
 
         sly.logger.info("Saving stats...")
@@ -411,7 +412,7 @@ class ProjectRepo:
                 f"If you make use of the {self.project_name} data, "
                 f"please cite the following reference:\n\n"
                 "``` bibtex\nPASTE HERE CUSTOM CITATION FROM THE SOURCE URL\n```\n\n"
-                f"[🔗 Source]({self.citation_url})"
+                f"[Source]({self.citation_url})"
             )
         else:
             citation_content = CITATION_TEMPLATE.format(
@@ -475,7 +476,7 @@ class ProjectRepo:
                 if isinstance(self.download_original_url, dict):
                     download_content += "The data in original format can be downloaded here:\n\n"
                     for key, val in self.download_original_url.items():
-                        download_content += f"- 🔗[{key}]({val})\n"
+                        download_content += f"- [{key}]({val})\n"
             else:
                 download_content = DOWNLOAD_ORIGINAL_TEMPLATE.format(
                     homepage_url=self.homepage_url,

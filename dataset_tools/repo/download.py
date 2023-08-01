@@ -6,6 +6,8 @@ import requests
 import tqdm
 
 import supervisely as sly
+from dataset_tools.convert import unpack_if_archive
+from supervisely._utils import camel_to_snake
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(CURENT_DIR)
@@ -122,7 +124,15 @@ def update_sly_url_dict(api: sly.Api, new_dict: dict) -> None:
     sly.logger.info(f"Dictionary saved to Team files: '{tf_urls_path}'")
 
 
-def download(dataset_name: str, dst_path: str):
+def download(dataset: str, dst_dir: str = None) -> str:
+    dataset_snake = camel_to_snake(dataset).replace(" ", "-")
+
+    if dst_dir is None:
+        dst_dir = "~/dataset-ninja/"
+
+    dst_dir = os.path.expanduser(dst_dir)
+    os.makedirs(dst_dir, exist_ok=True)
+
     try:
         with open(urls_path, "r") as f:
             data = json.load(f)
@@ -131,17 +141,19 @@ def download(dataset_name: str, dst_path: str):
             "File with download urls was not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
         )
     try:
-        data[dataset_name]
+        data[dataset]
     except KeyError:
         raise KeyError(
-            f"Key '{dataset_name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
+            f"Key '{dataset}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
         )
 
-    sly_url = data[dataset_name]["download_sly_url"]
+    sly_url = data[dataset]["download_sly_url"]
 
     response = requests.get(sly_url, stream=True)
     total_size = int(response.headers.get("content-length", 0))
     block_size = 1024  # Adjust the block size as needed
+
+    dst_path = os.path.join(dst_dir, f"{dataset_snake}.tar")
 
     with tqdm.tqdm(desc="Downloading", total=total_size, unit="B", unit_scale=True) as pbar:
         with open(dst_path, "wb") as file:
@@ -149,4 +161,8 @@ def download(dataset_name: str, dst_path: str):
                 file.write(data)
                 pbar.update(len(data))
 
-    sly.logger.info(f"Dataset {dataset_name} was downloaded to: '{dst_path}'")
+    unpack_if_archive(dst_path)
+
+    # sly.logger.info(f"Dataset {dataset} was downloaded to: '{dst_dir}'")
+
+    return dst_path
