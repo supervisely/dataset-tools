@@ -23,18 +23,20 @@ LICENSE_TEMPLATE = "{project_name_full} is under [{license_name}]({license_url})
 README_TEMPLATE = "# {project_name_full}\n\n{project_name} is a dataset for {cv_tasks} tasks."
 
 DOWNLOAD_SLY_TEMPLATE = (
-    "Dataset **{project_name}** can be downloaded in Supervisely format:\n\n [Download]({download_sly_url})\n\n"
+    "Dataset **{project_name}** can be downloaded in [Supervisely format](https://developer.supervisely.com/api-references/supervisely-annotation-json-format):\n\n [Download]({download_sly_url})\n\n"
     "As an alternative, it can be downloaded with *dataset-tools* package:\n``` bash\npip install --upgrade dataset-tools\n```"
     "\n\n... using following python code:\n``` python\nimport dataset_tools as dtools\n\ndtools.download(dataset='{project_name}', "
     "dst_dir='~/dataset-ninja/')\n```\n"
+    "Make sure not to overlook the [python code example](https://developer.supervisely.com/getting-started/python-sdk-tutorials/iterate-over-a-local-project) available on the Supervisely Developer Portal. It will give you a clear idea of how to effortlessly work with the downloaded dataset.\n\n"
 )
 
 DOWNLOAD_ORIGINAL_TEMPLATE = (
     "Please visit dataset [homepage]({homepage_url}) to download the data. \n\n"
-    "Afterward, you have the option to download it in the universal supervisely format by utilizing the *dataset-tools* package:\n``` "
+    "Afterward, you have the option to download it in the universal [Supervisely format](https://developer.supervisely.com/api-references/supervisely-annotation-json-format) by utilizing the *dataset-tools* package:\n``` "
     "bash\npip install --upgrade dataset-tools\n```"
     "\n\n... using following python code:\n``` python\nimport dataset_tools as dtools\n\n"
     "dtools.download(dataset='{project_name}', dst_dir='~/dataset-ninja/')\n```\n"
+    "Make sure not to overlook the [python code example](https://developer.supervisely.com/getting-started/python-sdk-tutorials/iterate-over-a-local-project) available on the Supervisely Developer Portal. It will give you a clear idea of how to effortlessly work with the downloaded dataset.\n"
 )
 
 DOWNLOAD_NONREDISTRIBUTABLE_TEMPLATE = (
@@ -248,11 +250,11 @@ class ProjectRepo:
         # [heatmaps, classes_previews, previews]
         vstats = [stat for stat in vstats if stat.force]
 
-        dtools.count_stats(
-            self.project_id,
-            stats=stats + vstats,
-            sample_rate=settings.get("Other", 1).get("sample_rate", 1),
-        )
+        srate = 1
+        if settings.get("Other") is not None:
+            srate = settings["Other"].get("sample_rate", 1)
+
+        dtools.count_stats(self.project_id, stats=stats + vstats, sample_rate=srate)
 
         sly.logger.info("Saving stats...")
         for stat in stats:
@@ -472,7 +474,7 @@ class ProjectRepo:
                     download_sly_url=self.download_sly_url,
                 )
                 if isinstance(self.download_original_url, str):
-                    download_content += f"The data in original format can be 🔗[downloaded here]({self.download_original_url})"
+                    download_content += f"The data in original format can be [downloaded here]({self.download_original_url})"
                 if isinstance(self.download_original_url, dict):
                     download_content += "The data in original format can be downloaded here:\n\n"
                     for key, val in self.download_original_url.items():

@@ -6,7 +6,6 @@ import textwrap
 from typing import Dict, List, Optional, Union
 
 import inflect
-
 import supervisely as sly
 
 p = (
@@ -134,15 +133,18 @@ def get_summary_data(
     slytagsplits_dict = {}
     if slytagsplit is not None:
         for group_name, slytag_names in slytagsplit.items():
-            slytagsplits_dict[group_name] = [
-                {
-                    "name": item["tagMeta"]["name"],
-                    "split_size": item["total"],
-                    "datasets": item["datasets"],
-                }
-                for item in stats["imageTags"]["items"]
-                if item["tagMeta"]["name"] in slytag_names
-            ]
+            if isinstance(slytag_names, list):
+                slytagsplits_dict[group_name] = [
+                    {
+                        "name": item["tagMeta"]["name"],
+                        "split_size": item["total"],
+                        "datasets": item["datasets"],
+                    }
+                    for item in stats["imageTags"]["items"]
+                    if item["tagMeta"]["name"] in slytag_names
+                ]
+            # elif isinstance(slytag_names, str):
+            #     slytagsplits_dict[group_name] =
 
     splits = {
         "slyds": slydssplits_list,
@@ -347,7 +349,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         )
 
     if len(slytag_splits) > 0:
-        content += f"Alternatively, dataset could be splitted "
+        content += f"Alternatively, the dataset could be split "
         for idx, items in enumerate(slytag_splits.items()):
             if p.singular_noun(items[0]):
                 group_name = items[0] if len(items[1]) > 1 else p.singular_noun(items[0])
@@ -355,9 +357,9 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
                 group_name = p.plural_noun(items[0]) if len(items[1]) > 1 else items[0]
 
             if idx == 0:
-                content += f"by {len(items[1])} {group_name} "
+                content += f"into {len(items[1])} {group_name}"
             else:
-                content += f", or by {len(items[1])} {group_name} "
+                content += f", or into {len(items[1])} {group_name}"
             content += f": {list2sentence(items[1])}"
         content += ". "
 
