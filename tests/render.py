@@ -37,7 +37,7 @@ def main():
     dtools.prepare_renders(
         project_id,
         renderers=renderers + animators,
-        sample_cnt=40,
+        sample_cnt=30,
     )
     print("Saving visualizations...")
     for r in renderers + animators:

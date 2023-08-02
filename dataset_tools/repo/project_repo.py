@@ -1,9 +1,8 @@
 import json
 from typing import List, Literal, Optional
 
-import supervisely as sly
-
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.templates import Category, License
 
@@ -72,6 +71,9 @@ class ProjectRepo:
 
         self.download_archive_size = int(self.project_info.size)
 
+        if not self.license.redistributable:
+            self.limited = {"view_count": 500, "download": False}
+
         self._process_download_link()
         self._update_custom_data()
 
@@ -131,6 +133,7 @@ class ProjectRepo:
             "const_tags": self.const_tags,
             "is_original_dataset": self.category.is_original_dataset,
             "sensitive": self.category.sensitive_content,
+            "limited": self.limited,
             #####################
             # ? optional fields #
             #####################
@@ -327,7 +330,7 @@ class ProjectRepo:
         dtools.prepare_renders(
             self.project_id,
             renderers=renderers + animators,
-            sample_cnt=40,
+            sample_cnt=30,
         )
 
         sly.logger.info("Saving visualizations...")
