@@ -300,7 +300,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
             "semantic segmentation" in annotation_types
             and "object detection" not in annotation_types
         ):
-            annotations.append(" pixel-level semantic segmentation annotations.")
+            annotations.append(" pixel-level semantic segmentation annotations")
         elif (
             "semantic segmentation" not in annotation_types
             and "object detection" in annotation_types
