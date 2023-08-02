@@ -65,6 +65,10 @@ class ObjectSizes(BaseStats):
             self._stats.append((object_data, [image.id]))
 
     def to_json(self) -> Dict:
+        if not self._stats:
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            return
+
         options = {
             "sort": {"columnIndex": 0, "order": "asc"},
         }
@@ -151,6 +155,10 @@ class ClassSizes(BaseStats):
         self._data.append(ann)
 
     def to_json(self) -> Dict:
+        if not self._data:
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            return
+
         stats = []
 
         class_heights_px = defaultdict(list)
@@ -286,6 +294,10 @@ class ClassesTreemap(BaseStats):
         self._data.append(ann)
 
     def to_json(self) -> Dict:
+        if not self._data:
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            return
+
         tooltip = "Average area of class objects on image is {y}%"
         colors = self._class_colors
         names = []
