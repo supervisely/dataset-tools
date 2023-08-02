@@ -387,6 +387,8 @@ class ProjectRepo:
             "HorizontalGrid": "visualizations/horizontal_grid.png",
             "SideAnnotationsGrid": "visualizations/side_annotations_grid.png",
             "Poster": "visualizations/poster.png",
+            "HorizontalGridAnimated": "visualizations/horizontal_grid.webm",
+            "VerticalGridAnimated": "visualizations/vertical_grid.webm",
         }
 
         summary_data = dtools.get_summary_data_sly(self.project_info)

@@ -412,14 +412,20 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         elif vis_url.endswith(".png"):
             content += f"\n\nHere is the visualized example grid with annotations:\n\n"
             content += f'<img src="{vis_url}">\n'
-        elif total_classes > MAX_CLASSES_IN_TEXT:
-            content += f"\n\nHere is a visualized example for {MAX_CLASSES_IN_TEXT} randomly selected sample classes:\n\n"
-            content += f"[Dataset classes]({vis_url})\n"
-        else:
-            content += (
-                f"\n\nHere are the visualized examples for each of the {total_classes} classes:\n\n"
-            )
-            content += f"[Dataset classes]({vis_url})\n"
+        elif vis_url.endswith(".webm"):
+            if "classes_preview" in vis_url:
+                if total_classes > MAX_CLASSES_IN_TEXT:
+                    content += f"\n\nHere is a visualized example for {MAX_CLASSES_IN_TEXT} randomly selected sample classes:\n\n"
+                    content += f"[Dataset classes]({vis_url})\n"
+                else:
+                    content += (
+                        f"\n\nHere are the visualized examples for each of the {total_classes} classes:\n\n"
+                    )
+                    content += f"[Dataset classes]({vis_url})\n"
+            else:
+                content += f"\n\nHere is the visualized example grid with animated annotations:\n\n"
+                content += f'[animated grid]({vis_url})\n'
+
 
     return content
 
