@@ -89,7 +89,7 @@ class Poster:
         with tqdm(desc="Poster: download 7 sample images", total=7) as pbar:
             while len(np_images) < 7:
                 if i > len(join_data) * 3:
-                    raise Exception("There not enought images with labels in the project.")
+                    raise Exception("There are not enough images with labels in the project.")
                 ds, img_info, ann = join_data[i % len(join_data)]
                 ds: sly.Dataset
                 if len(ann.labels) < 1:
@@ -114,7 +114,9 @@ class Poster:
                 try:
                     ann = ann.resize(np_img.shape[:2])
                 except Exception:
-                    sly.logger.warn(f"Skipping image: can not resize annotation. Image name: {img_info.name}")
+                    sly.logger.warn(
+                        f"Skipping image: can not resize annotation. Image name: {img_info.name}"
+                    )
                     i += 1
                     continue
 

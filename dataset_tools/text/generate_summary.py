@@ -254,6 +254,21 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         ]
         # <span style="background-color: #bfef45; padding: 2px 4px; border-radius: 4px;">tubingen</span>
 
+    def move_key_to_first(dictionary, key):
+        if key in dictionary:
+            value = dictionary.pop(key)
+            return {key: value, **dictionary}
+        return dictionary
+
+    def move_key_to_last(dictionary, key):
+        if key in dictionary:
+            value = dictionary.pop(key)
+            dictionary[key] = value
+        return dictionary
+
+    slytag_splits = move_key_to_first(slytag_splits, "__PRETEXT__")
+    slytag_splits = move_key_to_last(slytag_splits, "__POSTTEXT__")
+
     # prepare data
     annotations = []
     if "instance segmentation" in annotation_types:
@@ -362,11 +377,8 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     if len(slytag_splits) > 0:
         content += f"Alternatively, the dataset could be split "
         for idx, items in enumerate(slytag_splits.items()):
-            if items[0] == "__PRETEXT__":
+            if items[0] in ["__PRETEXT__", "__POSTTEXT__"]:
                 content += items[1]
-                post_content = None
-            if items[0] == "__POSTTEXT__":
-                post_content = items[1]
                 continue
 
             if p.singular_noun(items[0]):
@@ -379,8 +391,6 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
             else:
                 content += f", or into {len(items[1])} {group_name}"
             content += f": {list2sentence(items[1])}"
-        if post_content is not None:
-            content += post_content
         content += ". "
 
     if not is_original_dataset:

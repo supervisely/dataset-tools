@@ -34,7 +34,7 @@ def sample_images(
         datasets_with_labels.append((dataset, ds_images))
 
     if len(datasets_with_labels) == 0:
-        raise Exception("There are not enought images with labels on them in the project.")
+        raise Exception("There are not enough images with labels on them in the project.")
 
     for dataset, ds_images in datasets_with_labels:
         dataset: sly.Dataset
@@ -64,7 +64,9 @@ def prepare_renders(
     project: Union[int, str], renderers: list, sample_cnt: int = 25, api: sly.Api = None
 ) -> None:
     if len(renderers) == 0:
-        print("Passed 'renderers' parameter is empty. Enable 'force' flag to overwrite renderers output file. Skipping renderers preparation...")
+        print(
+            "Passed 'renderers' parameter is empty. Enable 'force' flag to overwrite renderers output file. Skipping renderers preparation..."
+        )
         return
     if api is None:
         api = sly.Api.from_env()
