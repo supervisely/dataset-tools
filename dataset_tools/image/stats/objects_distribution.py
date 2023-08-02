@@ -31,6 +31,10 @@ class ObjectsDistribution(BaseStats):
         self._data.append((image, ann))
 
     def to_json(self) -> Dict:
+        if not self._data:
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            return
+
         self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
         counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
