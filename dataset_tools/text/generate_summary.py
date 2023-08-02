@@ -100,7 +100,7 @@ def get_summary_data(
     citation_url: str = None,
     organization_name: str = None,
     organization_url: str = None,
-    slytagsplit: Dict[str, List[str]] = None,
+    slytagsplit: Dict[str, Union[List[str], str]] = None,
     tags: List[str] = None,
     **kwargs,
 ) -> Dict:
@@ -133,6 +133,9 @@ def get_summary_data(
     slytagsplits_dict = {}
     if slytagsplit is not None:
         for group_name, slytag_names in slytagsplit.items():
+            if group_name in ["__PRETEXT__", "__POSTTEXT__"]:
+                slytagsplits_dict[group_name] = slytag_names
+                continue
             if isinstance(slytag_names, list):
                 slytagsplits_dict[group_name] = [
                     {
@@ -241,6 +244,10 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         #     slyds, count = extra
         #     arr = [f"[i]{s},{c}[/i]" for s, c in zip(slyds, count)]
 
+        if group_name in ["__PRETEXT__", "__POSTTEXT__"]:
+            slytag_splits[group_name] = splits
+            continue
+
         slytag_splits[group_name] = [
             f'<span style="background-color: #ecdefc; padding: 2px 4px; border-radius: 4px;">{split["name"]}</span> ({split["split_size"]} {modality})'
             for split in splits
@@ -274,11 +281,15 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         else:
             annotations.append(" pixel-level instance segmentation annotations")
     else:
-        if "semantic segmentation" in annotation_types:
-            annotations.append(
-                " pixel-level semantic segmentation annotations. Due to the nature of the semantic segmentation task, it can be automatically transformed into an object detection (bounding boxes for every object) task"
-            )
-        elif "object detection" in annotation_types:
+        if (
+            "semantic segmentation" in annotation_types
+            and "object detection" not in annotation_types
+        ):
+            annotations.append(" pixel-level semantic segmentation annotations.")
+        elif (
+            "semantic segmentation" not in annotation_types
+            and "object detection" in annotation_types
+        ):
             annotations.append(" bounding box annotations")
 
     annotations = ",".join(annotations).strip()
@@ -351,6 +362,13 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     if len(slytag_splits) > 0:
         content += f"Alternatively, the dataset could be split "
         for idx, items in enumerate(slytag_splits.items()):
+            if items[0] == "__PRETEXT__":
+                content += items[1]
+                post_content = None
+            if items[0] == "__POSTTEXT__":
+                post_content = items[1]
+                continue
+
             if p.singular_noun(items[0]):
                 group_name = items[0] if len(items[1]) > 1 else p.singular_noun(items[0])
             else:
@@ -361,6 +379,8 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
             else:
                 content += f", or into {len(items[1])} {group_name}"
             content += f": {list2sentence(items[1])}"
+        if post_content is not None:
+            content += post_content
         content += ". "
 
     if not is_original_dataset:
