@@ -1,5 +1,4 @@
 from collections import defaultdict
-
 from typing import Dict, List
 
 import supervisely as sly
@@ -94,7 +93,7 @@ class ObjectsDistribution(BaseStats):
         hmp.add_series_batch(series)
 
         number_of_rows = len(series)
-        max_widget_height = 800
+        max_widget_height = 1600
         if number_of_rows < 5:
             row_height = 70
         elif number_of_rows < 20:
