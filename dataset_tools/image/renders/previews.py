@@ -59,9 +59,7 @@ class Previews:
             render = np.zeros((ann.img_size[0], ann.img_size[1], 3), dtype=np.uint8)
 
             if self._is_detection_task:
-                thickness_factor = 0.005
-                render_height, render_width, _ = render.shape
-                thickness = int(max(render_height, render_width) * thickness_factor)
+                thickness = self._get_thickness(render)
                 ann.draw_pretty(render, thickness=thickness, opacity=0.15)
             else:
                 for label in ann.labels:
@@ -71,7 +69,8 @@ class Previews:
                     elif type(label.geometry) != sly.Rectangle:
                         label.draw(render, thickness=ann._get_thickness())
                     else:
-                        label.draw_contour(render, thickness=ann._get_thickness())
+                        thickness = self._get_thickness(render)
+                        label.draw_contour(render, thickness=thickness)
             alpha = (1 - np.all(render == [0, 0, 0], axis=-1).astype("uint8")) * 255
             rgba = np.dstack((render, alpha))
 
@@ -104,3 +103,9 @@ class Previews:
             print("Errors during renders upload:")
             for error in self.errors:
                 print(error)
+
+    def _get_thickness(self, render):
+        THICKNESS_FACTOR = 0.005
+        render_height, render_width, _ = render.shape
+        thickness = int(max(render_height, render_width) * THICKNESS_FACTOR)
+        return thickness
