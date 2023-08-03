@@ -18,7 +18,7 @@ class DatasetCategory:
         sensitive_content: bool = False,
     ):
         # self.postfix = self.__class__.__qualname__.split(".")[0].lower()
-        self.text = camel_to_snake(self.__class__.__name__).replace("_", " ").capitalize()
+        self.text = camel_to_snake(self.__class__.__name__).replace("_", " ").lower()
 
         self.extra = extra
         self.benchmark = benchmark

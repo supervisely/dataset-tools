@@ -1,9 +1,8 @@
 import json
 from typing import List, Literal, Optional
 
-import supervisely as sly
-
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.templates import Category, License
 
@@ -59,16 +58,16 @@ class ProjectRepo:
         if self.class2color:
             self._update_colors()
 
-        self.const_tags = [self.category.text]
+        self.categories = [self.category.text]
         if self.category.featured:
-            self.const_tags.append("Featured")
+            self.categories.append("featured")
         if self.category.benchmark:
-            self.const_tags.append("Benchmark")
+            self.categories.append("benchmark")
         if self.category.extra is not None:
             if isinstance(self.category.extra, list):
-                [self.const_tags.append(elem.text) for elem in self.category.extra]
+                [self.categories.append(elem.text) for elem in self.category.extra]
             elif isinstance(self.category.extra, Category):
-                self.const_tags.append(self.category.extra.text)
+                self.categories.append(self.category.extra.text)
 
         self.download_archive_size = int(self.project_info.size)
 
@@ -123,6 +122,7 @@ class ProjectRepo:
             "cv_tasks": self.cv_tasks,
             "annotation_types": self.annotation_types,
             "applications": [vars(application) for application in self.applications],
+            "categories": self.categories,
             "release_year": self.release_year,
             "homepage_url": self.homepage_url,
             "license": self.license.name,
@@ -132,7 +132,6 @@ class ProjectRepo:
             "github": self.github_url[self.github_url.index("dataset-ninja") :],
             "download_sly_url": self.download_sly_url,
             "download_archive_size": self.download_archive_size,
-            "const_tags": self.const_tags,
             "is_original_dataset": self.category.is_original_dataset,
             "sensitive": self.category.sensitive_content,
             "limited": self.limited,
@@ -148,6 +147,7 @@ class ProjectRepo:
             "organization_url": self.organization_url,
             "slytagsplit": self.slytagsplit,
             "tags": self.tags,
+            "explore_datasets": self.__dict__.get("explore_datasets", None),
         }
 
         self.api.project.update_custom_data(self.project_id, custom_data)
