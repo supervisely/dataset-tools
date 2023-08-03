@@ -1,4 +1,5 @@
 import os
+import cv2
 from datetime import datetime
 
 import numpy as np
@@ -58,19 +59,20 @@ class Previews:
 
             render = np.zeros((ann.img_size[0], ann.img_size[1], 3), dtype=np.uint8)
 
-            if self._is_detection_task:
-                thickness = self._get_thickness(render)
-                ann.draw_pretty(render, thickness=thickness, opacity=0.15)
-            else:
-                for label in ann.labels:
-                    label: sly.Label
-                    if type(label.geometry) == sly.Point:
-                        label.draw(render, thickness=15)
-                    elif type(label.geometry) != sly.Rectangle:
+            for label in ann.labels:
+                label: sly.Label
+                if type(label.geometry) == sly.Point:
+                    label.draw(render, thickness=15)
+                if self._is_detection_task:
+                    bbox = label.geometry.to_bbox()
+                    pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
+                    thickness = self._get_thickness(render)
+                    cv2.rectangle(render, pt1, pt2, label.obj_class.color, thickness=thickness)
+                else:
+                    if type(label.geometry) != sly.Rectangle:
                         label.draw(render, thickness=ann._get_thickness())
                     else:
-                        thickness = self._get_thickness(render)
-                        label.draw_contour(render, thickness=thickness)
+                        label.draw_contour(render, thickness=ann._get_thickness())
             alpha = (1 - np.all(render == [0, 0, 0], axis=-1).astype("uint8")) * 255
             rgba = np.dstack((render, alpha))
 
