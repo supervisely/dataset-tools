@@ -1,9 +1,8 @@
 import json
 from typing import List, Literal, Optional
 
-import supervisely as sly
-
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.templates import DatasetCategory, License
 
@@ -73,7 +72,7 @@ class ProjectRepo:
         self.download_archive_size = int(self.project_info.size)
 
         self.limited = (
-            {"view_count": 500, "download": False} if not self.license.redistributable else None
+            {"view_count": 20, "download": False} if not self.license.redistributable else None
         )
 
         self._process_download_link()
