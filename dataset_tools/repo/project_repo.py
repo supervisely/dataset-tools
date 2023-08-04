@@ -1,10 +1,11 @@
 import json
 from typing import List, Literal, Optional
 
-import dataset_tools as dtools
 import supervisely as sly
+
+import dataset_tools as dtools
 from dataset_tools.repo import download
-from dataset_tools.templates import Category, License
+from dataset_tools.templates import DatasetCategory, License
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
@@ -66,7 +67,7 @@ class ProjectRepo:
         if self.category.extra is not None:
             if isinstance(self.category.extra, list):
                 [self.categories.append(elem.text) for elem in self.category.extra]
-            elif isinstance(self.category.extra, Category):
+            elif isinstance(self.category.extra, DatasetCategory):
                 self.categories.append(self.category.extra.text)
 
         self.download_archive_size = int(self.project_info.size)
