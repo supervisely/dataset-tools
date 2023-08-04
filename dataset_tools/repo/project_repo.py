@@ -77,6 +77,20 @@ class ProjectRepo:
             {"view_count": 10, "download": False} if not self.license.redistributable else None
         )
 
+        if self.paper is not None:
+            self.buttons = []
+            if isinstance(self.paper, str):
+                self.buttons.append(
+                    {"text": "Research Publication", "icon": "pdf", "href": self.paper}
+                )
+            elif isinstance(self.paper, list):
+                [
+                    self.buttons.append(
+                        {"text": f"Research Publication {idx}", "icon": "pdf", "href": elem}
+                    )
+                    for idx, elem in enumerate(self.paper, start=1)
+                ]
+
         self._process_download_link()
         self._update_custom_data()
 
@@ -137,6 +151,7 @@ class ProjectRepo:
             "is_original_dataset": self.category.is_original_dataset,
             "sensitive": self.category.sensitive_content,
             "limited": self.limited,
+            "buttons": self.buttons,
             #####################
             # ? optional fields #
             #####################
