@@ -151,7 +151,7 @@ class ProjectRepo:
             "is_original_dataset": self.category.is_original_dataset,
             "sensitive": self.category.sensitive_content,
             "limited": self.limited,
-            "buttons": self.buttons,
+            "buttons": self.__dict__.get("buttons", None),
             #####################
             # ? optional fields #
             #####################
