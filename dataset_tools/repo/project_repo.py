@@ -1,8 +1,9 @@
 import json
 from typing import List, Literal, Optional
 
-import dataset_tools as dtools
 import supervisely as sly
+
+import dataset_tools as dtools
 from dataset_tools.repo import download
 from dataset_tools.templates import DatasetCategory, License
 
@@ -18,6 +19,7 @@ CITATION_TEMPLATE = (
 )
 
 LICENSE_TEMPLATE = "{project_name_full} is under [{license_name}]({license_url}) license."
+UNKNOWN_LICENSE_TEMPLATE = "License is unknown for the {project_name_full} dataset."
 
 README_TEMPLATE = "# {project_name_full}\n\n{project_name} is a dataset for {cv_tasks} tasks."
 
@@ -72,7 +74,7 @@ class ProjectRepo:
         self.download_archive_size = int(self.project_info.size)
 
         self.limited = (
-            {"view_count": 20, "download": False} if not self.license.redistributable else None
+            {"view_count": 10, "download": False} if not self.license.redistributable else None
         )
 
         self._process_download_link()
@@ -446,11 +448,16 @@ class ProjectRepo:
             sly.logger.warning("Custom license must be added manually.")
             return
 
-        license_content = LICENSE_TEMPLATE.format(
-            project_name_full=self.project_name_full,
-            license_name=self.license.name,
-            license_url=self.license.url,
-        )
+        if self.license.name == "unknown":
+            license_content = UNKNOWN_LICENSE_TEMPLATE.format(
+                project_name_full=self.project_name_full,
+            )
+        else:
+            license_content = LICENSE_TEMPLATE.format(
+                project_name_full=self.project_name_full,
+                license_name=self.license.name,
+                license_url=self.license.url,
+            )
 
         with open(license_path, "w") as license_file:
             license_file.write(license_content)

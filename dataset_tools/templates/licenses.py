@@ -7,6 +7,14 @@ class License:
             self.redistributable = redistributable
             return self
 
+    class Unknown:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "unknown"
+            self.url = None
+            self.redistributable = False
+            return self
+
     class CC0_1_0:
         def __new__(cls):
             self = super().__new__(cls)

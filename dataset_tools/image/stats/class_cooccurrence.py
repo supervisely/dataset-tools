@@ -2,8 +2,8 @@ from collections import defaultdict
 from typing import Dict
 
 import numpy as np
-import supervisely as sly
 
+import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseStats
 
 # from supervisely.app.widgets import ConfusionMatrix
@@ -81,9 +81,3 @@ class ClassCooccurrence(BaseStats):
             "colomnsOptions": colomns_options,
         }
         return res
-
-    # def get_widget(self) -> ConfusionMatrix:
-    #     df = pd.DataFrame(data=self.co_occurrence_matrix.tolist(), columns=self._class_names)
-    #     confusion_matrix = ConfusionMatrix()
-    #     confusion_matrix.read_pandas(df)
-    #     return confusion_matrix
