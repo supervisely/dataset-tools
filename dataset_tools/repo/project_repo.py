@@ -79,10 +79,12 @@ class ProjectRepo:
 
         if self.paper is not None:
             self.buttons = []
+            blogpost_keywords = ["medium.com/"]
             if isinstance(self.paper, str):
-                self.buttons.append(
-                    {"text": "Research Publication", "icon": "pdf", "href": self.paper}
-                )
+                is_blog_post = any(str2 in self.paper for str2 in blogpost_keywords)
+                text = "Blog Post" if is_blog_post else "Research Publication"
+                icon = "paper" if is_blog_post else "pdf"
+                self.buttons.append({"text": text, "icon": icon, "href": self.paper})
             elif isinstance(self.paper, list):
                 [
                     self.buttons.append(
