@@ -1,7 +1,6 @@
 import os
 import cv2
 from datetime import datetime
-
 import numpy as np
 
 import supervisely as sly
@@ -59,22 +58,20 @@ class Previews:
 
             render = np.zeros((ann.img_size[0], ann.img_size[1], 3), dtype=np.uint8)
 
-            for label in ann.labels:
-                label: sly.Label
-                if type(label.geometry) == sly.Point:
-                    label.draw(render, thickness=15)
-                if self._is_detection_task:
-                    bbox = label.geometry.to_bbox()
-                    pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
-                    thickness = self._get_thickness(render)
-                    cv2.rectangle(render, pt1, pt2, label.obj_class.color, thickness=thickness)
-                else:
+            if self._is_detection_task:
+                rgba = self._draw_bbox(ann)
+            else:
+                for label in ann.labels:
+                    label: sly.Label
+                    if type(label.geometry) == sly.Point:
+                        label.draw(render, thickness=15)
                     if type(label.geometry) != sly.Rectangle:
                         label.draw(render, thickness=ann._get_thickness())
                     else:
-                        label.draw_contour(render, thickness=ann._get_thickness())
-            alpha = (1 - np.all(render == [0, 0, 0], axis=-1).astype("uint8")) * 255
-            rgba = np.dstack((render, alpha))
+                        thickness = self._get_thickness(render)
+                        label.draw_contour(render, thickness=thickness)
+                alpha = (1 - np.all(render == [0, 0, 0], axis=-1).astype("uint8")) * 255
+                rgba = np.dstack((render, alpha))
 
             local_path = os.path.join(os.getcwd(), "tmp/renders", f"{image.id}.png")
             remote_path = os.path.join(self.render_dir, f"{image.id}.png")
@@ -111,3 +108,30 @@ class Previews:
         render_height, render_width, _ = render.shape
         thickness = int(max(render_height, render_width) * THICKNESS_FACTOR)
         return thickness
+
+    def _draw_bbox(self, ann):
+        FRAME_OPACITY = 1.0
+        FILL_OPACITY = 0.3
+
+        render = np.zeros((ann.img_size[0], ann.img_size[1], 4), dtype=np.uint8)
+
+        for label in ann.labels:
+            label: sly.Label
+            color = tuple(label.obj_class.color)
+            frame_alpha = int(255 * FRAME_OPACITY)
+            fill_alpha = int(255 * FILL_OPACITY)
+
+            bbox = label.geometry.to_bbox()
+            pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
+            thickness = self._get_thickness(render)
+
+            temp_render = np.zeros_like(render)
+
+            cv2.rectangle(temp_render, pt1, pt2, (*color, frame_alpha), thickness=thickness)
+
+            temp_render[pt1[1] : pt2[1], pt1[0] : pt2[0], 0:3] = color
+            temp_render[pt1[1] : pt2[1], pt1[0] : pt2[0], 3] = fill_alpha
+
+            render = cv2.addWeighted(render, 1.0, temp_render, 1.0, 0.0)
+
+        return render
