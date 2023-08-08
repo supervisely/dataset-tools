@@ -344,7 +344,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         content += list2sentence(tmp_list) + ". "
 
     if not is_original_dataset:
-        content += f"The dataset presented here is not the original one. Learn more on the dataset's [homepage]({homepage_url})."
+        content += f"The dataset presented here is not the original one. Learn more on the dataset's homepage."
 
     content += "\n\n"
     content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} "
@@ -397,13 +397,16 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         sly.logger.warn(
             "Please do not fill 'ORGANIZATION_NAME' and 'ORGANIZATION_URL' fields if the dataset was derived from multiple sources."
         )
-    ds_str = "dataset" if is_original_dataset else "original dataset"
     if organization_name is not None and organization_url is not None:
-        content += f"The {ds_str} was released in {release_year} by the {list2sentence(organization_name)}."
+        content += (
+            f"The dataset was released in {release_year} by the {list2sentence(organization_name)}."
+        )
     elif organization_name is not None and organization_url is None:
-        content += f"The {ds_str} was released in {release_year} by the {list2sentence(organization_name)}."
+        content += (
+            f"The dataset was released in {release_year} by the {list2sentence(organization_name)}."
+        )
     elif organization_name is None and organization_url is None:
-        content += f"The {ds_str} was released in {release_year}."
+        content += f"The dataset was released in {release_year}."
 
     total_classes = totals.get("total_classes", 0)
     if vis_url is not None and isinstance(vis_url, str):
@@ -418,14 +421,11 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
                     content += f"\n\nHere is a visualized example for {MAX_CLASSES_IN_TEXT} randomly selected sample classes:\n\n"
                     content += f"[Dataset classes]({vis_url})\n"
                 else:
-                    content += (
-                        f"\n\nHere are the visualized examples for each of the {total_classes} classes:\n\n"
-                    )
+                    content += f"\n\nHere are the visualized examples for each of the {total_classes} classes:\n\n"
                     content += f"[Dataset classes]({vis_url})\n"
             else:
                 content += f"\n\nHere is the visualized example grid with animated annotations:\n\n"
-                content += f'[animated grid]({vis_url})\n'
-
+                content += f"[animated grid]({vis_url})\n"
 
     return content
 
