@@ -220,7 +220,7 @@ class ProjectRepo:
 
         cls_prevs_settings = settings.get("ClassesPreview", {})
         heatmaps_settings = settings.get("ClassesHeatmaps", {})
-        previews_settings = settings.get("Previews", {})
+        # previews_settings = settings.get("Previews", {})
 
         stat_cache = {}
         stats = [
@@ -236,9 +236,9 @@ class ProjectRepo:
         classes_previews = dtools.ClassesPreview(
             self.project_meta, self.project_info.name, **cls_prevs_settings
         )
-        previews = dtools.Previews(
-            self.project_id, self.project_meta, self.api, self.team_id, **previews_settings
-        )
+        # previews = dtools.Previews(
+        #     self.project_id, self.project_meta, self.api, self.team_id, **previews_settings
+        # )
 
         for stat in stats:
             if (
@@ -253,7 +253,7 @@ class ProjectRepo:
                 stat.force = False
         stats = [stat for stat in stats if stat.force]
 
-        vstats = [heatmaps, classes_previews, previews]
+        vstats = [heatmaps, classes_previews]  # , previews]
 
         for vstat in vstats:
             if vstat.__class__.__name__ in force:
@@ -269,9 +269,8 @@ class ProjectRepo:
             or classes_previews.__class__.__name__ in force
         ):
             classes_previews.force = True
-        if not self.api.file.dir_exists(self.team_id, f"/dataset/{self.project_id}/renders/"):
-            previews.force = True
-        # [heatmaps, classes_previews, previews]
+        # if not self.api.file.dir_exists(self.team_id, f"/dataset/{self.project_id}/renders/"):
+        #     previews.force = True
         vstats = [stat for stat in vstats if stat.force]
 
         srate = 1
@@ -296,8 +295,8 @@ class ProjectRepo:
                 heatmaps.to_image(f"./stats/{heatmaps.basename_stem}.png", **heatmaps_settings)
             if classes_previews.force:
                 classes_previews.animate(f"./visualizations/{classes_previews.basename_stem}.webm")
-            if previews.force:
-                previews.close()
+            # if previews.force:
+            # previews.close()
 
         sly.logger.info("Successfully built and saved stats.")
 
