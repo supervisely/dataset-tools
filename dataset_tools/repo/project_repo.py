@@ -1,9 +1,8 @@
 import json
 from typing import List, Literal, Optional
 
-import supervisely as sly
-
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.templates import DatasetCategory, License
 
@@ -154,6 +153,7 @@ class ProjectRepo:
             "sensitive": self.category.sensitive_content,
             "limited": self.limited,
             "buttons": self.__dict__.get("buttons", None),
+            "hide_dataset": self.__dict__.get("hide_dataset", True),
             #####################
             # ? optional fields #
             #####################

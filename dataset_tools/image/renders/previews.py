@@ -97,7 +97,7 @@ class Previews:
         for path in local_paths:
             sly.fs.silent_remove(path)
 
-    def close(self):
+    def close(self) -> None:
         if len(self.images_batch) > 0:
             self._save_batch()
 
@@ -106,7 +106,7 @@ class Previews:
             for error in self.errors:
                 print(error)
 
-    def _get_thickness(self, render):
+    def _get_thickness(self, render: np.ndarray) -> int:
         THICKNESS_FACTOR = 0.005
         render_height, render_width, _ = render.shape
         thickness = int(max(render_height, render_width) * THICKNESS_FACTOR)
