@@ -1,6 +1,6 @@
 import os
-import cv2
 from datetime import datetime
+from PIL import Image, ImageDraw
 
 import numpy as np
 
@@ -59,22 +59,20 @@ class Previews:
 
             render = np.zeros((ann.img_size[0], ann.img_size[1], 3), dtype=np.uint8)
 
-            for label in ann.labels:
-                label: sly.Label
-                if type(label.geometry) == sly.Point:
-                    label.draw(render, thickness=15)
-                if self._is_detection_task:
-                    bbox = label.geometry.to_bbox()
-                    pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
-                    thickness = self._get_thickness(render)
-                    cv2.rectangle(render, pt1, pt2, label.obj_class.color, thickness=thickness)
-                else:
+            if self._is_detection_task:
+                rgba = self._draw_bbox(ann)
+
+            else:
+                for label in ann.labels:
+                    label: sly.Label
+                    if type(label.geometry) == sly.Point:
+                        label.draw(render, thickness=15)
                     if type(label.geometry) != sly.Rectangle:
                         label.draw(render, thickness=ann._get_thickness())
                     else:
-                        label.draw_contour(render, thickness=ann._get_thickness())
-            alpha = (1 - np.all(render == [0, 0, 0], axis=-1).astype("uint8")) * 255
-            rgba = np.dstack((render, alpha))
+                        label.draw_contour(render, thickness=self._get_thickness(render))
+                alpha = (1 - np.all(render == [0, 0, 0], axis=-1).astype("uint8")) * 255
+                rgba = np.dstack((render, alpha))
 
             local_path = os.path.join(os.getcwd(), "tmp/renders", f"{image.id}.png")
             remote_path = os.path.join(self.render_dir, f"{image.id}.png")
@@ -97,7 +95,7 @@ class Previews:
         for path in local_paths:
             sly.fs.silent_remove(path)
 
-    def close(self) -> None:
+    def close(self):
         if len(self.images_batch) > 0:
             self._save_batch()
 
@@ -106,8 +104,70 @@ class Previews:
             for error in self.errors:
                 print(error)
 
-    def _get_thickness(self, render: np.ndarray) -> int:
+    def _get_thickness(self, render):
         THICKNESS_FACTOR = 0.005
         render_height, render_width, _ = render.shape
         thickness = int(max(render_height, render_width) * THICKNESS_FACTOR)
         return thickness
+
+    def rgb_to_rgba(self, rgb: np.ndarray) -> np.ndarray:
+        """Converts RGB image to RGBA image with alpha channel set to 255 for non-black pixels.
+
+        :param rgb: RGB image as numpy array with shape (height, width, 3)
+        :type rgb: np.ndarray
+        :return: RGBA image as numpy array with shape (height, width, 4)
+        :rtype: np.ndarray"""
+        alpha = (1 - np.all(rgb == [0, 0, 0], axis=-1).astype("uint8")) * 255
+        return np.dstack((rgb, alpha))
+
+    def _draw_bbox(self, ann: sly.Annotation, fill_opacity: float = 0.3) -> np.ndarray:
+        """Draws bounding boxes on transparent image with non-transparent frame and semi-transparent fill.
+        Uses object class color for frame and fill.
+
+        :param ann: Supervisely annotation
+        :type ann: sly.Annotation
+        :return: RGBA image as numpy array with shape (height, width, 4)
+        :rtype: np.ndarray"""
+
+        img = Image.new("RGBA", (ann.img_size[1], ann.img_size[0]), (0, 0, 0, 0))
+        frame_render = np.zeros((ann.img_size[0], ann.img_size[1], 3), dtype=np.uint8)
+
+        for label in ann.labels:
+            label: sly.Label
+            overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+            fill_color = tuple(label.obj_class.color) + (int(255 * fill_opacity),)
+
+            bbox = label.geometry.to_bbox()
+            coords = (
+                (bbox.left, bbox.top),
+                (bbox.right, bbox.bottom),
+            )
+
+            draw = ImageDraw.Draw(overlay)
+            draw.rectangle(coords, fill=fill_color)
+
+            ann.draw_contour(frame_render, thickness=self._get_thickness(frame_render))
+
+            img = Image.alpha_composite(img, overlay)
+
+        render = np.array(img)
+        frame_render = self.rgb_to_rgba(frame_render)
+
+        render = self._overlay_images(frame_render, render)
+
+        return render
+
+    def _overlay_images(self, top_layer: np.ndarray, bottom_layer: np.ndarray) -> np.ndarray:
+        """Paste `top_layer` onto `bottom_layer` ignoring bottom layer's alpha channel.
+
+        :param top_layer: The image that should be pasted onto the bottom layer, overlaying the bottom layer.
+        :type top_layer: RGBA numpy array with shape (height, width, 4)
+        :param bottom_layer: The image that should be used as the bottom layer, it will be overlaid by the top layer.
+        :type bottom_layer: RGBA numpy array with shape (height, width, 4)
+        :return: The resulting image.
+        :rtype: RGBA numpy array with shape (height, width, 4)"""
+        result = bottom_layer.copy()
+        top_alpha = top_layer[:, :, 3]
+        result[top_alpha == 255] = top_layer[top_alpha == 255]
+
+        return result
