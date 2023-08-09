@@ -56,6 +56,10 @@ class ProjectRepo:
 
         self.__dict__.update(settings)
 
+        self.hide_dataset = self.__dict__.get("hide_dataset", True)
+        self.buttons = self.__dict__.get("buttons", None)
+        self.explore_datasets = self.__dict__.get("explore_datasets", None)
+
         if self.class2color:
             self._update_colors()
 
@@ -115,7 +119,21 @@ class ProjectRepo:
         sly.logger.info("Custom classes colors are updated.")
 
     def _process_download_link(self):
-        self.download_sly_url = download.prepare_link(self.api, self.project_info)
+        tf_urls_path_hidden = "/cache/download_urls/hidden_datasets.json"
+        tf_urls_path_released = "/cache/download_urls/released_datasets.json"
+
+        tf_urls_path = tf_urls_path_hidden if self.hide_dataset else tf_urls_path_released
+
+        if not self.hide_dataset:
+            sly.logger.warn(
+                "This is a release version of a dataset. Don't forget to double-check annotations shapes, colors, tags, etc."
+            )
+
+        self.download_sly_url = download.prepare_link(
+            self.api,
+            self.project_info,
+            tf_urls_path,
+        )
         download.update_sly_url_dict(
             self.api,
             {
@@ -125,6 +143,7 @@ class ProjectRepo:
                     "download_original_url": self.download_original_url,
                 }
             },
+            tf_urls_path,
         )
 
     def _update_custom_data(self):
@@ -152,8 +171,8 @@ class ProjectRepo:
             "is_original_dataset": self.category.is_original_dataset,
             "sensitive": self.category.sensitive_content,
             "limited": self.limited,
-            "buttons": self.__dict__.get("buttons", None),
-            "hide_dataset": self.__dict__.get("hide_dataset", True),
+            "buttons": self.buttons,
+            "hide_dataset": self.hide_dataset,
             #####################
             # ? optional fields #
             #####################
@@ -166,7 +185,7 @@ class ProjectRepo:
             "organization_url": self.organization_url,
             "slytagsplit": self.slytagsplit,
             "tags": self.tags,
-            "explore_datasets": self.__dict__.get("explore_datasets", None),
+            "explore_datasets": self.explore_datasets,
         }
 
         self.api.project.update_custom_data(self.project_id, custom_data)

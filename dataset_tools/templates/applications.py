@@ -99,6 +99,10 @@ class Research:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class Environmental(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
     class Materials(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
@@ -112,6 +116,10 @@ class Research:
             super().__init__(is_used)
 
     class SurfaceDefectDetection(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
+    class UrbanPlanning(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 

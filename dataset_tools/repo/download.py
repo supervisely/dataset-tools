@@ -11,17 +11,16 @@ from supervisely._utils import camel_to_snake
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(CURENT_DIR)
-urls_path = os.path.join(PARENT_DIR, "data", "download_urls.json")
-tf_urls_path = "/cache/download_urls.json"
-# urls_path = "./dataset_tools/data/download_urls.json"
+
+PATH_DOWNLOAD_URLS = os.path.join(PARENT_DIR, "data/download_urls/released_datasets.json")
 
 
-def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
+def prepare_link(api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str):
     team_id = sly.env.team_id()
     workspace_id = sly.env.workspace_id()
     agent_id = sly.env.agent_id()
     storage_dir = sly.app.get_data_dir()
-    local_save_path = os.path.join(storage_dir, "download_urls.json")
+    local_save_path = os.path.join(storage_dir, "tmp/download_urls.json")
 
     # if os.path.exists(urls_path):
     #     with open(urls_path, "r") as f:
@@ -64,7 +63,7 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
             agent_id=agent_id,
             module_id=module_id,
             workspace_id=workspace_id,
-            task_name="custom session name",
+            task_name="Prepare download link",
             params=params,
         )
         sly.logger.info(f"Task started, task_id: {session.task_id}")
@@ -75,10 +74,10 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
             sly.logger.info("Waiting for the download link to finish being created...")
             api.app.wait(session.task_id, target_status=api.task.Status.FINISHED)
 
-        except sly.WaitingTimeExceeded as e:
-            sly.logger.error(e)
-            # we don't want to wait more, let's stop our long-lived or "zombie" task
-            api.app.stop(session.task_id)
+        # except sly.WaitingTimeExceeded as e:
+        #     sly.logger.error(e)
+        #     # we don't want to wait more, let's stop our long-lived or "zombie" task
+        #     api.app.stop(session.task_id)
         except sly.TaskFinishedWithError as e:
             sly.logger.error(e)
 
@@ -92,23 +91,18 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo):
         )
 
 
-def update_sly_url_dict(api: sly.Api, new_dict: dict) -> None:
+def update_sly_url_dict(api: sly.Api, new_dict: dict, tf_urls_path: str) -> None:
     team_id = sly.env.team_id()
 
-    # if os.path.exists(urls_path):
-    #     with open(urls_path, "r") as f:
-    #         data = json.load(f)
-    # else:
-    #     sly.logger.info(f"File '{urls_path}' not exists. Creating a new one...")
-    #     data = {}
-
     storage_dir = sly.app.get_data_dir()
-    local_save_path = os.path.join(storage_dir, "download_urls.json")
+    local_save_path = os.path.join(storage_dir, "tmp/download_urls.json")
 
     if api.file.exists(team_id, tf_urls_path):
         api.file.download(team_id, tf_urls_path, local_save_path)
         with open(local_save_path, "r") as f:
             data = json.load(f)
+    else:
+        data = {}
 
     sly.logger.info("Updating dictionary with download links...")
     data.update(new_dict)
@@ -116,11 +110,7 @@ def update_sly_url_dict(api: sly.Api, new_dict: dict) -> None:
     with open(local_save_path, "w") as f:
         json.dump(data, f, indent=4)
 
-    # sly.logger.info(f"Dictionary saved to pip '{urls_path}'")
-
-    # teamfiles_path = f"/cache/{os.path.basename(urls_path)}"
     api.file.upload(team_id, local_save_path, tf_urls_path)
-
     sly.logger.info(f"Dictionary saved to Team files: '{tf_urls_path}'")
 
 
@@ -134,7 +124,7 @@ def download(dataset: str, dst_dir: str = None) -> str:
     os.makedirs(dst_dir, exist_ok=True)
 
     try:
-        with open(urls_path, "r") as f:
+        with open(PATH_DOWNLOAD_URLS, "r") as f:
             data = json.load(f)
     except Exception:
         raise FileNotFoundError(
@@ -144,7 +134,7 @@ def download(dataset: str, dst_dir: str = None) -> str:
         data[dataset]
     except KeyError:
         raise KeyError(
-            f"Key '{dataset}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
+            f"Dataset '{dataset}' not found. Please check dataset name or update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
         )
 
     sly_url = data[dataset]["download_sly_url"]
@@ -161,8 +151,4 @@ def download(dataset: str, dst_dir: str = None) -> str:
                 file.write(data)
                 pbar.update(len(data))
 
-    unpack_if_archive(dst_path)
-
-    # sly.logger.info(f"Dataset {dataset} was downloaded to: '{dst_dir}'")
-
-    return dst_path
+    return unpack_if_archive(dst_path)
