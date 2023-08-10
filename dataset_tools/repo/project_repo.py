@@ -1,8 +1,9 @@
 import json
 from typing import List, Literal, Optional
 
-import dataset_tools as dtools
 import supervisely as sly
+
+import dataset_tools as dtools
 from dataset_tools.repo import download
 from dataset_tools.templates import DatasetCategory, License
 
@@ -59,6 +60,7 @@ class ProjectRepo:
         self.hide_dataset = self.__dict__.get("hide_dataset", True)
         self.buttons = self.__dict__.get("buttons", None)
         self.explore_datasets = self.__dict__.get("explore_datasets", None)
+        self.tags = self.__dict__.get("tags", [])
 
         if self.class2color:
             self._update_colors()
@@ -82,19 +84,22 @@ class ProjectRepo:
 
         if self.paper is not None:
             self.buttons = []
-            blogpost_keywords = ["medium.com/"]
+            blogpost_keywords = ["medium.com/", "learnopencv.com/"]
             if isinstance(self.paper, str):
                 is_blog_post = any(str2 in self.paper for str2 in blogpost_keywords)
-                text = "Blog Post" if is_blog_post else "Research Publication"
+                text = "Blog Post" if is_blog_post else "Research Paper"
                 icon = "paper" if is_blog_post else "pdf"
                 self.buttons.append({"text": text, "icon": icon, "href": self.paper})
+                if is_blog_post:
+                    self.tags.append("has_blogpost_as_source")
             elif isinstance(self.paper, list):
                 [
                     self.buttons.append(
-                        {"text": f"Research Publication {idx}", "icon": "pdf", "href": elem}
+                        {"text": f"Research Paper {idx}", "icon": "pdf", "href": elem}
                     )
                     for idx, elem in enumerate(self.paper, start=1)
                 ]
+                self.buttons[0]["text"] = "Research Paper 1 (main)"
 
         self._process_download_link()
         self._update_custom_data()

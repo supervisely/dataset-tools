@@ -36,11 +36,19 @@ class Domain:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class Engineering(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
     class Forestry(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
     class General(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
+    class Geospatial(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
@@ -108,6 +116,10 @@ class Research:
             super().__init__(is_used)
 
     class Medical(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
+    class Neurobiological(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
