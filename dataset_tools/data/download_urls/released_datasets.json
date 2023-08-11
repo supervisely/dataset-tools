@@ -1,791 +1,256 @@
 {
-  "CWFID": {
-    "id": 953,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/q/V/tD/DkjDBIGvZwkFWBECl9HeLGb6CZBatBrf5Vb3dUwN6cx815WdUDJr0j4Sq5CNTWl43fxyBWInzMFxdrhy4Z3kML71TKjwqzl6xec6MfRmKTJpriMuOWDZ891my5bd.tar",
-    "download_original_url": "https://github.com/cwfid/dataset/archive/refs/tags/v1.0.zip"
-  },
-  "Food Recognition 2022": {
-    "id": 950,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/g/x/8C/uFOBz66enoXsEMPzMcLCPLbr13xU07IOTI9nHHP0qumJalbd5xOhq1WD9IwMlNneg8RDqN9i53ke58w7JdAsk2fRelMmpkDeFhcd7cBWb53z3KayMNLqJc469r6W.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/awsaf49/food-recognition-2022-dataset/download?datasetVersionNumber=1"
-  },
-  "Kolektor Surface-Defect": {
-    "id": 938,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/s/r/P1/JrEfJCgcRmLOTMVAwQ3SidwXmswQV8mbXSupoN995fDqyrwczLAUuE7Mx10HsMuEP6ObS11f6nbUilKUNqADIKVnbKn3CGFJPAe3lFf1LpDqtuNUbRbCIOdDnhAn.tar",
-    "download_original_url": "https://go.vicos.si/kolektorsdd2"
-  },
-  "MVTEC D2S": {
-    "id": 957,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/s/r/P1/JrEfJCgcRmLOTMVAwQ3SidwXmswQV8mbXSupoN995fDqyrwczLAUuE7Mx10HsMuEP6ObS11f6nbUilKUNqADIKVnbKn3CGFJPAe3lFf1LpDqtuNUbRbCIOdDnhAn.tar",
-    "download_original_url": null
-  },
-  "Maize Tassel Detection": {
-    "id": 964,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/c/Q/8L/EWOitf0kkvnch3ZG2dBhHiWV78yfRirJ2yeTIZVlab2VZzPetJeaLWC5EglOw8VwRhxqqtev7iYKafvJJxWyis2OiQ9Ed3okMmGXczqrogEDu7qxTHZb4zhcuinJ.tar",
-    "download_original_url": "https://zenodo.org/record/4922074/files/Maize_Tassels_Recognition.zip?download=1"
-  },
-  "Disease Detection in Fruit Images": {
-    "id": 916,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/j/0/7n/QGz5WbKFT4cd7oDce2l5cPAdzAQ9guex1aw9WgSqOcwkoqFcfSxfVY40xvCm7XxLEjiNwViNQLt05vj5HrC2ixntB6rETu92EgLEq4Et1qPO6Kki77NNjaNLMJZK.tar",
-    "download_original_url": "https://github.com/QuIIL/Dataset-Region-Aggregated-Attention-CNN-for-Disease-Detection-in-Fruit-Images/archive/refs/heads/main.zip"
-  },
-  "Cracks and Potholes in Road": {
-    "id": 867,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/H/N/1c/tffyIaurui8RdI3QGX9cWE2Pc6MHBlIcnAyVzy5HCC79Z2Y8tMwwesOVNCO9vY9ATAnh9lRqtXOviTiuOGNCdnIXpK3neDxQefqtcYNBwW1XXqr0m3UTP2VauZhB.tar",
-    "download_original_url": "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/t576ydh9v8-4.zip"
-  },
-  "Full Body TikTok Dancing": {
-    "id": 902,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/p/N/AM/lIxpXk9ejtJkx0Eh7lV7jK8kPxKjVXF0sCxOBNfJ5bZJNAlhZPdmSiEyeXKtYoAKbCmiQHIIexrATKUJRq7bzlvfqTmiv2p9mj5TE4f9VmEnDaJgen1wTERUSCEI.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/tapakah68/segmentation-full-body-tiktok-dancing-dataset/download?datasetVersionNumber=2"
-  },
-  "Coffee Leaf Biotic Stress": {
-    "id": 903,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/N/K/kc/nkyT0EIqVnU9ol58gfQ99dtpQlLUru3PvGfspiKeVqSA5gUZA2dbvdHYmiPiQyNlHmV9O69thqBO99ya3pVDWgOElJjWzT9oOQAOUaqakWoXzFxJyDvdUxInCC9q.tar",
-    "download_original_url": "https://drive.google.com/open?id=15YHebAGrx1Vhv8-naave-R5o3Uo70jsm"
-  },
-  "RoCoLe": {
-    "id": 1350,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/b/G/hG/pZBsg0W1WUS17ysuixpeLf0pKvbQnrhMDJ9PfSg2OD83fTdaLfxryyDNLuJQYUiHwf4UqbkS9L8h0YtYCgwPzVD5o4ZqXV5ca3yZrOspGR0D0ZpmpKmUKKuZEQjx.tar",
-    "download_original_url": "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/c5yvn32dzg-2.zip"
-  },
-  "MinneApple": {
-    "id": 865,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/j/0/Vz/daImiEimWtbLk0WvuklRpaYnvByyXROEbeFH0DWvXj05NYRH2NTPXB0xyiNQp9b03GmcXBmTPp59PeCe5whghBwRvD4MkmIxOZewwLsrAsEbMY08NEhCFU4fNmlh.tar",
-    "download_original_url": {
-      "Description of data": "https://conservancy.umn.edu/bitstream/handle/11299/206575/MinneApple%20Data%20README.txt?sequence=14&isAllowed=y",
-      "Patch-based fruit counting dataset (2,875 JPG files and 67,990 PNG files)": "https://conservancy.umn.edu/bitstream/handle/11299/206575/counting.tar.gz?sequence=1&isAllowed=y",
-      "Fruit detection and segmentation dataset (1,671 PNG files)": "https://conservancy.umn.edu/bitstream/handle/11299/206575/detection.tar.gz?sequence=2&isAllowed=y",
-      "Test data with test labels for counting, detection, and segmentation": "https://conservancy.umn.edu/bitstream/handle/11299/206575/test_data.zip?sequence=16&isAllowed=y"
+    "PASCAL VOC 2012": {
+        "id": 223,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/e/i/bf/P7Y3tpZIxwIgzMusadGBJBtctmXUajVy1d800KpOG7v9HEgUljVkyCrHiNp2knBDRWfbR3UeFEwZDcYyypiJZ7mwkzvl8mashJHB87wIgKmkdHYecvv9HsUqK3rr.tar",
+        "download_original_url": {
+            "Training/validation data": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar",
+            "Development kit code and documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCdevkit_18-May-2011.tar",
+            "PDF documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/devkit_doc.pdf",
+            "HTML documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/htmldoc/index.html",
+            "Guidelines used for annotating the database (VOC2011)": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/guidelines.html",
+            "Action guidelines used for annotating the action task images": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/action_guidelines/index.html"
+        }
+    },
+    "Cityscapes": {
+        "id": 1388,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/0/O/iW/B6uU6RcQgYgdrN2NodQwQYmAnQnb0Yyuneq6UzWQDcbwcHlfBnYVlaOUEmIsS0Xs3g7jf2Ym1WUg41i4jMoTsqq5ZVdEnrCGFPKEymcaISzFx2IlXrvCFLuwxOpN.tar",
+        "download_original_url": null
+    },
+    "MVTEC D2S": {
+        "id": 1476,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/O/C/Yw/RbHcxmQASJrm5jtIrkmIWxZZivUIuBT5HQZieCxPS4SbKBhlhIBOp4D8wjibD733IztqkACRRkbXihVxqWTTI2meS9fwz11rmwMVwRcow09n6T0DqRiKI8RNo122.tar",
+        "download_original_url": "https://www.mvtec.com/company/research/datasets/mvtec-d2s"
+    },
+    "BSData": {
+        "id": 1449,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/2/7/xd/L76f68i3drlJ6uEhPyGAzEnvSyh1JVf19qNbvUbyRJxVrAa1xHnRQnqvpbHGwN6rM1yxnsUD2D4h0bvxeqXchnZ4bakG2GtQFQ8Pe1VK0teGSFeORR8VTaJtXK16.tar",
+        "download_original_url": "https://github.com/2Obe/BSData/archive/refs/heads/main.zip"
+    },
+    "Coffee Leaf Biotic Stress": {
+        "id": 903,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/n/z/0I/htwZZ7Cj3tTZZ60Qr9A2hUjczTXhbSnFywSZW81L2FN6JNmXMCbSqhI5JwWudMtIDr5vk7L387x1zEatQsw9hyUljBJAdxhMBOo3k2QS7wyIpiusqauaPbBUs7gk.tar",
+        "download_original_url": "https://drive.google.com/open?id=15YHebAGrx1Vhv8-naave-R5o3Uo70jsm"
+    },
+    "MinneApple": {
+        "id": 865,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/D/k/wz/ZgpAMLYAXbwKx5p8R71nKo3UBPvw70C5EvVK4VTQPkatJzg9MY9F1zX3ZoRVsnmVb7Uh55WmhwIzJg6RgNrC9OJkdpKn7MEfj24oj9N6Ivw8ie4lIjkCkBtYLrT0.tar",
+        "download_original_url": {
+            "Description of data": "https://conservancy.umn.edu/bitstream/handle/11299/206575/MinneApple%20Data%20README.txt?sequence=14&isAllowed=y",
+            "Patch-based fruit counting dataset (2,875 JPG files and 67,990 PNG files)": "https://conservancy.umn.edu/bitstream/handle/11299/206575/counting.tar.gz?sequence=1&isAllowed=y",
+            "Fruit detection and segmentation dataset (1,671 PNG files)": "https://conservancy.umn.edu/bitstream/handle/11299/206575/detection.tar.gz?sequence=2&isAllowed=y",
+            "Test data with test labels for counting, detection, and segmentation": "https://conservancy.umn.edu/bitstream/handle/11299/206575/test_data.zip?sequence=16&isAllowed=y"
+        }
+    },
+    "PASCAL Context": {
+        "id": 1184,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/E/p/ik/tsFGvw8xpfCuSX9lnHnkf74AYzyFHy4JFLKvn1aLIjJrvdSNKQwpFAvPbnG4s0xlTrDEPMN12q8hGVXRa7yqnylyxkrgZ3nzF09bmZXJEABo9d9NOhkVjwN3Kgqk.tar",
+        "download_original_url": {
+            "Training/validation data": "http://host.robots.ox.ac.uk/pascal/VOC/voc2010/VOCtrainval_03-May-2010.tar",
+            "Training/validation annotations": "https://www.cs.stanford.edu/~roozbeh/pascal-context/trainval.tar.gz",
+            "Development kit code and documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2010/VOCdevkit_08-May-2010.tar",
+            "PDF documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2010/devkit_doc_08-May-2010.pdf",
+            "HTML documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2010/htmldoc/index.html",
+            "Guidelines used for annotating the database (VOC2010)": "http://host.robots.ox.ac.uk/pascal/VOC/voc2010/guidelines.html"
+        }
+    },
+    "LaboroTomato": {
+        "id": 1351,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/s/J/3x/LbTrXilFgrEAfJ9L6kKtxHQHwnLhDwBNndCLutla9U0BSLkUAKO2Svo56654eNDDkDNky7SWzbZdXDBApDSdhJW6oABp9Jm9cefvNZxxTlB6CKmPx1ayZ47T42zu.tar",
+        "download_original_url": "http://assets.laboro.ai/laborotomato/laboro_tomato.zip"
+    },
+    "tomatOD": {
+        "id": 1347,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/l/f/Dm/01zx13Xqq1caLtbkPjdk2RSbgsUbYhoGnj57h0ziZUmLIFnIUB0pAA3GhCDBo0CmP60awZNZ2hKnl1iveoUqxtkTinlbxjuBMA1MTC0HkQpJJ2Vd9NS1bnFrXXJe.tar",
+        "download_original_url": {
+            "Images": "https://datasets-u2m.s3.eu-west-3.amazonaws.com/tomatOD_images.zip",
+            "Bounding box annotations (train and validation sets)": "https://datasets-u2m.s3.eu-west-3.amazonaws.com/tomatOD_annotations.zip"
+        }
+    },
+    "Sweet Pepper": {
+        "id": 1348,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/N/U/M3/QYe3CvXafou9RYTq4UYqJivZoEtqwEC0wRM35GToF4We7hOIT4Y4n4hKajsyCEEqf6fjtsxZ23VD7gjRoyPycu1nyR1i4Ovxk66flhRb7r44irq2NSK9ZE0t6tQ3.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/lemontyc/sweet-pepper/download?datasetVersionNumber=1"
+    },
+    "RoCoLe": {
+        "id": 1350,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/j/N/Yr/lNgKYdAE58dH9ZivUyJVCITvRGzRKupRqLmPSLfuBS74FsqtXBx4wLMGt6dGUVqKDVzLlgLAOaNkHmnVmtVE8LwUS9tPZC6AeRMTpRkJFlGdS9H96GIKjoQ2liB0.tar",
+        "download_original_url": "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/c5yvn32dzg-2.zip"
+    },
+    "CWFID": {
+        "id": 953,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/f/q/jG/CBjqgcTjpSZ15sX42cfSXgwZ4IiYUQfRNK97CiA4e0TMWGCq6Ea55pvajesWQkElmbgKIuQYuFq0jmsRj51tqURBXvsM8eHgKf0oPP4VHW5x7eeVKYfqf5WQ9KQE.tar",
+        "download_original_url": "https://github.com/cwfid/dataset/archive/refs/tags/v1.0.zip"
+    },
+    "Weed Detection": {
+        "id": 955,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/4/X/me/1NqGOcndkAb0h0fqcZ7tQMXYCZESjZXpR1Cibq1olwwUe6lVkSEpW2xasr9RJOUC3dghoiYf6TQ5HnsBrp15QYXyxjkqgPBrbvPOyArW2fMUj8vM6us6Ex1DY8kS.tar",
+        "download_original_url": "https://github.com/lameski/rgbweeddetection"
+    },
+    "LoveDA": {
+        "id": 1458,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/0/O/iW/B6uU6RcQgYgdrN2NodQwQYmAnQnb0Yyuneq6UzWQDcbwcHlfBnYVlaOUEmIsS0Xs3g7jf2Ym1WUg41i4jMoTsqq5ZVdEnrCGFPKEymcaISzFx2IlXrvCFLuwxOpN.tar",
+        "download_original_url": {
+            "Datasheet.pdf": "https://zenodo.org/record/5706578/files/Datasheet.pdf?download=1",
+            "Train.zip": "https://zenodo.org/record/5706578/files/Train.zip?download=1",
+            "Val.zip": "https://zenodo.org/record/5706578/files/Val.zip?download=1",
+            "Test.zip": "https://zenodo.org/record/5706578/files/Test.zip?download=1"
+        }
+    },
+    "Defects in Power Distribution Components": {
+        "id": 1011,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/H/P/oc/jySPB1HAsSC0MwBzixvF1pR7iBU37NgStKTbfE5JRJjg050DBf5q4ahsf81RQH4tIoB3RYRw8KWO9T8YXiwOpVebUVCUhevthQ5FfNHf0YTUZBGwnz74RbM0h58Y.tar",
+        "download_original_url": "https://zenodo.org/record/3972451/files/Electricity%20Components%20Defects.zip?download=1"
+    },
+    "GC10-DET": {
+        "id": 1008,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/W/b/ia/lu24TxOensJj6q4eJpopbYn5EPymiQLNPvC7lWq27aTfBx3uaRGarbl8w5YUq7TvnNYUikv8npBVBHhxDEs9h7Tej0gVhn0wRsIIRJeHZoYdmG6DhCQU9BnxoaM1.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/alex000kim/gc10det/download?datasetVersionNumber=1"
+    },
+    "Road Vehicle": {
+        "id": 1006,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/n/Z/TH/okP2RApDjr3RzEkXUipSxeSmklK1ctXAaPtnw0glnaZnSHsMDilqPJqTDTuMR7bdmjzHv8hHr3CmQuVzadAzWSbtLuPKpowwZGaBIPcTpMgHyBr9VBRCTMNMgAAW.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/ashfakyeafi/road-vehicle-images-dataset/download?datasetVersionNumber=1"
+    },
+    "Road Damage": {
+        "id": 1030,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/h/P/lJ/iJaJ9hStDVbu4KlEUBsrBzPsVcuvbLRrBy4GGuowK4OjMmsXn6aCkMJ5SjxRWJ0ViF2KuTgczZK2mbNEf4Q98pUTeVxOCG7ETTRMN2bJjbY7iAjHXtuo2DNoqwL4.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/alvarobasily/road-damage/download?datasetVersionNumber=1"
+    },
+    "PCB Component Detection": {
+        "id": 985,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/X/4/tA/96ovE9fMrWueRqGYWoyZHPS8swZVPdz8ErGWW4IWtflJ9Pn3i0A0ihCYo1TUaFTOhKdeB4gSzzYQ8gdjsQzQGzBUZKlFuQmGPFLj7CRmtbLtgkWmfuZITKaFmbfL.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/animeshkumarnayak/pcb-fault-detection/download?datasetVersionNumber=1"
+    },
+    "Full Body TikTok Dancing": {
+        "id": 902,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/i/q/Qa/Ug2c7Sv9KTezoCvTGgCGS52mlVhjkWebADgroFLRNoYBbfPpi1m44FYCPHv1OUhHGxV5gerPYoAkZBaWODru66sIViJ2AfLzHtK7H2MlDLUhr264eEXPDgw7rT9E.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/tapakah68/segmentation-full-body-tiktok-dancing-dataset/download?datasetVersionNumber=2"
+    },
+    "Disease Detection in Fruit Images": {
+        "id": 1497,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Y/f/a0/GZKXYXxnh8PSZAqafPZDSl3H20HEWsfa2YHNeI9c8Af971vtKwohGJEVA5wQxhMRKeCMw3osBky5XOvXRQhMVEauTzdnsukwi24VzGazdgnwxg6VGL1J5iNafA1k.tar",
+        "download_original_url": "https://github.com/QuIIL/Dataset-Region-Aggregated-Attention-CNN-for-Disease-Detection-in-Fruit-Images/archive/refs/heads/main.zip"
+    },
+    "HyperKvasir Segmentation": {
+        "id": 1173,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/U/T/Ko/SHwNA3Wc6WIWRA8tIZoxmzrapCSomnmqeVCvwAxsPufX6wKt7861UvbeIxgSPsvkVZZGsqf3kjnmwggmPKDA7UvN1uMQSxeav5T8i4PpLZiviCkxgvEf4FnEwOfL.tar",
+        "download_original_url": "https://datasets.simula.no/downloads/hyper-kvasir/hyper-kvasir-segmented-images.zip"
+    },
+    "Water Meters": {
+        "id": 1002,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/w/1/ew/fP0GSxiab5X3C1W1ItVCaeBNeU9hU5S5crIbF0XWt5cSkw0mlRug19styxEZfuD1ElosiPigOY9ySFr3dGMl0TYDjgXvOMOnyvV8PiH8XLcWkzP6YdNSowkLIdHK.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/tapakah68/yandextoloka-water-meters-dataset/download?datasetVersionNumber=2"
+    },
+    "Car License Plate": {
+        "id": 1005,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/4/1/E9/omzhpvtWVdBifJPIng7Zao30vh2LYdwFbODJcMCyTOqcXVf5ckOvgAzxJVQeuhNrGKJ6bPPJ2L3dcEiTwM7owwsG1rUYjHWkWOmvMESvXAxgdjk5zAHhaeUc8ZZG.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/andrewmvd/car-plate-detection/download?datasetVersionNumber=1"
+    },
+    "Synthetic Plants": {
+        "id": 949,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/4/1/E9/omzhpvtWVdBifJPIng7Zao30vh2LYdwFbODJcMCyTOqcXVf5ckOvgAzxJVQeuhNrGKJ6bPPJ2L3dcEiTwM7owwsG1rUYjHWkWOmvMESvXAxgdjk5zAHhaeUc8ZZG.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/harlequeen/synthetic-rgbd-images-of-plants/download?datasetVersionNumber=3"
+    },
+    "Tomato Detection": {
+        "id": 989,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/i/6/97/mGUuXFJGk0ofyDLU7Hm0TCTC26F8XvG1m09p0VUPj2ZORrjG6O0gmnzhFaD6JNp5S90fVi995DaFsJE49BCF212rnKUG4QiK8J0OmvYRr374Ey2ZnZcEmX6Z997W.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/andrewmvd/tomato-detection/download?datasetVersionNumber=1"
+    },
+    "DeepBacs E. Coli": {
+        "id": 1142,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/4/k/Ra/TF8a4cgmMmAbBe1x80Lbbg7beQc8YdQjihufF416gjFQgSfK1mdtPHnlV0NyMMkfP4wnY1nBdgUYxAzwVLFHwYnAVeASChGTQxQi95nU1qHzNH1bBW4pjBNyyz0h.tar",
+        "download_original_url": {
+            "Antibiotic_profiling_examples.png": "https://zenodo.org/record/5551057/files/Antibiotic_profiling_examples.png?download=1",
+            "DeepBacs_Data_Object_Detection_E.coli_Antibiotic_Phenotyping.zip": "https://zenodo.org/record/5551057/files/DeepBacs_Data_Object_Detection_E.coli_Antibiotic_Phenotyping.zip?download=1",
+            "DeepBacs_Model_Object_Detection_E.coli_Antibiotic_Phenotyping.zip": "https://zenodo.org/record/5551057/files/DeepBacs_Model_Object_Detection_E.coli_Antibiotic_Phenotyping.zip?download=1"
+        }
+    },
+    "CHASE DB1": {
+        "id": 1195,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/8/u/Oh/cO5QalJxzvpdj5tpeqfFMMsYzFW6DHL37W7mjk0JxaX72ttzfuaIx9llySJ4O3e9pc9G8MGcgtu2CQQQFZBbm1TNN4m1ih5kmfaCr0d06LzX2Z3TOJyQ3of4HFDa.tar",
+        "download_original_url": {
+            "CHASEDB1.zip": "https://researchdata.kingston.ac.uk/96/1/CHASEDB1.zip",
+            "readme.txt": "https://researchdata.kingston.ac.uk/96/2/readme.txt"
+        }
+    },
+    "KolektorSDD2": {
+        "id": 938,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/8/u/Oh/cO5QalJxzvpdj5tpeqfFMMsYzFW6DHL37W7mjk0JxaX72ttzfuaIx9llySJ4O3e9pc9G8MGcgtu2CQQQFZBbm1TNN4m1ih5kmfaCr0d06LzX2Z3TOJyQ3of4HFDa.tar",
+        "download_original_url": "https://go.vicos.si/kolektorsdd2"
+    },
+    "PlantDoc": {
+        "id": 1355,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/s/u/kA/3SvpfBH2HYK1biGL5Y4CYnh9MlNr7B5n6622ECsLlNm30CTahgzOeQgceAHGQQO5pJlLgbKziCxPA5Yei8Jzh7GV9pRlB7Ugo8rvUxvDlsorRtl1PVikpPAgZa4l.tar",
+        "download_original_url": "https://github.com/pratikkayal/PlantDoc-Object-Detection-Dataset/archive/refs/heads/master.zip"
+    },
+    "deepNIR Fruit Detection": {
+        "id": 998,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/K/s/U9/Ww5suakklYmx4pOWlBnyTYTzxBh7btp2anl3UYMoBCEDBSu2nFwJXRTwDH0f9SBasONziPzZ0Ka7G4m64VGxLcw96sLixHDhkuQVd87JuIhP1gg8fF15nZnthQVx.tar",
+        "download_original_url": "https://zenodo.org/record/6324489/files/yolov5.zip?download=1"
+    },
+    "Damage Detection of Power Plants": {
+        "id": 1469,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/S/4/VJ/IcwTsberRM9DI75bqYhj55DlgSJb1Zwj0xBK74f3zwUP35VzilfnstiQiF031s830og31UVO8k54wIaJPVl0ojhIVI2agNBKbe84mWRQPskahOEKn6jVy0fncp4R.tar",
+        "download_original_url": {
+            "Solar_large.rar": "https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/GFYPQW#",
+            "Solar_small.rar": "https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/GFYPQW#",
+            "Solar_small_IR.rar": "https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/GFYPQW#",
+            "Wind.rar": "https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/GFYPQW#"
+        }
+    },
+    "Cocoa Diseases": {
+        "id": 1266,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/L/M/Rs/oe1Cy0FxZApcqMOFzxv0aNCedHD2mx7yPdPvWOLx7fN10ZTaost9BbErcQfBlKIdw7b4GvHMykL7Gj1ki9MMPCRPavaXfQpbHwfmnXe9BCidjwmWugYOt9Ytzh1l.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/serranosebas/enfermedades-cacao-yolov4/download?datasetVersionNumber=2"
+    },
+    "WGISD": {
+        "id": 1471,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/F/G/j9/v81S9ls8VgepmFv6eOzybr1juhDWyfqEr4RqmKG8fyH0WMxteAwoOiVBjJxLscNNPatRWOxDYbGWgeGrSyB4PIRC3kSgQxtEWH55n1Oef7DT2eVIvbGb2Hdbtggx.tar",
+        "download_original_url": "https://zenodo.org/record/3361736/files/thsant/wgisd-1.0.0.zip?download=1"
+    },
+    "Maize Cobs": {
+        "id": 1377,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/a/0/YI/FNMFsf6fWMqjhxJ73u20noVP52UAe7wJFffInKltk0HLNmix1RNFxSbn3PNnGNThPJcUjri0AabXOY7zZVPyglLoEZxoOWxre9WUcPpwzWB2oaK9eoCdflGqodly.tar",
+        "download_original_url": {
+            "ImgCross-training-data": "https://zenodo.org/record/4587304/files/ImgCross-training-data.zip?download=1",
+            "ImgOldImgNew-training-data": "https://zenodo.org/record/4587304/files/ImgCross-training-data.zip?download=1",
+            "ImgOldImgNew-validation-data": "https://zenodo.org/record/4587304/files/ImgOldImgNew-validation-data.zip?download=1"
+        }
+    },
+    "Pylon Components": {
+        "id": 1309,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/P/r/Pe/DaPHrWBgmMBQSDar0V8ivseZZLMYJQbo71QPDdAdLOEsIJcDPvtKnHDeNyrjhpQS2LwbmXf9axTFO2xRqllm1vjkkaxc6yDF3C8z5rNWVDxowl1hdLyQswwpSGt7.tar",
+        "download_original_url": {
+            "README.md": "https://zenodo.org/record/4573988/files/README.md?download=1",
+            "UAS_training_data.zip": "https://zenodo.org/record/4573988/files/UAS_training_data.zip?download=1"
+        }
+    },
+    "STN PLAD": {
+        "id": 1021,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/2/f/P8/0n223CRcjisZMvyX96ggm5gWrZUk7ARe59phSsHdHNo4zhQ0vW9CcU8Fd4JVLBrtMkzSv01kl37Nvcz6FkDW2uFhK8pul3TSICD6FBJBddkwFcuFpQkyMdbPnPSW.tar",
+        "download_original_url": {
+            "Full STN PLAD dataset": "https://github.com/andreluizbvs/PLAD/releases/download/1.0/plad.zip",
+            "Labels": "https://github.com/andreluizbvs/PLAD/files/8952243/labels.zip"
+        }
+    },
+    "Insulator-Defect Detection": {
+        "id": 1027,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/M/s/lt/EGYyNu0WbSwV27OgoWrCwVCSxXt5B7OUpFXVXAYrEii5keFJpJ08yeICyAVjNqmgrfq4SzPsg9Y1RrTEgtqyLNUWjjHdtjrviNzb5UVqEpYK8Nupmg8WeaPKNNN8.tar",
+        "download_original_url": "https://figshare.com/ndownloader/files/37587370"
+    },
+    "Rice Disease": {
+        "id": 1014,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/X/d/00/T49Sh2pkW3nNnCz3AjEBygR1Hwqao7zFVu60jw53VknipoJWfdFY7SUeXFGDY2NphWAAHO0tqeCV8KGA6E7ATrFcb6bPC9DKM13zWBN3ZzOo5WYWVy1tDXvkt65z.tar",
+        "download_original_url": "https://www.kaggle.com/datasets/nischallal/rice-disease-dataset/download?datasetVersionNumber=1"
+    },
+    "COCO 2017": {
+        "id": 1217,
+        "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/X/d/00/T49Sh2pkW3nNnCz3AjEBygR1Hwqao7zFVu60jw53VknipoJWfdFY7SUeXFGDY2NphWAAHO0tqeCV8KGA6E7ATrFcb6bPC9DKM13zWBN3ZzOo5WYWVy1tDXvkt65z.tar",
+        "download_original_url": {
+            "2017 Train images [118K/18GB]": "http://images.cocodataset.org/zips/train2017.zip",
+            "2017 Val images [5K/1GB]": "http://images.cocodataset.org/zips/val2017.zip",
+            "2017 Test images [41K/6GB]": "http://images.cocodataset.org/zips/test2017.zip",
+            "2017 Train/Val annotations [241MB]": "http://images.cocodataset.org/annotations/annotations_trainval2017.zip"
+        }
     }
-  },
-  "Weed detection": {
-    "id": 955,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/H/c/1u/SUemHlviy8FJq9LO53oVD886Kzf3cDFyvBYbXluxflQ2tMuj3JPXglafDxMUrOyhaSyj4DJmTVFvx9o2JqgjOY2TyaXa2Cy2ZJV9aCtOMppgg4zIDDCDv0B3P4Y9.tar",
-    "download_original_url": "https://github.com/lameski/rgbweeddetection"
-  },
-  "LaboroTomato": {
-    "id": 1351,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/n/o/Rw/Wn57MXlzzOJym2ZzDeE4Riu3wAdvUFkTWGNqJ9oPkfo2fZYS7dLLVQ8MRevzcC2J9lQSFAjamMEpTbpQXZpk03ieygOEK7092CMFTMYKs0ElxWJ0OJJtfKhH3Om9.tar",
-    "download_original_url": "http://assets.laboro.ai/laborotomato/laboro_tomato.zip"
-  },
-  "Water Meters": {
-    "id": 1002,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/l/Z/O6/5pdmqH9WhaA6vV6m5kxvERgfZtx7zJzsmj38EA2Mh6Y3BiE4tvxtTWem9Ug1ccLnzKlgJwalCEioINc35grNCnC3er1tNDTzm0ASnEP1I10204qCosFZLjRPNN3i.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/tapakah68/yandextoloka-water-meters-dataset/download?datasetVersionNumber=2"
-  },
-  "PCB Component Detection": {
-    "id": 985,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/e/E/10/v7PlMZCD4WbeIzM50YRUkwAuCyw8rVCnQvAOlprO9XvzxwdgHz2CXYXcTNte44FXCEjDjGt6D56r63HmwAqF303laqojuCorYGScmdAKDp4TEO0KtB8tOktHjnxY.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/animeshkumarnayak/pcb-fault-detection/download?datasetVersionNumber=1"
-  },
-  "Photometric stereo leafs": {
-    "id": 1029,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/E/A/rw/ZmdhfjcllHYVzZHe7gdj1Z7TUrXbQ4dDHKERzW3NuUEngo3Us5PtELr1DonYpz05fjfkHSEv9UCauxIdtTQ31DemzAaTqapPSMgku69c3H5UwkIrQpUITDbZeB99.tar",
-    "download_original_url": "https://datashare.ed.ac.uk/bitstream/handle/10283/3280/PS%20Plant%20training%20data%20set.zip?sequence=4&isAllowed=y"
-  },
-  "DiaMOS Plant Desease": {
-    "id": 1001,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/K/x/lF/Xr0YUwMUT2Wp5s2xJRZCGSBjxD8YFhMZ7LHyXR3N1CV1oUeTncvS9NnmkU2qRDpN9EbGCOOziVuxZWMyWMsqjiysuZMqIVPsLwBAp4ojficimVxez3mqw1gIM8d8.tar",
-    "download_original_url": "https://zenodo.org/record/5557313/files/Pear.zip?download=1"
-  },
-  "NeonTreeEvaluation": {
-    "id": 1013,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Y/3/Gy/d5iO4bNY2iIqB9zLowub4MQ3Nil45Vc4jruWNbjPeIEfMcKd4zKW1DCJCPafQDp7oPL6cbRgKL8a9HCBOVkMUZkE03pSkS4EnXXhSDVPJAPsnhlKcDZixcbBJcno.tar",
-    "download_original_url": {
-      "annotations": "https://zenodo.org/record/5914554/files/annotations.zip?download=1",
-      "evaluation": "https://zenodo.org/record/5914554/files/evaluation.zip?download=1",
-      "training": "https://zenodo.org/record/5914554/files/training.zip?download=1"
-    }
-  },
-  "KFuji RGB-DS": {
-    "id": 1009,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/1/5/W1/DwMpaKbKoUoq1T7Xvmhjv1NWjX9cDarAmh1HqgXqwGQmr7poSvBtt7ZPvl7s1ukf7inlazHpgvdA1CL6ZBPjFwe1evLUNfpr1STG13VoLsAukvZ3qzVhAxCcGOl7.tar",
-    "download_original_url": null
-  },
-  "deepNIR: Improved fruit detection system": {
-    "id": 998,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/s/5/Mo/tRratEejDovR1PUG1w4wLPgUGy14uTcUcC6zKlnOYQyJ5zNBuIcKTeaOC5Vf2EnAp8XjsmHc9eClFpuFHss70b7eQn2Jbqm4IGCexxhkx8ISSIPlScPk6aNStT67.tar",
-    "download_original_url": "https://zenodo.org/record/6324489/files/yolov5.zip?download=1"
-  },
-  "BSData": {
-    "id": 939,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Q/J/Bq/EhmamUMZryAA70yP4ZoibEd6xG6tWcENVMV905KoLQ6uHG1kcKQjE1G2BD9H2YiZwjHspXhEk54SpDmO7jExlVtQYzS3dtCmRKMYl3M8mmzZAqVkyVIkc6BP83Ft.tar",
-    "download_original_url": null
-  },
-  "Synthetic plants": {
-    "id": 949,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/y/g/yA/n2hG8JAk4FFMv5oTMUghsG5pxnzI6dm7dJDJv09v5eiN1xz8p02ko3EwK2MYPAq2kqOwm3ozCdHFwdHRA1EfJ5gMV2O6DL45SVbrBy5fSp1p6vyvoUeM42c589va.tar",
-    "download_original_url": null
-  },
-  "Chest Xray Masks and Labels": {
-    "id": 984,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/E/J/Ds/LBcVfvRMbUil71btUf9KWuGhqzIY7b0IWaIvM3XHCOBpJBFv4pJ1rmtz5hPe8gfFaQCkrTI88BdgKBQFoyTvvq13BkKxjrxah2Za6PsMg1eIZeZocItZNMjDnh1E.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/nikhilpandey360/chest-xray-masks-and-labels/download?datasetVersionNumber=1"
-  },
-  "Self Driving Cars": {
-    "id": 947,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/c/x/vt/PbbPzWhiEmqTfdybcjfkFQHusd6vjCDoBa07Fgccf0g2IU97R6kOYk8Ir3KnkwQCCVs85Pw0vI3Cga9eTrIEEolKYH8oAW4BbPQF8sXn53czC7MMXfRg6GuHCifY.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/kumaresanmanickavelu/lyft-udacity-challenge/download?datasetVersionNumber=1"
-  },
-  "Car License Plate": {
-    "id": 1005,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/5/R/m5/MzylmEpcZsWy0ijvl2WTbaM9E7gn8D0pVFCG7wcOUeDbmd221xLsRsJPyJAKOPpNE7GSpz3Eb1CkchBaVr7UdFx7PaPp5NQG172yK19VZDlAn2scCmYT1MZuygmI.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/andrewmvd/car-plate-detection/download?datasetVersionNumber=1"
-  },
-  "Road Vehicle": {
-    "id": 1006,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Y/4/l3/yA5j13QxZXW5V16N8DUi3Rml4QIIBXMpA8tRtojPxw0HmzTJpv8pnppmASLkVAZPQpDMCy2L5opBxoAhsnwjwDPMkpG5ZSNTi81OqcIL5yAnSiPUbse4hu7Q3PVv.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/ashfakyeafi/road-vehicle-images-dataset/download?datasetVersionNumber=1"
-  },
-  "Tomato Detection": {
-    "id": 989,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/g/A/Vt/0aqttdMnYsQ5GB4Etpvm4quSHEmjaWZK3skjpQzzGQT9Px05ii7RsfZvzoPe0vilYpOqm0ldTTZtLZ2MWYbNmxrJLoZzjlz0IjbDLNxp5woH3Qzgtz2zaGIUdmTe.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/andrewmvd/tomato-detection/download?datasetVersionNumber=1"
-  },
-  "Morado 5 May": {
-    "id": 1000,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/P/W/tD/6UMlhoCXPpMQdQI9fYiES0kNWl2o5w17Tl1SRdiokOEcZ1KBbU5g7DJN9LiU056YtgzHjIZq5WzHl0xzO4ks2u81A797RPYrtZAtRo0EGhf4wkVzl81KbzsEZpRZ.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/teddevrieslentsch/morado-5may/download?datasetVersionNumber=4"
-  },
-  "DefectsPDC": {
-    "id": 1011,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/5/3/6h/TJXRxC2jfKMtJPCBfaA1LtWBHUGaxAzmYnneqrMezTRGxbcAY2AmMHFtv93G845430bHtsCbg8W4Vweb8pCR4rHym4zMaceETySvcnIdwrQQsyl6pRgscpcyNbUy.tar",
-    "download_original_url": "https://zenodo.org/record/3972451/files/Electricity%20Components%20Defects.zip?download=1"
-  },
-  "Rice Disease": {
-    "id": 1014,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/K/r/h3/AxSYK5XceWzglHiDptKZmbOj8FO3leNIUEjd2lCuThKLTcp7WvkgEPjK9c0Y5Be8MKu7ev0mQpjCwXDQd2qFusM5NTIA6xPIyMEBOZ0HbXsWQYfjVgLsObAGMMvD.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/nischallal/rice-disease-dataset/download?datasetVersionNumber=1"
-  },
-  "TTPLA": {
-    "id": 1015,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/f/6/XX/q1H4bZb8EV44VC6v37CYCPwgptJ7LgIBiaUBwMXDZsj0GgKFKUxMrJBMUntFxdoVlSBdM4H2LGaSbJNp3LhZU4XAJpvMtLug2p8otDD7ZfOzAApNImD6jjKv3xtX.tar",
-    "download_original_url": "https://drive.google.com/uc?export=download&confirm=no_antivirus&id=1Yz59yXCiPKS0_X4K3x9mW22NLnxjvrr0"
-  },
-  "Pylon Components": {
-    "id": 1309,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/j/Z/aJ/t4cRL52eoP8nviF9AI5IsP2i88KOeG8kyyUQbDdILupYJ4mZfvkCbVBw2Q7JtgK3pYlRtUFJvFNB3Gc2uz7q8jujn232GYS7YgE9rtx86j69quXUYT9M2GysytIK.tar",
-    "download_original_url": {
-      "README.md": "https://zenodo.org/record/4573988/files/README.md?download=1",
-      "UAS_training_data.zip": "https://zenodo.org/record/4573988/files/UAS_training_data.zip?download=1"
-    }
-  },
-  "STN PLAD": {
-    "id": 1021,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/w/l/AJ/jEFYpS8kGivKVygJ0oCjbdbjN2xK7bORwSfxPM2oy3l8k1EM0XAa2xPb9f1v3CcaOaFIrYwEb1bdm87E67eEdIWnYpYi5Ygx9825N1h0sARI29AcEB5LQnBy4HAK.tar",
-    "download_original_url": {
-      "Full STN PLAD dataset": "https://github.com/andreluizbvs/PLAD/releases/download/1.0/plad.zip",
-      "Labels": "https://github.com/andreluizbvs/PLAD/files/8952243/labels.zip"
-    }
-  },
-  "Insulator-Defect Detection": {
-    "id": 1027,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/u/y/1j/dFVgX8asWh3QL4vVEBkbPKkJnqEPcqvlk2vH6ss6fneJj3snw9hzM1paZnBX8il1AVgWriXeMKEmnwTlipqvUAJjHQPLJijUarHCcSn9GzOEkbWO7Ln6jLXL6W0T.tar",
-    "download_original_url": "https://figshare.com/ndownloader/files/37587370"
-  },
-  "WGISD": {
-    "id": 1028,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/B/Z/JG/uygV62xCvFVgeOIxzTYtFDW3YKhHX7ApR34Q7AWZjq7YEGGRAVvROFnCWgSJHUesjIkxc68ecZAazEXWobcJVksOBbN4IFDOoFWyEtUS56SwRAjDTN1qA49RneIQ.tar",
-    "download_original_url": "https://zenodo.org/record/3361736/files/thsant/wgisd-1.0.0.zip?download=1"
-  },
-  "Sheep Detection": {
-    "id": 1016,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/k/z/qu/LHQuKiniDmOXAXMZdmewNMw6UkQU8eETkDvK6pmZmyEh58Q4MM428jMlwYAMNkVRVNMIc0l3b0O86CvbIQ92R231u9SfXulG0WmrkUsC88oQVa8Z6arF71EwKgVg.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/andrewmvd/sheep-detection/download?datasetVersionNumber=1"
-  },
-  "Plastic Bottles": {
-    "id": 1020,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/4/h/TD/EXhjZDolSHCMOZOOWwT3Llx5YO4BRBwiCJlQSkcfCCewB7t14a6JkTURmfQXGJB07KvJ0v0Pve9jbSETMOcytHkBg7KpLbM2J5KOPr7V4QDHNDWZlssE4Z9IVPdH.tar",
-    "download_original_url": "https://github.com/m0-n/Plastic-Bottles-Dataset/archive/master.zip"
-  },
-  "Crack Segmentation for UAV Inspection": {
-    "id": 1022,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Y/S/SY/e0rC2557N5DFd2xvV44lMxf1YhN8XwQIKcibtmMJZM7XsfsjKbqyjAhCY8jJHLEew7dtTcGTmauSSRn2o1c1KhX7bUZhd8cxnbWqoDteMNJWzYswdgY736NG0IdW.tar",
-    "download_original_url": "https://drive.google.com/open?id=1RMf0GYXn7Mq1s9STGFG5iByavTr05SjF"
-  },
-  "Road Damage": {
-    "id": 1030,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/u/z/wx/QeUaB05Hom7rcF7U6xCWKay9kkL1Y2lE3rANgwXzSGJddvvJoOX4LP3rakhpxSTEJywO93AKhg60bisu7aSHKINwDjjYvpxEWHYcI2wPzbkJ2J26YgT4thoBHuyz.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/alvarobasily/road-damage/download?datasetVersionNumber=1"
-  },
-  "Aerial Power Infrastructure": {
-    "id": 1031,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Q/5/fn/jIZCPw9pyoZHXJBf4TwNQzF6nMBdnIPTPkVTWJK47K9qIfBuS2Dm9xzNoSBynViYYdu4MBL7fx7eYTac5shHJJVMKIEqzRSnWZoATMfnEOoVpStEYgBEzEW1K1Ee.tar",
-    "download_original_url": {
-      "Annotations": "https://zenodo.org/record/7781388/files/Annotations.zip?download=1",
-      "Labels": "https://zenodo.org/record/7781388/files/labels.txt?download=1",
-      "Test": "https://zenodo.org/record/7781388/files/Test.zip?download=1",
-      "Train": "https://zenodo.org/record/7781388/files/Train.zip?download=1",
-      "Valid": "https://zenodo.org/record/7781388/files/Valid.zip?download=1"
-    }
-  },
-  "Maize Cobs": {
-    "id": 1377,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/U/k/Kx/BzmFPQWQ7Vt9msUvWY0dqO5ZWsbTW74HeDZfsbK04jywsm5sVLAp0rHyjvwJSOJyPp9CN66RxtluMVjSaGffEf2n3qJJHLHg135YNv2wWSiU1A0dt8Ti6ELXNCuJ.tar",
-    "download_original_url": {
-      "ImgCross-training-data": "https://zenodo.org/record/4587304/files/ImgCross-training-data.zip?download=1",
-      "ImgOldImgNew-training-data": "https://zenodo.org/record/4587304/files/ImgCross-training-data.zip?download=1",
-      "ImgOldImgNew-validation-data": "https://zenodo.org/record/4587304/files/ImgOldImgNew-validation-data.zip?download=1"
-    }
-  },
-  "MVTEC AD": {
-    "id": 1033,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/C/K/ZK/kX1Kg2jegPYN1nAwz6K6PplAI91cE8XVDrp0jac6la2Az1fofqtpNWnqKzZpL3dNZe73IeyjLDLMzY4447DPEV3zgM5Jp5xEzlgRCGoFANCuZaSPA6cCI9DoKevd.tar",
-    "download_original_url": null
-  },
-  "Damage Detection of Power Plants": {
-    "id": 1040,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/6/0/Tm/sTifj5UUfAuPTp2Pb9RROdj9sEf7TfVZ1CEKsx8QdHz883bA15f5uPrVBxpBkJ1F0RhYZokUDd5RGvKhEo1vppj33xXaFYKWqRS6m0OkGkfenK0bJXjwieyTdOgp.tar",
-    "download_original_url": "https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/GFYPQW#"
-  },
-  "Wind Turbines 2": {
-    "id": 1063,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/m/V/HX/X0AtA4zUfwvDQ8dAjTA0wGtNhbYxykujC6uuN37Exp5t7hvzJ3LN2Zhk50JX8UQhCgRj8lrXSXvo9OltytS8bpnb9YlRORafzPfpGmIbyYKMWlBPfymp3HIt0U6h.tar",
-    "download_original_url": "https://figshare.com/ndownloader/files/24118271"
-  },
-  "Trail Camera": {
-    "id": 1056,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/C/D/Kq/jBilnIvW348wBML6XffPU7ScUYcDCxlXzu63PrJHwAhyw3x9QQwEv22kc3727HJYHS31mkCYibI8FtOWj9akQwndGcOo0Eo7gLvNXA5ihRs5OtCJp9SUhWxBfGID.tar",
-    "download_original_url": "https://universe.roboflow.com/roboflow-100/trail-camera/dataset/2/download"
-  },
-  "Aerial Cows": {
-    "id": 1059,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/h/7/nl/ub8YopkOzIHTURYIpZ0uEG5VqDk4hVU7fOxwkLMCdxFMMqbrbsYcMkwsdO1bKszf7hcTUG8Qm2y1ucnXV7eULaZJHgFOML205yiMbXYvDtpC4bklxBtmhrCF92SG.tar",
-    "download_original_url": "https://universe.roboflow.com/roboflow-100/aerial-cows/dataset/2/download"
-  },
-  "Animal Drone": {
-    "id": 1062,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/S/4/iI/U3XmMkTsXkuD7GrbNq4lbPb8EvnKCsU6ZCZUoxK2FPEVqCMRzdThwHfl1DMU5BVdpHu86EWUVTWMkPUbQTr9w0IrhnimkKpvMub4Xi8CQ07PudjVLuvMWuHowKGd.tar",
-    "download_original_url": "https://universe.roboflow.com/folio3-krxsh/animal-drone-5gqre/dataset/2/download"
-  },
-  "Cattle Face Detection": {
-    "id": 1051,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/p/C/Kz/LPanFStkZlpSDjh2hBlvuoFW7wzQAgUNkClY0SlLfqTqSdenQrBRyQEQhcEtrRhFJsTMZ2zm48ULK3gHCKKhYPK0YHeUVfmJsyxUKmcpwihBOyA1El2ziqi9Ge8T.tar",
-    "download_original_url": "https://universe.roboflow.com/universidade-federal-de-santa-maria-dbq3m/cattle-face-detection/dataset/1/download"
-  },
-  "kcow1": {
-    "id": 1052,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/w/v/qG/GO3ABO5VJWVrj07DeZYD7YTqFOhiCA3pEhAyAFKlbfJoAtPfkkTIZ6tfp99PwImXNKt33huJMCGD4kv9ZGQnYe4DK71XNYGbCyMFF4ZJycpC2qIMVgmCUtPSvy7P.tar",
-    "download_original_url": "https://universe.roboflow.com/sungho/kcow1/dataset/2/download"
-  },
-  "chw": {
-    "id": 1053,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/p/V/0L/kvIDvvWEdUSVTaPqVOfZYNVLdjb4XoqIKXWhnFow4ytFGsZB4L3lopUyt5y6SJLBSlF3ZKNqS84f5mKQL7IvU7s4unAP8gROfTKW9RzySkkXhjShRvQN15yMxQHb.tar",
-    "download_original_url": "https://universe.roboflow.com/jack-v5j2k/chw/dataset/3/download"
-  },
-  "Thecowface": {
-    "id": 1054,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/l/K/uT/CHpSvOaMM6Kfoh6Fp4NEMYH1qaGz08PsESyyxNWNNm69DXvVosebDFBqtl7EfolqgLp8b19bllTgjN5DnPG51645yOxkXdSEIBXMxZG9VWhuanR1Sw3xC5mh0oQ9.tar",
-    "download_original_url": "https://universe.roboflow.com/face-cow/thecowface/dataset/1/download"
-  },
-  "Cattle (j1qzu)": {
-    "id": 1055,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/l/Q/Xe/UC6Uz2G0OQ1T1Wr0zoa3NCXVQbhUumUxyB7Uxilf8A1rj2FCUWZABwtJ3nZkDnyFqWv9I31AFBBfXibQQboQtjVosa4zjgidBb3gOMWe6MlNotcu2IM8nQMSKZsZ.tar",
-    "download_original_url": "https://universe.roboflow.com/cattledetector/cattle-j1qzu/dataset/1/download"
-  },
-  "Aerial Sheep": {
-    "id": 1060,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/E/8/mu/ue6RWTcjqkjij4RcGwanrW8UBWuuZGJkyAEGf6kgHGXhMaj0nrKcLNCQeody9jTnfKlHtGviaRgiAKY6ZBa5XueUDU1d0XIABT5s7iIji0QGdmxEHoRDJ4CJVFJu.tar",
-    "download_original_url": "https://universe.roboflow.com/riis/aerial-sheep/dataset/1/download"
-  },
-  "Wind Turbines 3": {
-    "id": 1064,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/x/D/6p/4pZUeB8ruNTokW6cwidVED2449D1HMX91QoTJP4CiHgLoWzHKvZ2dn4rBEb8kmV3h2RCiwsF7YaWcKFryONbwJ8Ip9EU8tIbhyLXp6P0s8TJugrGnPQGru9L88Ct.tar",
-    "download_original_url": "https://figshare.com/ndownloader/files/24121976"
-  },
-  "Elec APC2": {
-    "id": 1065,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/z/z/gS/3okbThYx4GfmJ7vSciQyMby3ZWUUBwUmR2SrzoDwnXnNuRpIn6rjskplSf1UOrIDFlkfVIsFBm1oyqe7C7R1wO4oRiG8wfaHGJtZ0cjxclw98b9nRy5fu4Q9E2fj.tar",
-    "download_original_url": null
-  },
-  "Deer (z7klu)": {
-    "id": 1057,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/1/o/wr/urT4irvEgpefRx8yXdwljujZJxjSWTMYPCiIpYgenoIqNzfyv8NkfeUBDtc3lns3cms50p3fSg1slnKj0qoyHxfphnshacCZxgsNy02E136vWTR2s9zJHFpoZPOo.tar",
-    "download_original_url": "https://universe.roboflow.com/galen-marsh-vvdvx/deer-z7klu/dataset/3/download"
-  },
-  "Deer (yidlt)": {
-    "id": 1066,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/g/3/TV/ywHVJclMeHDOGZ3sHhxtboGgDrwBC1yeO400R70ewavnRy6LHsEa40vbHcLgnA5atl1sfNz3Wcw7rIpWKxCjwJQAjBbvJrMXIxjWkd29BfxBu9AZrl2ATqapecKV.tar",
-    "download_original_url": "https://universe.roboflow.com/deertracker/deer-yidlt/dataset/1/download"
-  },
-  "Utility Pole Label": {
-    "id": 1068,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/u/p/Ni/hgIyVYPciW9OHmIC3Uct3bB4h0kqEGjom1APtktSUCiaMGcZrCgfj0Sa1Zz3yMmEsejkpzTiUYyhru4N2IlCy1NsUVFBynWWBk3gh91CaBlJS43bRiy30ZoNidwi.tar",
-    "download_original_url": "https://universe.roboflow.com/new-workspace-en1on/utility-pole-label/dataset/4/download"
-  },
-  "Detect (caxah)": {
-    "id": 1069,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/l/E/qO/xim4ZdDIwbymzUrrROfjn5dkGYflxsCXz02X7LemItFvXwb5oj6O3MRErPN3Ta5NDA87w7CCnNKgqc8qgZV7D0zKaTlrOGQhuWfLrJCHEu3QEtItM8VMiSsdeu5f.tar",
-    "download_original_url": "https://universe.roboflow.com/s-o33ou/detect-caxah/dataset/1/download"
-  },
-  "Powerline Detection": {
-    "id": 1071,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/u/z/yU/m57MKPVmdCqksGlWsqIxHCJfNN5NQUZruh0qNroPcAtDUdvVQqp1YV8lad6bTXV49rMhOpBHTOZMnaGgRGq2B4bwxdpGAIJHvd90Q0lRwRgCpb2xHhu087JzNNo2.tar",
-    "download_original_url": "https://universe.roboflow.com/college-2t4kc/powerline-detection/dataset/5/download"
-  },
-  "Electric Pole": {
-    "id": 1067,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/a/K/68/dPMCbsboaaRoHmONhQBrXnhgynPjXakizlKOhJdjIUCyJAktLfnDMP8NNGunWKtTx7utMmS8IGoqIcxb5I1Z2hlAEjTYNWnMKGAiPuLMeizuMUyX7paR1eE5uD0s.tar",
-    "download_original_url": "https://universe.roboflow.com/ritsumeikan-university/electric-pole/dataset/1/download"
-  },
-  "Animals (kapzz)": {
-    "id": 1046,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/5/O/KE/rmUrFVQCChTEmtpm3FFJOY9XAPln5Rl5yZKIy4p7uQ3XqIXwRFgHIwz45YFkb9X6MtQOx7wmteJVw0y2gnsqxEzEz8O7oKtcO5MIjiIAUL5Kzkns8eqcRX2AxPUJ.tar",
-    "download_original_url": "https://universe.roboflow.com/graduation-nnzal/animals-kapzz/dataset/2/download/coco"
-  },
-  "deepNIR": {
-    "id": 978,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/z/E/jd/phjN7e0SLy2ZQZ0z3DSdYhwkWYvRtxna4MqT6Mmb99qdaQreTX7TXGMCzTeJ1vkiZnYouAQSopsmJQkS3kIo5up7S1HRFxlTqjTxDbJlyhScqf89hnPI0khVP63e.tar",
-    "download_original_url": "https://zenodo.org/record/6324489/files/yolov5.zip?download=1"
-  },
-  "Animal Object Detection": {
-    "id": 1076,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/P/5/mT/ZegADSyA1TWr0EaVRxdfc1umyN9ukZ5SuVP8eLbdl6sMPP7h5fUiKzMY6KkPg2E1pUpU8Dd0lQJFtouVEaZ3wunVvC7teUilIALaBAXVk5LxfJGx1yV4sHqGltbn.tar",
-    "download_original_url": "https://universe.roboflow.com/animal-detection-yvpsn/animal-object-detection-gbwme/dataset/2/download"
-  },
-  "Wind Turbines 4": {
-    "id": 1105,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/V/i/ph/LBp7VzqZt4ZJuTJUiZMsOzLnxOTOqhRznAPjECNlkQQbVPTWpL0p0sdqdINQSFOV93USnRHTcktp9HOFwkXYsEbelPzcGxzrVvBt8qnxUID0CT68IjooF6lEpGAk.tar",
-    "download_original_url": "https://figshare.com/ndownloader/files/24118220"
-  },
-  "Wind Turbines 5": {
-    "id": 1106,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/o/z/vU/yDH6R00TXWq2JVlvKMcPdDlvkZYv6oUlHZ00Eapw1E6akF6gmStAcRRUxbGm2rKW3kOGDIV3NxAy6KjoIlZSUDU8tbbhwh8bkxCBNW7z2ENiE2UtRU9vTxnQCRz9.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/saurabhshahane/wind-turbine-obj-detection/download?datasetVersionNumber=1"
-  },
-  "Wind Turbines 6": {
-    "id": 1107,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/u/B/dB/HtpVOF7YPOLV3oEOtRSRh9m62GDUtAV8pWgJIjeCcqRGThWtJt3LvpgXM0nXb5fyRHZVm8aP5RtNhAInY4OcBg8PvQVxeQ3L2MgWoxdPmgFdzy87bTlDiU6HjW5k.tar",
-    "download_original_url": "https://zenodo.org/record/7808269/files/windTurbineDataSet.zip?download=1"
-  },
-  "Wind Turbine 7": {
-    "id": 1110,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/1/V/c6/PolXznewivXoVZQoPMmNREvsxz1VejeIfy32PlUZv4k45Det9r2JtxcufnP8LbK3F0lXZ3cqiN8iP7xIiNiVSLBH1oRafEAdkQZrZvi8ewaODtFMaSED9H1YWTDv.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/ajifoster3/yolo-annotated-wind-turbines-586x371/download?datasetVersionNumber=1"
-  },
-  "Wind Turbines 8": {
-    "id": 1128,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/K/d/nT/uBzlQzdCRhu9ph3KHQghbGFKxBfmKh9pTEn06CnAbDUbmo36kvykfDUuVwG1LV4qPFa6qKIlvPY5sz9d8eUexfLPb0M0abSQjH6oDqiyABoJIwqgRoKSLaLsBYIs.tar",
-    "download_original_url": null
-  },
-  "SARAS-ESAD 2020": {
-    "id": 1124,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/p/r/kz/eHeXvQwxQSB38OZuf2eOQDjVzsKKGqGMDLHZuC9qvh9SApTeAa4tKh9GKpcrjtAnc5IuZl7u9duukXipIKdEQe19AmjujEfTg6mgpKrmCbw89KlOoE7xSdTMk3M2.tar",
-    "download_original_url": {
-      "Training_Dataset": "https://drive.google.com/file/d/1CnYAzZRVEDGK1TycGBb8SnMgyvzeZrie/view?usp=sharing",
-      "Validation dataset": "https://drive.google.com/file/d/17rWwuWKFZFxQ0DTRs5cmUzU2Vb5PScol/view?usp=sharing",
-      "Test dataset Images": "https://drive.google.com/file/d/1gho-oGzUbNgnZmBZ2GDKWWOcs1VI-z0O/view?usp=sharing",
-      "Test dataset Labels": "https://drive.google.com/file/d/16srrq1NIso1mI2YKtHMIPyn5bZbcCyo3/view?usp=sharing"
-    }
-  },
-  "Wind Turbines 9": {
-    "id": 1133,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/T/x/VX/c3e76sozsdvOl6yInn8bGGDptJmQleZIH4hSIOCDcpYba9zXxEN8HfmUi7nd2K4VO183Y9UCmRKGlBrBjfWfSNeuobXnxZRZRXMleEtjSs2Olozam58LW4rmdZHr.tar",
-    "download_original_url": "https://github.com/lbborkowski/wind-turbine-detector/archive/refs/heads/master.zip"
-  },
-  "BCCD": {
-    "id": 1147,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/d/Q/i0/4P7VSYcX7dnqjt6Z642VPAR5hrtTFzvyEJTcIdfNTZzzTfNRow5sdkRP6ibC1S5EfBn69z8IE7U65Vlc6yoNUpfr6hPbfdXSXxOGF24sTbwGPnB2ra7CxXk9cWyY.tar",
-    "download_original_url": "https://github.com/Shenggan/BCCD_Dataset/archive/refs/tags/v1.0.zip"
-  },
-  "Wood Defect Detection": {
-    "id": 1151,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/5/f/cK/lqETthv556lmjDj1ISz4XPVMrUg8m730arQG1uZzdeO2S996GXH5xQhuaXjaEj0AR36pW5iolcs6bmqDH2dM57hthMUEy5U3zzO4kahzPKKSyJo2Cei8tqbi0kCC.tar",
-    "download_original_url": {
-      "Bouding_Boxes.zip": "https://zenodo.org/record/4694695/files/Bouding_Boxes.zip?download=1",
-      "Images1.zip": "https://zenodo.org/record/4694695/files/Images1.zip?download=1",
-      "Images2.zip": "https://zenodo.org/record/4694695/files/Images2.zip?download=1",
-      "Images3.zip": "https://zenodo.org/record/4694695/files/Images3.zip?download=1",
-      "Images4.zip": "https://zenodo.org/record/4694695/files/Images4.zip?download=1",
-      "Images5.zip": "https://zenodo.org/record/4694695/files/Images5.zip?download=1",
-      "Images6.zip": "https://zenodo.org/record/4694695/files/Images6.zip?download=1",
-      "Images7.zip": "https://zenodo.org/record/4694695/files/Images7.zip?download=1",
-      "Images8.zip": "https://zenodo.org/record/4694695/files/Images8.zip?download=1",
-      "Images9.zip": "https://zenodo.org/record/4694695/files/Images9.zip?download=1",
-      "Images10.zip": "https://zenodo.org/record/4694695/files/Images10.zip?download=1",
-      "Semantic Map Specification.txt": "https://zenodo.org/record/4694695/files/Semantic%20Map%20Specification.txt?download=1",
-      "Semantic Maps.zip": "https://zenodo.org/record/4694695/files/Semantic%20Maps.zip?download=1"
-    }
-  },
-  "Semantic-segmentation-Satellite-Imagery": {
-    "id": 1153,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/c/f/KX/AlHpxXoxWO7iKu1K2jPIgAPWbt0usvEMVHszzQhl9gY83fdvdk8VtIof3pS77x2JGmZxG0mNjNYoCPz9qoszKGmKvZzQNY0M6Ufoz1wn7Wmli9yO7qFa6nbIOMEU.tar",
-    "download_original_url": {
-      "train_masks.zip": "https://figshare.com/ndownloader/articles/19961426/versions/1",
-      "train_images.zip": "https://figshare.com/ndownloader/articles/19961336/versions/1"
-    }
-  },
-  "HyperKvasir": {
-    "id": 1173,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/n/1/po/yMYRrQ7xuFQldJJeyoMZhLOJKhyVtIRGFhKJrMx3Nji7E08juVY4UX6DmjjZeYQQA8eaGOXBmwjlbfeVAhnejWwAhgChYLrYQoBMQlRglKDm3GAEEHhg8jU96sGR.tar",
-    "download_original_url": "https://datasets.simula.no/downloads/hyper-kvasir/hyper-kvasir-segmented-images.zip"
-  },
-  "Concrete Crack Segmentation": {
-    "id": 1165,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/N/6/IM/C4MKxrRVPcYUp25FTja8In5HhUAIXz6yPgg8YsXGkhlKO6mve3Dpg9iuMXvzgOzFZd3Tf0HYU6ATGyHtyPTrwP7iPXVJqcC1CY65lY4okxCotE7WJJjXYHbhkZ0v.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/motono0223/concrete-crack-segmentation-dataset/download?datasetVersionNumber=1"
-  },
-  "ENDONUKE": {
-    "id": 944,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/v/U/jl/tjYhswti2vTD3TLfSpfOrl4RvKO6FjMcjlUiWbHoyqkvrqM3nFb0U8uBCmkiSjbhrQLGS56mNXL8roz3uC3rlWWrIbfLyScwy6Ykf84MhpVMFiG7PiNQrNf55EWP.tar",
-    "download_original_url": "https://www.ispras.ru/conf/endonuke/data.zip"
-  },
-  "Wind Turbines": {
-    "id": 1044,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/b/q/Ov/6cpD1jxxcFauc594dR7xyLGzWnrwu0IxmyT9Jv90XfruTqLpFem6wlFs8D1w6AuxpnqRGx7fRnsdCdG9pnqDNdZPx63rxIQcGAI6PayVPyQTl0xC2uUGO1kn39YU.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/kylegraupe/wind-turbine-image-dataset-for-computer-vision/download?datasetVersionNumber=12"
-  },
-  "Airbus Aircraft Detection": {
-    "id": 1180,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/0/M/Ob/az6n2g8e0aOfR3Q2HFplGc31VbtYScWIj9TSvEcE01GoAVTPivyWnmcqO2C0oVNZwyu5nFRcWxiBgVghBNuTGQYyA6SvIn8Tfx0KqKTQhkokjgqOSfNuijLkWiMl.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/airbusgeo/airbus-aircrafts-sample-dataset/download?datasetVersionNumber=3"
-  },
-  "Wind Turbines 7": {
-    "id": 1110,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/0/M/Ob/az6n2g8e0aOfR3Q2HFplGc31VbtYScWIj9TSvEcE01GoAVTPivyWnmcqO2C0oVNZwyu5nFRcWxiBgVghBNuTGQYyA6SvIn8Tfx0KqKTQhkokjgqOSfNuijLkWiMl.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/ajifoster3/yolo-annotated-wind-turbines-586x371/download?datasetVersionNumber=1"
-  },
-  "PASCAL context": {
-    "id": 1184,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/0/a/kD/3HQtTVN8QrToTdPm4136D8ANc3rsnxGnJkhVLC7DyydTtm1nzoXS9dPLTm6NUxQUzos8fyX3vR97taBIwatmEeNv35RCrlduwNH7NbXCHwLcTq4iidDbdzydzTKi.tar",
-    "download_original_url": {
-      "Training/validation data": "http://host.robots.ox.ac.uk/pascal/VOC/voc2010/VOCtrainval_03-May-2010.tar",
-      "Training/validation annotations": "https://www.cs.stanford.edu/~roozbeh/pascal-context/trainval.tar.gz",
-      "Development kit code and documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2010/VOCdevkit_08-May-2010.tar",
-      "PDF documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2010/devkit_doc_08-May-2010.pdf",
-      "HTML documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2010/htmldoc/index.html",
-      "Guidelines used for annotating the database (VOC2010)": "http://host.robots.ox.ac.uk/pascal/VOC/voc2010/guidelines.html"
-    }
-  },
-  "Airbus Oil Storage Detection": {
-    "id": 1188,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/p/J/os/U4ZTmdkAso2NA9b5k2Mp7vrw35CgDgHEqslTLtzMuELs1Xzy1RvJo6sV3JeayWeFO9BCkGHx2JOPu6PEclGz3ISAUTruFMXo9BrZ2BCfoLqCx0grgj44uFGYtSmB.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/airbusgeo/airbus-oil-storage-detection-dataset/download?datasetVersionNumber=1"
-  },
-  "AFO": {
-    "id": 1193,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/P/a/st/tPEapD6aRt5maGLZjcLgra9sspta0wc1DwoQhC9EahocdYlK2GfsX24h0i9MCaiXe8wD1RsRETvJ6oQiPh03naqhBXSjdTAqKSSYFddomge8thSMzesVxtTAj8MW.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/jangsienicajzkowy/afo-aerial-dataset-of-floating-objects/download?datasetVersionNumber=1"
-  },
-  "CHASE DB1": {
-    "id": 1195,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/P/y/r2/2nCV9YLepboiEJA8gO5BDCXGXCPQ9yqAw8i77xg1DtcI6SVXNwgo6dvBTqfQuP6eIAczps6ftCNtTqqOBBiIlkRfGUTr5IYk5OuX9JCgJBXLI6qX7ceAWk3PeyYJ.tar",
-    "download_original_url": "https://staffnet.kingston.ac.uk/~ku15565/CHASE_DB1/assets/CHASEDB1.zip"
-  },
-  "LoveDA - A Remote Sensing Land-Cover": {
-    "id": 1214,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/x/9/Fl/9vEdc94lkHcdWll3t2EqyaydsVqWmd8AleS2MyawGwxZYp0tY1Ve1hNZqYb5zR9f2JHGk6TlOS9EM2weQ1aDOGd1u79WfpHxkkqJkimLKC0QBLYPzS2dlZAUiiHs.tar",
-    "download_original_url": {
-      "Train.zip": "https://zenodo.org/record/5706578/files/Train.zip?download=1",
-      "Val.zip": "https://zenodo.org/record/5706578/files/Val.zip?download=1",
-      "Test.zip": "https://zenodo.org/record/5706578/files/Test.zip?download=1"
-    }
-  },
-  "Cow Lie Stand Walk": {
-    "id": 1049,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/m/m/2R/1EEOgnRf6dZyS4QxvzoOZbAC3r3MuURDsYtg0PfrpelsscZ9YRSfbFWmIWkMqwu78XIfvleWtt0UlYOdFC7JfAtjf3nEMCTPAF8iPy3kTC67mTfPj6iwfYozysop.tar",
-    "download_original_url": "https://universe.roboflow.com/rev-tvsjf/cow-lie-stand-walk/dataset/2/download/coco"
-  },
-  "Cattle Face": {
-    "id": 1215,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/H/J/1a/IUgRHxaDmeicWEv4d7xNeFymUl3svXvcMHD9r1A5aiH8hlsGgKIpM80LLL4U3DxRTX1ci6mtrEZXrHeaXUVjUweyK1MER2Wwvu3Nd6Z9TvJzxE3tbjV7b5gL5X73.tar",
-    "download_original_url": "https://universe.roboflow.com/kstate-kdd/cattle-face-dataset/dataset/2/download"
-  },
-  "COCO 2014": {
-    "id": 1216,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/H/J/1a/IUgRHxaDmeicWEv4d7xNeFymUl3svXvcMHD9r1A5aiH8hlsGgKIpM80LLL4U3DxRTX1ci6mtrEZXrHeaXUVjUweyK1MER2Wwvu3Nd6Z9TvJzxE3tbjV7b5gL5X73.tar",
-    "download_original_url": {
-      "Training set": "http://images.cocodataset.org/zips/train2014.zip",
-      "Validation set": "http://images.cocodataset.org/zips/val2014.zip",
-      "Testing set": "http://images.cocodataset.org/zips/test2014.zip",
-      "Train/Val annotations": "http://images.cocodataset.org/annotations/annotations_trainval2014.zip"
-    }
-  },
-  "COCO 2017": {
-    "id": 1217,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/H/J/1a/IUgRHxaDmeicWEv4d7xNeFymUl3svXvcMHD9r1A5aiH8hlsGgKIpM80LLL4U3DxRTX1ci6mtrEZXrHeaXUVjUweyK1MER2Wwvu3Nd6Z9TvJzxE3tbjV7b5gL5X73.tar",
-    "download_original_url": {
-      "Training set": "http://images.cocodataset.org/zips/train2017.zip",
-      "Validation set": "http://images.cocodataset.org/zips/val2017.zip",
-      "Testing set": "http://images.cocodataset.org/zips/test2017.zip",
-      "Train/Val annotations": "http://images.cocodataset.org/annotations/annotations_trainval2017.zip"
-    }
-  },
-  "FloodNet (Track 1)": {
-    "id": 1238,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/k/f/16/Xta6nyvvxvq7X3ZAfZrkaLwTlu6x5j4POkxruv16POvl3UhNutIgX6jw2c5ZahSbbjCCOJgxALCvMz3itxsSR4WeGHGHkS9mU0VKTNWl6VylhNLW8C7pV5Uep81b.tar",
-    "download_original_url": "https://drive.google.com/drive/folders/1sZZMJkbqJNbHgebKvHzcXYZHJd6ss4tH"
-  },
-  "COCO Stuff 10k": {
-    "id": 1233,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/c/g/lo/K9feC5zWJXmcRUtp8c2WJsqeolfb1eDgoRq8w10HYKorFU4BkuK2GBscwXeLOQRtTdBOegJlKWRjwQshMjNKrYUT0LOavtIFw3coj0KDGo1h0aJ8sEjnEN6MeJcM.tar",
-    "download_original_url": {
-      "Images and annotations (.mat format)": "http://calvin.inf.ed.ac.uk/wp-content/uploads/data/cocostuffdataset/cocostuff-10k-v1.1.zip",
-      "Annotations in .json format": "http://calvin.inf.ed.ac.uk/wp-content/uploads/data/cocostuffdataset/cocostuff-10k-v1.1.json",
-      "Labels": "https://raw.githubusercontent.com/nightrome/cocostuff10k/master/dataset/cocostuff-labels.txt",
-      "Readme": "https://raw.githubusercontent.com/nightrome/cocostuff10k/master/README.md"
-    }
-  },
-  "Roundabout Aerial Images": {
-    "id": 1237,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/P/n/WH/baNNM10hjKmymxAHSdTgmeGV287RYhZWypGn1EXCFAfbQgslFUCeNjACm81w9cDpjSOCutB7n5DKZzoONLHEv0YbEWrDBukQhFWb75DKNiqlRpOwA9uES1J9xID3.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/javiersanchezsoriano/roundabout-aerial-images-for-vehicle-detection/download?datasetVersionNumber=2"
-  },
-  "Malaria Bounding Boxes": {
-    "id": 1241,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/r/i/rN/6AvMzDBY8eY3u2ckaSavF5uPszoCiqnePuP1FP8AWNMKoFm25wSjm12i35hhoRyC429Ea4b3hqApWXzPTGTe0UGgaAfphdoqzqbbFmeGYl6yQ5v6cLcq9EZTrSR6.tar",
-    "download_original_url": "https://data.broadinstitute.org/bbbc/BBBC041/malaria.zip"
-  },
-  "Pothole dataset v8 for detection": {
-    "id": 1251,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/1/O/De/PetX589MXf7NVEQ1alnouKCxYPSbZ79QB9MogwMZPt8cxr30Ksn0zu2Ci6j1O9dCErR9sbgaQOeAnwj6B51eokZngVTufpg3MOsmKsvB7URSMjhBUTWbr16KxWDO.tar",
-    "download_original_url": "https://www.dropbox.com/s/qvglw8pqo16769f/pothole_dataset_v8.zip?dl=1"
-  },
-  "FABRIC STAIN DATASET": {
-    "id": 1252,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/G/j/pn/JYb7bbWyFsrJVkQwunbrabgFwR0XinoIESpqp8R6Wg5QFzwwmjLyj5BADyEuavVwrp5Y9Npkl4xdywOo9REFi44SSPkCrgtLLNVmaLsOAU46PaL5NSdHcDLkbktr.tar",
-    "download_original_url": null
-  },
-  "NPU-BOLT": {
-    "id": 1262,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/1/g/XR/ygo1sm327EoPhRqFFopp7qqlyFe0AQIitfcCFVG8kj96KDGBvj3cZ2sxMDaxAE6LYMcARjpb9GFNwo6wImBHlhJQ9dGvxRqK9TKHGHxqD6NH5DGrdipFO8B4h5vC.tar",
-    "download_original_url": null
-  },
-  "Fluorescent Neuronal Cells": {
-    "id": 1274,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/r/6/sl/cahW4f2E0om1e5qxhbTy1gp3TjWLyVmDXeDGz84DfObhX8UBC7wLTvegoebPLv4D5FJPSlXj2OPHYPjoaSiOfdlHuNtnlQozFOFRFxbD8wfPh070nMTW372z7nBO.tar",
-    "download_original_url": null
-  },
-  "Cocoa Diseases": {
-    "id": 1266,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/a/M/K1/7X136vwspUAtkmqcVuT7ZzoPn23QiG7udnECLXbhsP18d9BH1lQHdZdrCHEZ0vLIRrNqzXuZmZBq0duaRyzIcZQELlLZhmtpwINBnqhonuNx4ibLTlDwcJfeONMd.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/serranosebas/enfermedades-cacao-yolov4/download?datasetVersionNumber=2"
-  },
-  "DeepGlobe 2018": {
-    "id": 1292,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/v/K/yW/sxF7knXsw9GubnMuXn2w8IHrjruG4S54KtWYvGWouYZq4Pwa0L5ltVhH5p4ej6owzD8Y26IxE7XKc3xrveLrM0MzfnBSUmVh85PtygvyTvBF258YKQ4eZk84niog.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/balraj98/deepglobe-land-cover-classification-dataset/download?datasetVersionNumber=2"
-  },
-  "Heat Sink Surface Defect Dataset": {
-    "id": 1297,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/M/I/dH/Y56vem270lHlyv3UfxOMWyMY4Yxe0dI7Y1E1mipSj696QO7pDt1v1olOjyQBTqxeJkfADNY12i5NSLmYzwNXgU9wocRCmTLBd0W2z8XTTAK4vALD0cE6wdWzEknQ.tar",
-    "download_original_url": null
-  },
-  "Malaria Segmentation": {
-    "id": 1310,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/P/6/ID/WMMyYcdIvDaiVptE2IncdaJv3cyen0aYzLSGlTkCvV6cRrd2THtYBRuouELJTN3e4HwrzUHzihWkNYp3S91jlbupKBhYInq2BP18p305kWw3EuAdAvd1lvfKMqCF.tar",
-    "download_original_url": null
-  },
-  "Breast Ultrasound Images": {
-    "id": 1316,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/r/r/YS/Ia4g4Qb9nzKuBlGlCkwlnounKEshGZ6iskT1rLOomTMDDcVoqsKkZXVUFlocIrB88ZJV7UkiJ5ScGXRRj0KGTvTsP8T0WkXA2ka6xXj4J8lX33wQcXv0nWDhZH0W.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dataset/download?datasetVersionNumber=1"
-  },
-  "Detection of Small Size Construction Tools": {
-    "id": 1314,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/r/r/YS/Ia4g4Qb9nzKuBlGlCkwlnounKEshGZ6iskT1rLOomTMDDcVoqsKkZXVUFlocIrB88ZJV7UkiJ5ScGXRRj0KGTvTsP8T0WkXA2ka6xXj4J8lX33wQcXv0nWDhZH0W.tar",
-    "download_original_url": {
-      "DATA1.zip": "https://zenodo.org/record/6530106/files/DATA1.zip?download=1",
-      "DATA2.zip": "https://zenodo.org/record/6530106/files/DATA2.zip?download=1",
-      "DATA3.zip": "https://zenodo.org/record/6530106/files/DATA3.zip?download=1",
-      "DATA4.zip": "https://zenodo.org/record/6530106/files/DATA4.zip?download=1"
-    }
-  },
-  "Intraretinal Cystoid Fluid": {
-    "id": 1317,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/6/4/7y/zhNW0Uo1JjKBNIZCpvpHS0hWxJbApo5DTaWwN80HSuGMY97eRkVv9qZMGqxcQ9tVExCt5mq4MnBpyUmaXQT6TSfCmF5XYCWyIZQURyLFfAog89M8HmanrlM1Fx45.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/zeeshanahmed13/intraretinal-cystoid-fluid/download?datasetVersionNumber=3"
-  },
-  "Skin cancer HAM10000": {
-    "id": 1318,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/V/E/dt/75rc87P55oAclezZFCrmeuYzsHikpfh9QblTpRQlsnW6gV16MUTnCgJWkCa9VvbzP64OP25aIR9ExNtITfk0gapm2IbS2qWA97lHLlM5m4V8dsAhjtHUqgenluIW.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/surajghuwalewala/ham1000-segmentation-and-classification/download?datasetVersionNumber=2"
-  },
-  "PASCAL VOC 2012": {
-    "id": 223,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/u/b/Jr/HptPk5MskgkmFnoIWTSYoJqiAXuLClnUIT1Ae5Dy03cpVfQQHXXspNvYucpKFDxXIfXSPzd3T40yDbcGnMkeuC15wSLqzKBVSsf8LfVugx6aVhlkQAurOVVmLof5.tar",
-    "download_original_url": {
-      "Training/validation data": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar",
-      "Development kit code and documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCdevkit_18-May-2011.tar",
-      "PDF documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/devkit_doc.pdf",
-      "HTML documentation": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/htmldoc/index.html",
-      "Guidelines used for annotating the database (VOC2011)": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/guidelines.html",
-      "Action guidelines used for annotating the action task images": "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/action_guidelines/index.html"
-    }
-  },
-  "Accurate nevus shapes": {
-    "id": 1321,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/f/f/wa/DQUbdfemWn7LKfL8O1GIJIbyJS7ArUnvrfL5RDRdyHGuwK7bIG0HM3TSSWEzYaGJkMpPRI4hHAx5HoT4XOws6I6RM4zjnvB9l6YQd23z7eOg0vZqzVrU67j5AtPU.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/metavision/accurate-nevus-shapessegmentation/download?datasetVersionNumber=1"
-  },
-  "UAV Small Object Detection": {
-    "id": 1324,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/G/W/YT/g6AW1ahZe0imEGkALndtk4aXGRokNC1Q3okoGcjKWzn7KnPepVbrbzOcSvEVctznPE8rqye8jsItvUqAD0Zzo1Ds09aC1hFSEG9s1hirUzg5Vy5ueBLNSPfqrnhg.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/sovitrath/uav-small-object-detection-dataset/download?datasetVersionNumber=1"
-  },
-  "GC10-DET": {
-    "id": 1008,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/V/7/Ka/XH4YwBZOVaQA9zFLTv1FkLIX8hBPK4DMx16qky6d34b0gu7ZUgnFrwb4dnYSkmcsIQMW2rBY7O73A93gCgoGNUxj2OBNPaHojny9bQTYHk9KsztIyNO5AE9HEODU.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/alex000kim/gc10det/download?datasetVersionNumber=1"
-  },
-  "DeepBacs": {
-    "id": 1142,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/y/v/2h/y3E1S2zNBB9jz2KYLTIPvA9uN7mebDP24A8O5Rhlg3C1ODILHhMKaTpQSoY1aSiaZzHZiaMn7DSMCbLvJ5VH95MtNvgKJrs9InpPx75gH4FVpddMINsCE8XdvMXK.tar",
-    "download_original_url": {
-      "Antibiotic_profiling_examples.png": "https://zenodo.org/record/5551057/files/Antibiotic_profiling_examples.png?download=1",
-      "DeepBacs_Data_Object_Detection_E.coli_Antibiotic_Phenotyping.zip": "https://zenodo.org/record/5551057/files/DeepBacs_Data_Object_Detection_E.coli_Antibiotic_Phenotyping.zip?download=1",
-      "DeepBacs_Model_Object_Detection_E.coli_Antibiotic_Phenotyping.zip": "https://zenodo.org/record/5551057/files/DeepBacs_Model_Object_Detection_E.coli_Antibiotic_Phenotyping.zip?download=1"
-    }
-  },
-  "Concrete Pores": {
-    "id": 1326,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/L/B/1b/Jd1u08rOAhVkYzXRdnu0RGouoNJLLdlcFcldetzO2b66DCjTYr1j3b7Reqc54pSkCrHKBzULtxTF7lAQNyONvxiFFSZNoqeQn683C8fdylHt6CX2WPyPoALLd6Rt.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/franzwagner/concrete-pores/download?datasetVersionNumber=1"
-  },
-  "Myself Cows": {
-    "id": 1043,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/X/f/rc/lZUf5VJyqY0ttpndZCenakk6SknF3W6b2DUreXkxwXYHD3wzIrf5wj4QYUkHT7DgUVwkj638xeHPpZcKmCZE98hIUfLeDlhPwAGXYqHkhKuwJOw5mXogLzslxwUk.tar",
-    "download_original_url": null
-  },
-  "Face Mask Detection": {
-    "id": 1327,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/o/p/YI/EolZylI8BntUvoOYT4QyAhQB9t8DWhnsVr2JDC7thhVwDoZQLlJCqePA5myDbhtV5VPZNN5DkShCm4Kqxx1pXGYPzgkjn61APHQsDstFPSyy54naWsFxkDhGZZay.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/andrewmvd/face-mask-detection/download?datasetVersionNumber=1"
-  },
-  "Road Sign Detection": {
-    "id": 1328,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Q/J/Z2/0DKhAdvx2jBLaSKrhguvqVLq6AOY3BEm09m16DESXamcA9wSkk1fUwi3rjcwegKZCT3mpSUnCbpo6rgtuM7aEmQFphhedVuMZGiXuYLz89J4s9DnsMxeqigGMBoZ.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/andrewmvd/road-sign-detection/download?datasetVersionNumber=1"
-  },
-  "Ship Detection from Aerial Images": {
-    "id": 1329,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/M/U/Za/TQO8YGkMxGPPPZQY5v7xBpgUYwiR0HXYtcs0cZ2jYlC3h6jgqZaQYwRhXmoQ8DDBAdWcQME7jRoBX6OPmxnZAlqBQs1WM09aty8NOb23D741ouQH8XxKLkxUZr3v.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/andrewmvd/ship-detection/download?datasetVersionNumber=1"
-  },
-  "Fish Market": {
-    "id": 1045,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/W/5/2S/MWkvG7AGd4xde2uaUyRM9ox730FvPTXZMhbk7jEUITLaOEqSuJIu7fas4rVfBoshCom5ekfQbcZpJjtMo7UjbTjNkkPVan2W7QaNbkB9z71InCUtr9p3RCYoWukD.tar",
-    "download_original_url": "https://universe.roboflow.com/roboflow-100/fish-market-ggjso/dataset/6/download/coco"
-  },
-  "Brackish Underwater": {
-    "id": 1048,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/w/d/tC/Vl8mRPUdOz2KQungVSMV7Ib1UuNPuOjqFpwoZDfRDfk97Olfns4tyZur6jOyxqBQ0P1gmtPiIX7bAhFazVluvkoELBfqLGpUUFbfxLODtPyx9XxTeirMyYaBHYqH.tar",
-    "download_original_url": "https://universe.roboflow.com/brad-dwyer/brackish-underwater/dataset/2/download/coco"
-  },
-  "Safety Helmet Detection": {
-    "id": 1330,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/4/C/o2/UUUqfWeuVUhMJwRhHAOm8Hg1vuNemHW18jK9qaRZJL5vmQDuRYJIOkYlRGwD8FzY2V6HP2eobwwW80NCDFcO5lIL7X2NJMicvMA15UvEkypFGdFFMmb0zkU9lIQQ.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/andrewmvd/hard-hat-detection/download?datasetVersionNumber=1"
-  },
-  "Teeth Segmentation on dental X-ray images": {
-    "id": 1332,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/3/y/0I/zI4eYfkm5ypz68IafUsRwbgl44j0X1Sakzk1LFrN2FLwj937CwFbkV50RZaXek1DSVkV1t63aIBRoD9SXSwFqmqpWJZU6jhxzcWz0pquU6RYgQdJhCDUgXnR1kKH.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/humansintheloop/teeth-segmentation-on-dental-x-ray-images"
-  },
-  "Piling sheet image data": {
-    "id": 1334,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Z/3/vc/EEjRSq8W6Dr13BV1QfW1iIl2jMgFBbI56T5oPtQL8xGtsxQlngmSzwVzN96kgjRiTwc02VqP21glytWSuIXUg6179WmXYlwpAguMRvxsOcrbMWaaPqaT8pRicbuJ.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/richiemaskam/piling-sheet-data-2022/download?datasetVersionNumber=1"
-  },
-  "Bee Image Object Detection": {
-    "id": 1333,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Z/3/vc/EEjRSq8W6Dr13BV1QfW1iIl2jMgFBbI56T5oPtQL8xGtsxQlngmSzwVzN96kgjRiTwc02VqP21glytWSuIXUg6179WmXYlwpAguMRvxsOcrbMWaaPqaT8pRicbuJ.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/andrewlca/bee-image-object-detection/download?datasetVersionNumber=1"
-  },
-  "Road Pothole Images": {
-    "id": 1335,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/8/h/7u/UtiEpsAvjJiRpIPrOye6EWNplDeOPUZ70im7VwWHAYcnr24Q5EPHsfEK1o0NB9Wnb9HkY8bbdTjP5ZLzYVP1V1xcVfbOW3sZPQxQwzc4yTiqmK0A1UhLf6vBzzwD.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/sovitrath/road-pothole-images-for-pothole-detection/download?datasetVersionNumber=2"
-  },
-  "VSAI": {
-    "id": 1336,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/P/z/EK/UrkLbSTmki4kYQnasRQFgApitPt7KmPnyHyyUMokncJB88y50Xe9UUUWOB19Nb1vn42jlVxJ38P7hzqLVHPkIOBZMwAFyuUJ9KkdbFCaNDhMiuioti9528aIKYvI.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/dronevision/vsaiv1/download?datasetVersionNumber=2"
-  },
-  "AgRobTomato": {
-    "id": 1338,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/t/C/FM/p6Y1aIy2EX2l0YCUSGVoCf2GGIpMvmYnngRl1KqLC3DlKFkXop9kcaH9Xte7cgapWPlT7R9EohCwEflMlTANyIh7sR9Hxj9gVOnV0dOVv2szgfpNoBpPyOSdZYUQ.tar",
-    "download_original_url": "https://zenodo.org/record/5596799/files/Dataset-Greenhouse_Tomato_AgRob.zip?download=1"
-  },
-  "iSAID Airplane": {
-    "id": 1340,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/H/x/m9/uKsrSxJZdQtMD9PBbsfdATJkkxo1E6FmoN56cLOnQ8bo3D1F0nl59xsUNKhJOM1JwLQufVwT0ybMEpbhp2LhgCAfU56aahJRHyQ3D7FlE9Jbee4pAjVGlYgXqiB5.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/romanrybalko/isaid-plane-gray/download?datasetVersionNumber=1"
-  },
-  "RpiTomato": {
-    "id": 1342,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/6/n/un/xmI7HlhabZl5AGNTUMrl4L898rLlArz1PmzNT28UQIG3h9ZXNdrPNpoWnNFxiRq7f9ZZ4hriB3mw4L2Or7aTNvUCn9QHoBcs9Y9joYA2FwPr1zCJ5uT16F0bKhmc.tar",
-    "download_original_url": "https://zenodo.org/record/5596363/files/Dataset-Greenhouse_Tomato_Raspberry.zip?download=1"
-  },
-  "QuinceSet": {
-    "id": 1343,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/S/U/aJ/2HfieJcimxxvP3MLfrUpTbxoPEuoLM5C1RU2SfpPs5tc9EttkY2RDqme3Bj9tFJ6fMygh2hMbX4hTDDFcC29BwDdEprwxtYiVWm6Hns2Cga6Fbe4pyvCWXKKOZwB.tar",
-    "download_original_url": "https://zenodo.org/record/6402251/files/QuinceSet.zip?download=1"
-  },
-  "Vehicle Wheel Detection": {
-    "id": 1344,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/R/3/6n/cZtOyelhbk60jgXKuN319bo9mYiRMnCoQcfevxQN21ErJemYfMNSJCllyLSBlbM794fN53jhv3LnWvoFsG4s5rJGjDr8xxOWEPocB9lh4eB1IwgAGmmmLxs9RDi4.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/dataclusterlabs/vehicle-wheel-detection/download?datasetVersionNumber=1"
-  },
-  "Construction Vehicle Images": {
-    "id": 1345,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/f/3/ZU/YRvZtsxH9oqpvt6ntB16BoZvFDv1q8vFlLbHLwhUPHdg2qaSCyHsecqZLzBeYtct72Ew6FjRS50DgPK49wlNxQY4vEeHRDYRtICiCDoOGF35j0npoBypX0qftfhu.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/dataclusterlabs/construction-vehicle-images/download?datasetVersionNumber=2"
-  },
-  "tomatOD": {
-    "id": 1347,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/M/g/Fw/sUUCZjGvheAhEUdn3iJ6uEehSnUnDQqhCi6gPk5NDgIqPEMbrUWdSNIrVehXvA6oFHNjcGn2w5nwhhH2NnwmTI3brRRGvinqNhjRduOJbUkzbGAxrrKxPJWkbwyi.tar",
-    "download_original_url": {
-      "Images": "https://datasets-u2m.s3.eu-west-3.amazonaws.com/tomatOD_images.zip",
-      "Bounding box annotations (train and validation sets)": "https://datasets-u2m.s3.eu-west-3.amazonaws.com/tomatOD_annotations.zip"
-    }
-  },
-  "Sweet Pepper": {
-    "id": 1348,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/j/4/qn/K3Ln4n6ocXR5CdxaIMSNljgOBglHUBA1QJ8Zuk3UO5oIWN1oOjTd49XEukWraD42PUvlreQD2mkFULEXM86YSoW19JFlPoRONf3TkEZRv6BX8Gds6bh00ajbfdBc.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/lemontyc/sweet-pepper/download?datasetVersionNumber=1"
-  },
-  "Accurate drone shapes": {
-    "id": 1352,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/H/K/Jp/szwgRdnTdU1pRmIkXYPT2f02InNyps71Q2CHzxDH3BcuL9ktz8j1pq8e6PN7K7e3J3pFbFyOCbRfhR2A1LCTxZWdyEpUMgcvbLhLbO3DAR6lvdSe0r6KPiu9vCOM.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/metavision/accurate-drone-shapessegmentation/download?datasetVersionNumber=2"
-  },
-  "Cityscapes": {
-    "id": 1388,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/y/g/ht/CcdEzj69BW6WpRDd5dxRe2MSwNf9VDc3TJhYMqloKPzxnJY2nlMxJjx9OxjQ9JBxqOc0L6nKoiBUfs08FjrTiL1399O6bFlZzUXYJPfMvuQBLSw9X8eoHUgBlmAB.tar",
-    "download_original_url": null
-  },
-  "Crack Segmentation Dataset": {
-    "id": 1357,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/c/s/sN/D5hHLcERvpsMACZSwITnazlHtqWXvrzReg1FuwBWzlA6xEjnCKYUGvp8th59VdFGnT9Rk2k1bwvlgouEO3a0Uw78gPvsSjhVwMuqfvnlLjYA15Xka4d7o3mr7bNu.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/lakshaymiddha/crack-segmentation-dataset/download?datasetVersionNumber=1"
-  },
-  "PlantDoc": {
-    "id": 1355,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/P/d/HN/jRsYPbc7dqMuYYFYSFbJrZmSD3GcIXI1UHDLVBxp3616gYhb0uRtobr1nBZQyoFdg8F6TrbPqsHEJZwLRZyUitmC28nPNPI05zXp1BTtWp3up6q30oJXUmvikhcE.tar",
-    "download_original_url": "https://github.com/pratikkayal/PlantDoc-Object-Detection-Dataset/archive/refs/heads/master.zip"
-  },
-  "Strawberry dataset for object detection": {
-    "id": 1360,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/S/b/Ab/31jjnWPVuosgD88vPN6p6jBtWtBVFGebhzIxJAydWKo2nHKQhMGhbMf1hGbTcIJlUub8tR7O61yUCwArrMs9JnJtEFK7o8AwlNqn420WaHN32piKxWsHXCoSRP4y.tar",
-    "download_original_url": "https://zenodo.org/record/6126677/files/strawberries.zip?download=1"
-  },
-  "AI4Agriculture Grape Dataset": {
-    "id": 1385,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/6/r/qK/W5Twb7XtAx8uH9cnGuCDibqGaR2MsRwbZu51rOi0Twv2q8DwpxpZYafF8e8AjS9X7kGb7YePziSWxk71FIIUpUHFMoSTh30xHEVspKv44c0RbZ8dV5uPA1IaQ5Du.tar",
-    "download_original_url": {
-      "ai4agriculture_2020.zip": "https://zenodo.org/record/5660081/files/ai4agriculture_2020.zip?download=1"
-    }
-  },
-  "Crop and Weed Detection data with bounding boxes": {
-    "id": 1386,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/F/D/8C/9DIIsUPmHfuMltSySjpADSD3fTBXv6jJ0TuCs13nlFb3TzgdIl0qAegYu3VnwSrOF4Ig4rwE0yG6UMfAo1HqlSq414Ye3QrduCsMyLoFym0D4qrvE04SBcQX4nct.tar",
-    "download_original_url": "https://www.kaggle.com/datasets/ravirajsinh45/crop-and-weed-detection-data-with-bounding-boxes/download?datasetVersionNumber=1"
-  },
-  "EDD2020": {
-    "id": 1403,
-    "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/9/l/ra/a4ut3ii2nIjml1quHMIdqyBAtiIljRSap93Ldk7VVEmQlauCebpDshgexsGzVhXU3XYElLeR1XPVaiACZEBrR6pXk9LBUiD48NUge1T02jlGzkGzwssdGXkm5nzK.tar",
-    "download_original_url": null
-  }
 }
