@@ -527,7 +527,7 @@ class ProjectRepo:
                     download_sly_url=self.download_sly_url,
                 )
                 if isinstance(self.download_original_url, str):
-                    download_content += f"The data in original format can be [downloaded here]({self.download_original_url})"
+                    download_content += f"The data in original format can be [downloaded here]({self.download_original_url})."
                 if isinstance(self.download_original_url, dict):
                     download_content += "The data in original format can be downloaded here:\n\n"
                     for key, val in self.download_original_url.items():
