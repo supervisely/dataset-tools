@@ -1,9 +1,8 @@
 import json
 from typing import List, Literal, Optional
 
-import supervisely as sly
-
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.templates import DatasetCategory, License
 
@@ -61,6 +60,7 @@ class ProjectRepo:
         self.buttons = self.__dict__.get("buttons", None)
         self.explore_datasets = self.__dict__.get("explore_datasets", None)
         self.tags = self.__dict__.get("tags", [])
+        self.blog = self.__dict__.get("blog", None)
 
         if self.class2color:
             self._update_colors()
@@ -82,24 +82,23 @@ class ProjectRepo:
             {"view_count": 10, "download": False} if not self.license.redistributable else None
         )
 
-        if self.paper is not None:
-            self.buttons = []
-            blogpost_keywords = ["medium.com/", "learnopencv.com/"]
-            if isinstance(self.paper, str):
-                is_blog_post = any(str2 in self.paper for str2 in blogpost_keywords)
-                text = "Blog Post" if is_blog_post else "Research Paper"
-                icon = "paper" if is_blog_post else "pdf"
-                self.buttons.append({"text": text, "icon": icon, "href": self.paper})
-                if is_blog_post:
-                    self.tags.append("has_blogpost_as_source")
-            elif isinstance(self.paper, list):
-                [
-                    self.buttons.append(
-                        {"text": f"Research Paper {idx}", "icon": "pdf", "href": elem}
-                    )
-                    for idx, elem in enumerate(self.paper, start=1)
-                ]
-                self.buttons[0]["text"] = "Research Paper 1 (main)"
+        def add_buttons(data, text, icon):
+            if data is not None:
+                if isinstance(data, str):
+                    self.buttons.append({"text": text, "icon": icon, "href": data})
+                elif isinstance(data, list):
+                    if len(data) > 1:
+                        for idx, elem in enumerate(data, start=1):
+                            self.buttons.append(
+                                {"text": f"{text} {idx}", "icon": icon, "href": elem}
+                            )
+                        self.buttons[0]["text"] = f"{text} 1 (main)"
+                    else:
+                        self.buttons.append({"text": text, "icon": icon, "href": data[0]})
+
+        self.buttons = []
+        add_buttons(self.paper, "Research Paper", "pdf")
+        add_buttons(self.blog, "Blog Post", "blog")
 
         self._process_download_link()
         self._update_custom_data()
@@ -184,6 +183,7 @@ class ProjectRepo:
             "release_date": self.release_date,
             "download_original_url": self.download_original_url,
             "paper": self.paper,
+            "blog": self.blog,
             "citation_url": self.citation_url,
             "authors": self.authors,
             "organization_name": self.organization_name,
