@@ -485,10 +485,9 @@ class ProjectRepo:
         sly.logger.info("Starting to build license...")
 
         if isinstance(self.license, License.Custom):
+            license_content = "ADD CUSTOM LICENSE MANUALLY"
             sly.logger.warning("Custom license must be added manually.")
-            return
-
-        if self.license.name == "unknown":
+        elif isinstance(self.license, License.Unknown):
             license_content = UNKNOWN_LICENSE_TEMPLATE.format(
                 project_name_full=self.project_name_full,
             )
