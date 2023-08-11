@@ -2,9 +2,10 @@ from collections import defaultdict
 from typing import Dict, List
 
 import supervisely as sly
+from dataset_tools.image.stats.basestats import BaseStats
 from supervisely.app.widgets import HeatmapChart
 
-from dataset_tools.image.stats.basestats import BaseStats
+REFERENCES_LIMIT = 1000
 
 
 class ObjectsDistribution(BaseStats):

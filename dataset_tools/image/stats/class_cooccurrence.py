@@ -6,7 +6,7 @@ import numpy as np
 import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseStats
 
-# from supervisely.app.widgets import ConfusionMatrix
+REFERENCES_LIMIT = 1000
 
 
 class ClassCooccurrence(BaseStats):
@@ -54,8 +54,10 @@ class ClassCooccurrence(BaseStats):
                 self.co_occurrence_matrix[idx_i][idx_j] += 1
                 self.co_occurrence_matrix[idx_j][idx_i] += 1
 
-                self._references[idx_i][idx_j].append(image.id)
-                self._references[idx_j][idx_i].append(image.id)
+                if len(self._references[idx_i][idx_j]) <= REFERENCES_LIMIT:
+                    self._references[idx_i][idx_j].append(image.id)
+                if len(self._references[idx_j][idx_i]) <= REFERENCES_LIMIT:
+                    self._references[idx_j][idx_i].append(image.id)
 
     def to_json(self) -> Dict:
         options = {
