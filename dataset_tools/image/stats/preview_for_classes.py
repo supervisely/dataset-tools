@@ -6,10 +6,10 @@ from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
-import supervisely as sly
 from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 
+import supervisely as sly
 from dataset_tools.image.renders.convert import compress_mp4, from_mp4_to_webm
 from dataset_tools.image.stats.basestats import BaseVisual
 
@@ -19,6 +19,7 @@ GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
 CLASSES_CNT_LIMIT = 25
+LABELAREA_THRESHOLD = 250 * 250
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
@@ -68,7 +69,10 @@ class ClassesPreview(BaseVisual):
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         for label in ann.labels:
             image_area = image.width * image.height
-            if image_area * 0.8 < label.area < image_area * 0.1:
+            if (
+                not (image_area * 0.1 <= label.area <= image_area * 0.8)
+                or label.area < LABELAREA_THRESHOLD
+            ):
                 continue
             class_name = label.obj_class.name
             self._classname2images[class_name].append((image, ann))
@@ -84,7 +88,7 @@ class ClassesPreview(BaseVisual):
         self._collect_images()
         canvas, masks, texts = self._prepare_layouts()
 
-        duration, fps = 1.1, 15
+        duration, fps = 1.5, 15
         num_frames = int(duration * fps)
         frames = []
         num_frames_list = [0] * 10
