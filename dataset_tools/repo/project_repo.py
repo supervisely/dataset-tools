@@ -79,7 +79,7 @@ class ProjectRepo:
         self.download_archive_size = int(self.project_info.size)
 
         self.limited = (
-            {"view_count": 10, "download": False} if not self.license.redistributable else None
+            {"view_count": 12, "download": False} if not self.license.redistributable else None
         )
 
         def add_buttons(data, text, icon):
