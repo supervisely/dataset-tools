@@ -136,9 +136,6 @@ class ProjectRepo:
             with open(license_path, "r") as f:
                 curr_license_content = f.read()
 
-        if sly.fs.file_exists(readme_path):
-            with open(readme_path, "r") as f:
-                curr_readme_content = f.read()
 
         force = self.__dict__.get('force_texts')
         if force is None:
@@ -155,7 +152,7 @@ class ProjectRepo:
             tf_urls_path,
             {
                 'LICENSE': self._build_license(license_path) if "license" in force or not sly.fs.file_exists(license_path) else curr_license_content,
-                "README": self._build_readme(readme_path) if "readme" in force or not sly.fs.file_exists(readme_path) else curr_readme_content
+                "README": self._build_readme(readme_path)
             }
         )
         download.update_sly_url_dict(
