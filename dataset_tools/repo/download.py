@@ -15,7 +15,7 @@ PARENT_DIR = os.path.dirname(CURENT_DIR)
 PATH_DOWNLOAD_URLS = os.path.join(PARENT_DIR, "data/download_urls/released_datasets.json")
 
 
-def prepare_link(api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str):
+def prepare_link(api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str, params_dtools:dict=None):
     team_id = sly.env.team_id()
     workspace_id = sly.env.workspace_id()
     agent_id = sly.env.agent_id()
@@ -25,6 +25,10 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str)
     # if os.path.exists(urls_path):
     #     with open(urls_path, "r") as f:
     #         urls = json.load(f)
+
+
+    api.project.update_custom_data(project_info.id, params_dtools)
+    sly.logger.info("Custom data updated.")
 
     if api.file.exists(team_id, tf_urls_path):
         api.file.download(team_id, tf_urls_path, local_save_path)
@@ -52,6 +56,7 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str)
         sly.logger.info("URL not exists. Creating a download link...")
 
         app_slug = "supervisely-ecosystem/export-to-supervisely-format"
+        # app_slug = "52c45a28bac2486fa880e2f20520714b/export-to-supervisely-format"
         module_id = api.app.get_ecosystem_module_id(app_slug)
         module_info = api.app.get_ecosystem_module_info(module_id)
 
@@ -65,6 +70,8 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str)
             workspace_id=workspace_id,
             task_name="Prepare download link",
             params=params,
+            app_version='dninja',
+            is_branch=True
         )
         sly.logger.info(f"Task started, task_id: {session.task_id}")
         sly.logger.info(session)
@@ -74,10 +81,10 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str)
             sly.logger.info("Waiting for the download link to finish being created...")
             api.app.wait(session.task_id, target_status=api.task.Status.FINISHED)
 
-        # except sly.WaitingTimeExceeded as e:
-        #     sly.logger.error(e)
-        #     # we don't want to wait more, let's stop our long-lived or "zombie" task
-        #     api.app.stop(session.task_id)
+        except sly.WaitingTimeExceeded as e:
+            sly.logger.error(e)
+            # we don't want to wait more, let's stop our long-lived or "zombie" task
+            api.app.stop(session.task_id)
         except sly.TaskFinishedWithError as e:
             sly.logger.error(e)
 

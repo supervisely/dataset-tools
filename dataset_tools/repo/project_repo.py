@@ -102,6 +102,8 @@ class ProjectRepo:
 
         self._process_download_link()
         self._update_custom_data()
+  
+        
 
     def _update_colors(self):
         sly.logger.info("Custom classes colors are specified. Updating...")
@@ -128,6 +130,9 @@ class ProjectRepo:
 
         tf_urls_path = tf_urls_path_hidden if self.hide_dataset else tf_urls_path_released
 
+        license_path = 'LICENSE.md'
+        readme_path = 'README.md'
+
         if not self.hide_dataset:
             sly.logger.warn(
                 "This is a release version of a dataset. Don't forget to double-check annotations shapes, colors, tags, etc."
@@ -137,6 +142,10 @@ class ProjectRepo:
             self.api,
             self.project_info,
             tf_urls_path,
+            {
+                'README': self._build_license(license_path),
+                "LICENSE": self._build_readme(readme_path)
+            }
         )
         download.update_sly_url_dict(
             self.api,
@@ -408,19 +417,19 @@ class ProjectRepo:
             preview_class = "ClassesPreview"
 
         citation_path = "CITATION.md"
-        license_path = "LICENSE.md"
-        readme_path = "README.md"
+        # license_path = "LICENSE.md"
+        # readme_path = "README.md"
         download_path = "DOWNLOAD.md"
         summary_path = "SUMMARY.md"
 
         if "citation" in force or not sly.fs.file_exists(citation_path):
             self._build_citation(citation_path)
 
-        if "license" in force or not sly.fs.file_exists(license_path):
-            self._build_license(license_path)
+        # if "license" in force or not sly.fs.file_exists(license_path):
+        #     self._build_license(license_path)
 
-        if "readme" in force or not sly.fs.file_exists(readme_path):
-            self._build_readme(readme_path)
+        # if "readme" in force or not sly.fs.file_exists(readme_path):
+        #     self._build_readme(readme_path)
 
         if "download" in force or not sly.fs.file_exists(download_path):
             self._build_download(download_path)
@@ -481,7 +490,7 @@ class ProjectRepo:
         if self.citation_url is not None:
             sly.logger.warning("You must update CITATION.md manually.")
 
-    def _build_license(self, license_path):
+    def _build_license(self, license_path) -> str:
         sly.logger.info("Starting to build license...")
 
         if isinstance(self.license, License.Custom):
@@ -502,8 +511,9 @@ class ProjectRepo:
             license_file.write(license_content)
 
         sly.logger.info("Successfully built and saved license.")
+        return license_content
 
-    def _build_readme(self, readme_path):
+    def _build_readme(self, readme_path) -> str:
         sly.logger.info("Starting to build readme...")
 
         readme_content = README_TEMPLATE.format(
@@ -516,6 +526,7 @@ class ProjectRepo:
             readme_file.write(readme_content)
 
         sly.logger.info("Successfully built and saved readme.")
+        return readme_content
 
     def _build_download(self, download_path):
         sly.logger.info("Starting to build download...")
