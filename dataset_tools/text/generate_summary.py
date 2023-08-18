@@ -134,7 +134,7 @@ def get_summary_data(
     if slytagsplit is not None:
         for group_name, slytag_names in slytagsplit.items():
             if group_name in ["__PRETEXT__", "__POSTTEXT__"]:
-                slytagsplits_dict[group_name] = slytag_names
+                slytagsplits_dict[group_name] = ". " + slytag_names
                 continue
             if isinstance(slytag_names, list):
                 slytagsplits_dict[group_name] = [
