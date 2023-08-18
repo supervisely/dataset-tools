@@ -4,15 +4,15 @@ from typing import Union
 
 import cv2
 import numpy as np
+import supervisely as sly
+from supervisely.imaging import font as sly_font
 from tqdm import tqdm
 
-import supervisely as sly
 from dataset_tools.image.renders.convert import (
     compress_mp4,
     compress_png,
     from_mp4_to_webm,
 )
-from supervisely.imaging import font as sly_font
 
 
 class HorizontalGrid:
@@ -30,18 +30,24 @@ class HorizontalGrid:
         self.project_meta = project_meta
         self._is_detection_task = is_detection_task
 
-        self._img_height = 1920
         self._rows = rows
         self._cols = cols
         self._gap = 15
         self._row_width = 0
+        default_img_height = 1920
+        row_height = int((default_img_height - self._gap * (self._rows + 1)) / self._rows)
+        self._row_height = row_height if row_height < 500 else 500
+        self._img_height = self._row_height * self._rows + self._gap * (self._rows + 1)
+
         self._logo_path = "logo.png"
+        self.fps = 15
+        self.duration = 1.1
+        self.pause = 5
+        self.num_frames = int(self.duration * self.fps)
 
         self.np_images = []  # for grid
-        self.np_anns = []  # for gif
-        self.np_frames = []  # for gif
+        self.np_frames = {i: [] for i in range(self.num_frames + self.pause)}  # for gif
         self._img_array = None
-        self._row_height = int((self._img_height - self._gap * (self._rows + 1)) / self._rows)
 
         self._local = False if isinstance(project, int) else True
         self._api = api if api is not None else sly.Api.from_env()
@@ -56,7 +62,6 @@ class HorizontalGrid:
         join_data = [(ds, img, ann) for ds, list1, list2 in data for img, ann in zip(list1, list2)]
 
         random.shuffle(join_data)
-        i = 0
         with tqdm(desc="HorizontalGrid: downloading images", total=cnt) as p:
             while len(self.np_images) < cnt:
                 ds, img_info, ann = join_data[i]
@@ -66,10 +71,6 @@ class HorizontalGrid:
                     else self._api.image.download_np(img_info.id)
                 )
                 ann: sly.Annotation
-                tmp = np.dstack((img, np.ones((*img.shape[:2], 1), dtype=np.uint8) * 255))
-                ann_mask = np.ones((*img.shape[:2], 4), dtype=np.uint8) * 255
-
-                ann_mask = self._resize_image(ann_mask, self._row_height)
                 img = self._resize_image(img, self._row_height)
                 try:
                     ann = ann.resize(img.shape[:2])
@@ -77,39 +78,17 @@ class HorizontalGrid:
                     sly.logger.warn(
                         f"Skipping image: can not resize annotation. Image name: {img_info.name}"
                     )
-                    i += 1
                     continue
-                ann: sly.Annotation
-                thickness = ann._get_thickness()
-                for label in ann.labels:
-                    if type(label.geometry) == sly.Point:
-                        label.draw(ann_mask, thickness=int(thickness * 1.5))
-                        label.draw(img, thickness=int(thickness * 1.5))
-                    elif self._is_detection_task:
-                        bbox = label.geometry.to_bbox()
-                        pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
-                        cv2.rectangle(
-                            ann_mask, pt1, pt2, label.obj_class.color, thickness=thickness
-                        )
-                        cv2.rectangle(img, pt1, pt2, label.obj_class.color, thickness=thickness)
-                        font_size = int(sly_font.get_readable_font_size(img.shape[:2]) * 1.4)
-                        font = sly_font.get_font(font_size=font_size)
-                        _, _, _, bottom = font.getbbox(label.obj_class.name)
-                        anchor = (bbox.top - bottom, bbox.left)
-                        sly.image.draw_text(
-                            ann_mask[:, :, :3], label.obj_class.name, anchor, font=font
-                        )
-                        sly.image.draw_text(img, label.obj_class.name, anchor, font=font)
-                if not self._is_detection_task:
-                    ann.draw_pretty(
-                        ann_mask[:, :, :3], thickness=0, opacity=0.7, fill_rectangles=False
-                    )
-                    ann.draw_pretty(img, thickness=0, opacity=0.7, fill_rectangles=False)
+                self.np_images.append(self._draw_annotation(ann, img))
 
-                self.np_frames.append(self._resize_image(tmp, self._row_height))  # for gif
-                self.np_anns.append(ann_mask)  # for gif
-                # img = self._resize_image(img, self._row_height)
-                self.np_images.append(img)  # for grid
+                tmp = np.dstack((np.copy(img), np.ones((*img.shape[:2], 1), dtype=np.uint8) * 255))
+                for j in list(range(0, len(self.np_frames))):
+                    alpha = j / self.num_frames
+                    if j >= self.num_frames:
+                        alpha = round(1 - random.uniform(0, 0.03), 3)
+                    frame = self._draw_annotation(ann, tmp, alpha)
+                    self.np_frames[j].append(frame)
+
                 i += 1
                 p.update(1)
 
@@ -129,28 +108,24 @@ class HorizontalGrid:
         sly.logger.info(f"Result grid saved to: {path}")
 
     def animate(self, path: str = None):
-        bg = self._merge_canvas_with_images(self.np_frames, 4)
-        ann = self._merge_canvas_with_images(self.np_anns, 4)
-        ann[:, :, 3] = np.where(np.all(ann == 255, axis=-1), 0, 255).astype(np.uint8)
 
-        duration = 1.1
-        fps = 15
-        num_frames = int(duration * fps)
         frames = []
-        for i in list(range(1, num_frames + 1)) + list(range(num_frames, 0, -1)):
-            alpha = i / num_frames
-            frame = self._overlay_images(bg, ann, alpha)
-            self._add_logo(frame)
-            frame = self._resize_image(frame, frame.shape[0] // 2)
-            frames.append(frame)
-            if i == num_frames:
-                frames.extend([frame] * (fps // 2))
+        n = [*range(0, self.num_frames + self.pause), *range(self.num_frames, 0, -1)]
+        with tqdm(desc="HorizontalGrid: prepare frames...", total=len(n)) as vid_pbar:
+            for i in n:
+                frame = self._merge_canvas_with_images(self.np_frames[i])
+                self._add_logo(frame)
+                frame = self._resize_image(frame, frame.shape[0] // 2)
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                frames.append(frame)
+                vid_pbar.update(1)
 
         tmp_video_path = f"{os.path.splitext(path)[0]}-o.mp4"
         video_path = f"{os.path.splitext(path)[0]}.mp4"
         self._save_video(tmp_video_path, frames)
-        from_mp4_to_webm(tmp_video_path, path)
+        sly.logger.info("Compression and conversion to webm...")
         compress_mp4(tmp_video_path, video_path)
+        from_mp4_to_webm(video_path, path)
         sly.fs.silent_remove(tmp_video_path)
 
         sly.logger.info(f"Animation saved to: {path}, {video_path}")
@@ -270,9 +245,40 @@ class HorizontalGrid:
 
         with tqdm(desc="HorizontalGrid: Saving video...", total=len(frames)) as vid_pbar:
             for frame in frames:
-                if frame.shape[:2] != (height, width):
-                    raise Exception("Not all frame sizes are not equal to each other.")
-                frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
                 video_writer.write(frame)
                 vid_pbar.update(1)
         video_writer.release()
+
+    def _draw_annotation(self, ann: sly.Annotation, img: np.ndarray, opacity: float = 0.7):
+        result = np.copy(img[:, :, :3])
+        thickness = ann._get_thickness()
+        font_size = int(sly_font.get_readable_font_size(result.shape[:2]) * 1.4)
+        font = sly_font.get_font(font_size=font_size)
+
+        rect_labels = [label for label in ann.labels if type(label.geometry) == sly.Rectangle]
+        other_labels = [label for label in ann.labels if type(label.geometry) != sly.Rectangle]
+        ann_without_rects = ann.clone(labels=other_labels)
+
+        if not self._is_detection_task:
+            ann_without_rects.draw_pretty(
+                result, thickness=0, opacity=opacity, fill_rectangles=False
+            )
+        if len(rect_labels) > 0:
+            ann_rects = ann.clone(labels=rect_labels)
+            ann_mask = np.ones((*img.shape[:2], 3), dtype=np.uint8) * 255
+            for label in ann_rects.labels:
+                label.draw_contour(ann_mask, thickness=thickness)
+                if self._is_detection_task:
+                    bbox = label.geometry.to_bbox()
+                    pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
+                    cv2.rectangle(ann_mask, pt1, pt2, label.obj_class.color, thickness=thickness)
+                    _, _, _, bottom = font.getbbox(label.obj_class.name)
+                    anchor = (bbox.top - bottom, bbox.left)
+                    sly.image.draw_text(
+                        ann_mask, label.obj_class.name, anchor, font=font, fill_background=True
+                    )
+            ann_mask = np.dstack((ann_mask, np.ones((*img.shape[:2], 1), dtype=np.uint8) * 255))
+            ann_mask[:, :, 3] = np.where(np.all(ann_mask == 255, axis=-1), 0, 255).astype(np.uint8)
+
+            result = self._overlay_images(result, ann_mask, opacity=opacity)
+        return result
