@@ -63,6 +63,7 @@ class HorizontalGrid:
 
         random.shuffle(join_data)
         with tqdm(desc="HorizontalGrid: downloading images", total=cnt) as p:
+            i = 0
             while len(self.np_images) < cnt:
                 ds, img_info, ann = join_data[i]
                 img = (
@@ -108,7 +109,6 @@ class HorizontalGrid:
         sly.logger.info(f"Result grid saved to: {path}")
 
     def animate(self, path: str = None):
-
         frames = []
         n = [*range(0, self.num_frames + self.pause), *range(self.num_frames, 0, -1)]
         with tqdm(desc="HorizontalGrid: prepare frames...", total=len(n)) as vid_pbar:
