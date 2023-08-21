@@ -249,8 +249,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
             continue
 
         slytag_splits[group_name] = [
-            f'<span style="background-color: #ecdefc; padding: 2px 4px; border-radius: 4px;">{split["name"]}</span> ({split["split_size"]} {modality})'
-            for split in splits
+            f'***{split["name"]}*** ({split["split_size"]} {modality})' for split in splits
         ]
         # <span style="background-color: #bfef45; padding: 2px 4px; border-radius: 4px;">tubingen</span>
 
