@@ -41,7 +41,7 @@ class HorizontalGrid:
 
         self._logo_path = "logo.png"
         self.fps = 15
-        self.duration = 1.1
+        self.duration = 1.5
         self.pause = 5
         self.num_frames = int(self.duration * self.fps)
 
