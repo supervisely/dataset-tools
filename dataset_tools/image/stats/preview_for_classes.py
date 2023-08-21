@@ -69,9 +69,10 @@ class ClassesPreview(BaseVisual):
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         for label in ann.labels:
             image_area = image.width * image.height
+            label_bbox = label.geometry.to_bbox()
             if (
-                not (image_area * 0.1 <= label.area <= image_area * 0.8)
-                or label.area < LABELAREA_THRESHOLD
+                not (image_area * 0.1 <= label_bbox.area <= image_area * 0.8)
+                or label_bbox.area < LABELAREA_THRESHOLD
             ):
                 continue
             class_name = label.obj_class.name
