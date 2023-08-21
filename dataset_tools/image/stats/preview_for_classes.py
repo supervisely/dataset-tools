@@ -83,31 +83,36 @@ class ClassesPreview(BaseVisual):
         path: str = None,
         font: str = os.path.join(PARENT_DIR, "fonts/FiraSans-Bold.ttf"),
     ):
-        self._font = font
-        dirname = os.path.dirname(path)
-        os.makedirs(dirname, exist_ok=True)
-        self._collect_images()
-        canvas, masks, texts = self._prepare_layouts()
+        if len(self._classname2images) > 0:
+            self._font = font
+            dirname = os.path.dirname(path)
+            os.makedirs(dirname, exist_ok=True)
+            self._collect_images()
+            canvas, masks, texts = self._prepare_layouts()
 
-        duration, fps = 1.5, 15
-        num_frames = int(duration * fps)
-        frames = []
-        num_frames_list = [0] * 10
-        num_frames_list.extend(list(range(0, num_frames)))
-        num_frames_list.extend([num_frames] * 10)
-        num_frames_list.extend(list(range(num_frames, 0, -1)))
+            duration, fps = 1.5, 15
+            num_frames = int(duration * fps)
+            frames = []
+            num_frames_list = [0] * 10
+            num_frames_list.extend(list(range(0, num_frames)))
+            num_frames_list.extend([num_frames] * 10)
+            num_frames_list.extend(list(range(num_frames, 0, -1)))
 
-        for i in num_frames_list:
-            alpha = i / num_frames
-            if i == num_frames:
-                alpha = round(1 - random.uniform(0, 0.03), 3)
-            elif i == 0:
-                alpha = round(0 + random.uniform(0, 0.03), 3)
-            frame = self._overlay_images(canvas, masks, alpha)
-            frame = self._overlay_images(frame, texts, 1)
-            frame = self._add_logo(frame)
-            frame = self._draw_title(frame, self._title)
-            frames.append(frame)
+            for i in num_frames_list:
+                alpha = i / num_frames
+                if i == num_frames:
+                    alpha = round(1 - random.uniform(0, 0.03), 3)
+                elif i == 0:
+                    alpha = round(0 + random.uniform(0, 0.03), 3)
+                frame = self._overlay_images(canvas, masks, alpha)
+                frame = self._overlay_images(frame, texts, 1)
+                frame = self._add_logo(frame)
+                frame = self._draw_title(frame, self._title)
+                frames.append(frame)
+        else:
+            text = "No suitable images to create a classes preview."
+            sly.logger.warn(text)
+            frames = [self._create_empty_frame(font, text)]
 
         tmp_video_path = f"{os.path.splitext(path)[0]}-o.mp4"
         video_path = f"{os.path.splitext(path)[0]}.mp4"
@@ -423,3 +428,16 @@ class ClassesPreview(BaseVisual):
                 video_writer.write(frame)
                 vid_pbar.update(1)
         video_writer.release()
+
+    def _create_empty_frame(self, font, text):
+        self._font = font
+        frame = np.zeros((self._row_height, self._img_width, 3), dtype=np.uint8)
+        font_size = self._get_base_font_size(text, frame.shape[:2])
+        font = ImageFont.truetype(font, int(font_size * 0.75))
+        white = (255, 255, 255, 255)
+        tmp_canvas = Image.fromarray(frame)
+        draw = ImageDraw.Draw(tmp_canvas)
+        anchor = (frame.shape[1] // 2, frame.shape[0] // 2)
+        draw.text(anchor, text, white, font, "mm")
+        frame = np.array(tmp_canvas, dtype=np.uint8)
+        return frame
