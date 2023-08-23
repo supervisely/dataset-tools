@@ -10,3 +10,7 @@ class CVTask:
     class ObjectDetection:
         def __new__(cls):
             return "object detection"
+
+    class Classification:
+        def __new__(cls):
+            return "classification"

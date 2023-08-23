@@ -367,23 +367,28 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
 
     if len(slyds_splits) == 1:
-        content += f"There are no pre-defined <i>train/val/test</i> splits in the dataset. "
+        content += f"There are no pre-defined <i>train/val/test</i> splits in the dataset"
     else:
         content += (
-            f"There are {len(slyds_splits)} splits in the dataset: {list2sentence(slyds_splits)}. "
+            f"There are {len(slyds_splits)} splits in the dataset: {list2sentence(slyds_splits)}"
         )
 
     if len(slytag_splits) > 0:
-        content += f"Alternatively, the dataset could be split "
+        counter = 0
         for idx, items in enumerate(slytag_splits.items()):
+            if idx in [0, 1] and items[0] not in ["__PRETEXT__", "__POSTTEXT__"] and counter == 0:
+                content += f". Alternatively, the dataset could be split "
+                counter += 1
+
             if items[0] in ["__PRETEXT__", "__POSTTEXT__"]:
                 content += items[1]
                 continue
 
-            if p.singular_noun(items[0]):
-                group_name = items[0] if len(items[1]) > 1 else p.singular_noun(items[0])
-            else:
-                group_name = p.plural_noun(items[0]) if len(items[1]) > 1 else items[0]
+            # if p.singular_noun(items[0]):
+            #     group_name = items[0] if len(items[1]) > 1 else p.singular_noun(items[0])
+            # else:
+            #     group_name = p.plural_noun(items[0]) if len(items[1]) > 1 else items[0]
+            group_name = items[0]
 
             if idx == 0:
                 content += f"into {len(items[1])} {group_name}"
