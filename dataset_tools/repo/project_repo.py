@@ -8,7 +8,6 @@ from PIL import Image
 from supervisely.io.fs import get_file_name
 
 import dataset_tools as dtools
-import options as o
 from dataset_tools.repo import download
 from dataset_tools.templates import DatasetCategory, License
 
