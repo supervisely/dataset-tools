@@ -1,8 +1,14 @@
 import json
+import os
 from typing import List, Literal, Optional
 
-import dataset_tools as dtools
+import cv2
 import supervisely as sly
+from PIL import Image
+from supervisely.io.fs import get_file_name
+
+import dataset_tools as dtools
+import options as o
 from dataset_tools.repo import download
 from dataset_tools.templates import DatasetCategory, License
 
@@ -100,10 +106,10 @@ class ProjectRepo:
         add_buttons(self.paper, "Research Paper", "pdf")
         add_buttons(self.blog, "Blog Post", "blog")
 
+        self.images_size = {}  # need to generate images first, then update
+
         self._process_download_link()
         self._update_custom_data()
-  
-        
 
     def _update_colors(self):
         sly.logger.info("Custom classes colors are specified. Updating...")
@@ -125,36 +131,39 @@ class ProjectRepo:
         sly.logger.info("Custom classes colors are updated.")
 
     def _process_download_link(self):
-        tf_urls_path_hidden = "/cache/download_urls/hidden_datasets.json"
-        tf_urls_path_released = "/cache/download_urls/released_datasets.json"
+        tf_urls_path = "/cache/released_datasets.json"
 
-        tf_urls_path = tf_urls_path_hidden if self.hide_dataset else tf_urls_path_released
-
-        license_path = 'LICENSE.md'
-        readme_path = 'README.md'
+        license_path = "LICENSE.md"
+        readme_path = "README.md"
         if sly.fs.file_exists(license_path):
             with open(license_path, "r") as f:
                 curr_license_content = f.read()
 
-
-        force = self.__dict__.get('force_texts')
+        force = self.__dict__.get("force_texts")
         if force is None:
             force = []
 
-        if not self.hide_dataset:
+        if self.hide_dataset:
+            sly.logger.warn(
+                "Dataset is hidden. To generate download link, unhide dataset with 'HIDE_DATASET=False'"
+            )
+            self.download_sly_url = "Set 'HIDE_DATASET=False' to generate download link"
+        else:
             sly.logger.warn(
                 "This is a release version of a dataset. Don't forget to double-check annotations shapes, colors, tags, etc."
             )
+            self.download_sly_url = download.prepare_link(
+                self.api,
+                self.project_info,
+                tf_urls_path,
+                {
+                    "LICENSE": self._build_license(license_path)
+                    if "license" in force or not sly.fs.file_exists(license_path)
+                    else curr_license_content,
+                    "README": self._build_readme(readme_path),
+                },
+            )
 
-        self.download_sly_url = download.prepare_link(
-            self.api,
-            self.project_info,
-            tf_urls_path,
-            {
-                'LICENSE': self._build_license(license_path) if "license" in force or not sly.fs.file_exists(license_path) else curr_license_content,
-                "README": self._build_readme(readme_path)
-            }
-        )
         download.update_sly_url_dict(
             self.api,
             {
@@ -194,6 +203,7 @@ class ProjectRepo:
             "limited": self.limited,
             "buttons": self.buttons,
             "hide_dataset": self.hide_dataset,
+            "images_size": self.images_size,
             #####################
             # ? optional fields #
             #####################
@@ -402,6 +412,28 @@ class ProjectRepo:
             a.animate(f"./visualizations/{a.basename_stem}.webm")
 
         sly.logger.info("Successfully built and saved visualizations.")
+
+        img = cv2.imread("./stats/classes_heatmaps.png")
+        if img is not None:
+            self.images_size["classes_heatmaps.png"] = [img.shape[1], img.shape[0]]
+
+        for filename in os.listdir("./visualizations/"):
+            if filename.lower().endswith(".png"):
+                image_path = os.path.join("./visualizations/", filename)
+                img = cv2.imread(image_path)
+                if img is not None:
+                    height, width, _ = img.shape
+                    self.images_size[filename] = [width, height]
+            elif filename.lower().endswith((".mp4", ".webm")):
+                video_path = os.path.join("./visualizations/", filename)
+                cap = cv2.VideoCapture(video_path)
+                if cap.isOpened():
+                    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                    self.images_size[filename] = [width, height]
+                    cap.release()
+
+        self._update_custom_data()
 
     def build_texts(
         self,
