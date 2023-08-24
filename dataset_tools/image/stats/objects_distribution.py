@@ -42,6 +42,10 @@ class ObjectsDistribution(BaseStats):
             image_id = image.id
             counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
+            for class_title in self._class_titles:
+                if class_title not in [label.obj_class.name for label in ann.labels]:
+                    counters[class_title]["image_ids"].append(image_id)
+
             for label in ann.labels:
                 class_title = label.obj_class.name
                 counters[class_title]["count"] += 1
