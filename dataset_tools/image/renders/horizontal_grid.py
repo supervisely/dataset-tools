@@ -4,15 +4,15 @@ from typing import Union
 
 import cv2
 import numpy as np
-import supervisely as sly
-from supervisely.imaging import font as sly_font
 from tqdm import tqdm
 
+import supervisely as sly
 from dataset_tools.image.renders.convert import (
     compress_mp4,
     compress_png,
     from_mp4_to_webm,
 )
+from supervisely.imaging import font as sly_font
 
 
 class HorizontalGrid:
@@ -41,7 +41,7 @@ class HorizontalGrid:
 
         self._logo_path = "logo.png"
         self.fps = 15
-        self.duration = 1.5
+        self.duration = 2
         self.pause = 5
         self.num_frames = int(self.duration * self.fps)
 
