@@ -1,15 +1,20 @@
 import json
 import os
+import random
 from typing import List, Literal, Optional
 
 import cv2
-import supervisely as sly
+import tqdm
+from dotenv import load_dotenv
 from PIL import Image
-from supervisely.io.fs import get_file_name
 
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
+from dataset_tools.repo.sample_project import download_sample_image_project
 from dataset_tools.templates import DatasetCategory, License
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
@@ -475,6 +480,121 @@ class ProjectRepo:
 
         if "summary" in force or not sly.fs.file_exists(summary_path):
             self._build_summary(summary_path, preview_class=preview_class)
+
+    def build_demo(self, force):
+        """Pass prod api to build a demo sample project"""
+
+        sly.logger.info("Start build demo project...")
+        # read stats/class_balance.json
+
+        with open("./stats/class_balance.json", "r") as f:
+            cb = json.load(f)
+        storage_dir = sly.app.get_data_dir()
+        # workspace_id = sly.env.workspace_id()
+        workspace_id = 118
+        team_id = sly.env.team_id()
+
+        mean_size = int(self.project_info.size) / self.project_info.items_count
+
+        MAX_WEIGHT = 5e8
+        MAX_ITEMS_COUNT = 1e3
+        MIN_ITEMS_COUNT_CLASS = 10
+
+        optimal_size = min(MAX_ITEMS_COUNT * mean_size, MAX_WEIGHT)
+        optimal_items_count = int(optimal_size / mean_size)
+
+        num_classes_on_image = sum(row[1] for row in cb["data"])
+        squeeze_factor = optimal_items_count / num_classes_on_image
+
+        demo_data = []
+        for cls_row, cls_ref, cls_ref_ds in zip(
+            cb["data"], cb["referencesRow"], cb["referencesRowDataset"]
+        ):
+            class_items_count = cls_row[1]
+            sqzd_items_count = max(MIN_ITEMS_COUNT_CLASS, int(class_items_count * squeeze_factor))
+
+            references = [(ref_ds, ref_id) for ref_ds, ref_id in zip(cls_ref_ds, cls_ref)]
+
+            if len(references) > sqzd_items_count:
+                indices = sorted(random.sample(range(len(references)), sqzd_items_count))
+                demo_data += [references[i] for i in indices]
+            else:
+                demo_data += references
+
+        images_by_ds = {
+            x: list(set([img_id for ds_id, img_id in demo_data if ds_id == x]))
+            for x in set([ds_id for ds_id, img_id in demo_data])
+        }
+        # total = sum([len(value) for value in images_by_ds.values()])
+
+        notmarked = {}
+        stats = self.api.project.get_stats(self.project_id)
+        for ds in stats["images"]["datasets"]:
+            try:
+                notmarked[ds["id"]] = ds["imagesNotMarked"] / ds["imagesMarked"]
+            except ZeroDivisionError:
+                notmarked[ds["id"]] = (
+                    -1 * ds["imagesInDataset"] / stats["datasets"]["total"]["imagesCount"]
+                )
+
+        # for ds_id, img_ids in images_by_ds.items():
+        #     notmarked[ds_id] = notmarked[ds_id] * len(img_ids)
+
+        tot = sum([len(sublist) for sublist in images_by_ds.values()])
+        for ds_id, notm in notmarked.items():
+            try:
+                notmarked[ds_id] = notmarked[ds_id] * len(images_by_ds[ds_id])
+            except KeyError:
+                notmarked[ds_id] = abs(int(notmarked[ds_id] * tot))
+
+        for ds_id, val in notmarked.items():
+            img_list = [img for img in self.api.image.get_list(ds_id) if img.labels_count == 0]
+            if len(img_list) > notmarked[ds_id]:
+                notmarked[ds_id] = random.sample(img_list, notmarked[ds_id])
+            else:
+                notmarked[ds_id] = img_list
+
+        sly.logger.info("Getting image infos...")
+        img_infos = []
+
+        for ds_id, notmarked_infos in notmarked.items():
+            try:
+                img_infos += (
+                    self.api.image.get_info_by_id_batch(images_by_ds[ds_id]) + notmarked_infos
+                )
+            except KeyError:
+                img_infos += notmarked_infos
+
+        buffer_project_dir = os.path.join(storage_dir, self.project_info.name)
+        archive_name = camel_to_snake(self.project_info.name).replace(" ", "-") + ".tar"
+        buffer_project_dir_archive = os.path.join(storage_dir, archive_name)
+
+        with tqdm.tqdm(desc="Download sample project to buffer", total=len(img_infos)) as pbar:
+            download_sample_image_project(
+                self.api, self.project_id, img_infos, buffer_project_dir, progress_cb=pbar
+            )
+
+        with tqdm.tqdm(desc="Upload sample project to instance", total=len(img_infos)) as pbar:
+            sly.upload_project(
+                buffer_project_dir,
+                self.api,
+                workspace_id,
+                f"{self.project_info.name} demo",
+                progress_cb=pbar,
+            )
+
+        sly.logger.info("Start making arhive of a sample project")
+        archive_directory(buffer_project_dir, buffer_project_dir_archive)
+
+        with tqdm.tqdm(desc="Upload archive to Team files", total=len(img_infos)) as pbar:
+            self.api.file.upload(
+                team_id,
+                buffer_project_dir_archive,
+                f"/sample-projects/{archive_name}",
+                progress_cb=pbar,
+            )
+
+        sly.logger.info("Archive with sample project was uploaded to teamfiles")
 
     def _build_summary(self, summary_path, preview_class):
         classname2path = {

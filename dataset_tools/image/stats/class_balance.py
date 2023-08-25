@@ -1,3 +1,4 @@
+import random
 from typing import Dict, List
 
 import numpy as np
@@ -48,6 +49,7 @@ class ClassBalance(BaseStats):
         self._stats["images_count"] = [0] * len(self._class_names)
 
         self._stats["image_counts_filter_by_id"] = [[] for _ in self._class_names]
+        self._stats["dataset_counts_filter_by_id"] = [[] for _ in self._class_names]
 
         self._stats["avg_nonzero_area"] = [None] * len(self._class_names)
         self._stats["avg_nonzero_count"] = [None] * len(self._class_names)
@@ -127,10 +129,12 @@ class ClassBalance(BaseStats):
                 continue
             elif class_name in cur_class_names:
                 if (
-                    stat_count[class_name] > 0
-                    and len(self._stats["image_counts_filter_by_id"][idx]) <= REFERENCES_LIMIT
+                    stat_count[class_name]
+                    > 0
+                    # and len(self._stats["image_counts_filter_by_id"][idx]) <= REFERENCES_LIMIT
                 ):
                     self._stats["image_counts_filter_by_id"][idx].append(image.id)
+                    self._stats["dataset_counts_filter_by_id"][idx].append(image.dataset_id)
 
     def to_json(self) -> Dict:
         columns = [
@@ -153,6 +157,28 @@ class ClassBalance(BaseStats):
             )
         notnonecount = [item for item in self._stats["avg_nonzero_count"] if item is not None]
         notnonearea = [item for item in self._stats["avg_nonzero_area"] if item is not None]
+
+        # binded = [
+        #     (ds_id, img_id)
+        #     for ds_id, img_id in zip(
+        #         self._stats["image_counts_filter_by_id"][1:],
+        #         self._stats["dataset_counts_filter_by_id"][1:],
+        #     )
+        # ]
+
+        merged_list = [
+            list(zip(sublist1, sublist2))
+            for sublist1, sublist2 in zip(
+                self._stats["image_counts_filter_by_id"][1:],
+                self._stats["dataset_counts_filter_by_id"][1:],
+            )
+        ]
+
+        binded = self._constrain_total_value(merged_list, REFERENCES_LIMIT)
+
+        referencesRow = [[t[0] for t in sublist] for sublist in binded]
+        referencesRowDataset = [[t[1] for t in sublist] for sublist in binded]
+
         colomns_options = [None] * len(columns)
         colomns_options[0] = {"type": "class"}
         colomns_options[1] = {
@@ -183,8 +209,39 @@ class ClassBalance(BaseStats):
         res = {
             "columns": columns,
             "data": rows,
-            "referencesRow": self._stats["image_counts_filter_by_id"][1:],
+            "referencesRow": referencesRow,  # self._stats["image_counts_filter_by_id"][1:],
+            "referencesRowDataset": referencesRowDataset,  # self._stats["dataset_counts_filter_by_id"][ 1:],  # TODO optimize with {dataset.id:start_position_in_referencesRow}
             "options": options,
             "columnsOptions": colomns_options,
         }
         return res
+
+    def _constrain_total_value(self, list_of_lists, target_length) -> List[List[int]]:
+        # Calculate the current total length
+        current_length = sum(len(sublist) for sublist in list_of_lists)
+
+        # Determine the difference between the current and target length
+        diff = current_length - target_length
+
+        # If the difference is already within an acceptable range (e.g., +/- 1), return the original list
+        if current_length < target_length:
+            return list_of_lists
+
+        # Flatten the list of lists into a single list of tuples
+        flat_list = [item for sublist in list_of_lists for item in sublist]
+
+        # Shuffle the flat list to introduce randomness
+        random.shuffle(flat_list)
+
+        probability = target_length / current_length
+
+        # Drop elements while reducing the difference
+        new_list = []
+        for sublist in list_of_lists:
+            new_sublist = []
+            for item in sublist:
+                if random.random() < probability:
+                    new_sublist.append(item)
+            new_list.append(new_sublist)
+
+        return new_list
