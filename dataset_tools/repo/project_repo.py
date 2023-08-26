@@ -455,6 +455,10 @@ class ProjectRepo:
             workspace_id_sample_projects, sample_project_name
         )
 
+        buffer_project_dir = os.path.join(storage_dir, sample_project_name)
+        archive_name = self.project_info.name.lower().replace(" ", "-") + ".tar"
+        buffer_project_dir_archive = os.path.join(storage_dir, archive_name)
+
         if not force:
             if sample_project_exists or self.hide_dataset:
                 hide_msg = " is hidden with 'HIDE_DATASET=True'" if self.hide_dataset else None
@@ -472,10 +476,6 @@ class ProjectRepo:
         img_infos_sample = get_sample_image_infos(
             self.api, self.project_info, self.project_stats, class_balance_json
         )
-
-        buffer_project_dir = os.path.join(storage_dir, sample_project_name)
-        archive_name = camel_to_snake(self.project_info.name).replace(" ", "-") + ".tar"
-        buffer_project_dir_archive = os.path.join(storage_dir, archive_name)
 
         with tqdm.tqdm(
             desc="Download sample project to buffer", total=len(img_infos_sample)
