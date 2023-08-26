@@ -35,7 +35,7 @@ class ClassBalance(BaseStats):
         self.references_probabilities = {}
         for cls in project_stats["images"]["objectClasses"]:
             self.references_probabilities[cls["objectClass"]["name"]] = (
-                REFERENCES_LIMIT / cls["total"]
+                REFERENCES_LIMIT / cls["total"] if cls["total"] != 0 else 1
             )
 
         self.class_names = ["unlabeled"]
