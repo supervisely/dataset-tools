@@ -15,7 +15,9 @@ PARENT_DIR = os.path.dirname(CURENT_DIR)
 PATH_DOWNLOAD_URLS = os.path.join(PARENT_DIR, "data/download_urls/released_datasets.json")
 
 
-def prepare_link(api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str, params_dtools:dict=None):
+def prepare_link(
+    api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str, params_dtools: dict = None
+):
     team_id = sly.env.team_id()
     workspace_id = sly.env.workspace_id()
     agent_id = sly.env.agent_id()
@@ -25,7 +27,6 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str,
     # if os.path.exists(urls_path):
     #     with open(urls_path, "r") as f:
     #         urls = json.load(f)
-
 
     api.project.update_custom_data(project_info.id, params_dtools)
     sly.logger.info("Custom data updated.")
@@ -70,8 +71,8 @@ def prepare_link(api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str,
             workspace_id=workspace_id,
             task_name="Prepare download link",
             params=params,
-            app_version='dninja',
-            is_branch=True
+            app_version="dninja",
+            is_branch=True,
         )
         sly.logger.info(f"Task started, task_id: {session.task_id}")
         sly.logger.info(session)
@@ -122,7 +123,7 @@ def update_sly_url_dict(api: sly.Api, new_dict: dict, tf_urls_path: str) -> None
 
 
 def download(dataset: str, dst_dir: str = None) -> str:
-    dataset_snake = camel_to_snake(dataset).replace(" ", "-")
+    dataset_name = dataset.lower().replace(" ", "-")
 
     if dst_dir is None:
         dst_dir = "~/dataset-ninja/"
@@ -150,7 +151,7 @@ def download(dataset: str, dst_dir: str = None) -> str:
     total_size = int(response.headers.get("content-length", 0))
     block_size = 1024  # Adjust the block size as needed
 
-    dst_path = os.path.join(dst_dir, f"{dataset_snake}.tar")
+    dst_path = os.path.join(dst_dir, f"{dataset_name}.tar")
 
     with tqdm.tqdm(desc="Downloading", total=total_size, unit="B", unit_scale=True) as pbar:
         with open(dst_path, "wb") as file:
