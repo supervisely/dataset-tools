@@ -21,38 +21,48 @@ class ClassBalance(BaseStats):
     """
 
     def __init__(
-        self, project_meta: sly.ProjectMeta, force: bool = False, stat_cache: dict = None
+        self,
+        project_meta: sly.ProjectMeta,
+        project_stats,
+        force: bool = False,
+        stat_cache: dict = None,
     ) -> None:
         self._meta = project_meta
         self._stats = {}
         self.force = force
         self._stat_cache = stat_cache
 
-        self._class_names = ["unlabeled"]
+        self.references_probabilities = {}
+        for cls in project_stats["images"]["objectClasses"]:
+            self.references_probabilities[cls["objectClass"]["name"]] = (
+                REFERENCES_LIMIT / cls["total"]
+            )
+
+        self.class_names = ["unlabeled"]
         class_colors = [UNLABELED_COLOR]
         class_indices_colors = [UNLABELED_COLOR]
 
         self._name_to_index = {}
         for idx, obj_class in enumerate(self._meta.obj_classes):
-            self._class_names.append(obj_class.name)
+            self.class_names.append(obj_class.name)
             class_colors.append(obj_class.color)
             cls_idx = idx + 1
             class_indices_colors.append([cls_idx, cls_idx, cls_idx])
             self._name_to_index[obj_class.name] = cls_idx
 
-        self._stats["class_names"] = self._class_names
-        self._stats["class_indices_colors"] = class_indices_colors
-        self._stats["_name_to_index"] = self._name_to_index
+        self.class_indices_colors = class_indices_colors
 
-        self._stats["sum_class_area_per_image"] = [0] * len(self._class_names)
-        self._stats["objects_count"] = [0] * len(self._class_names)
-        self._stats["images_count"] = [0] * len(self._class_names)
+        self.sum_class_area_per_image = [0] * len(self.class_names)
+        self.objects_count = [0] * len(self.class_names)
+        self.images_count = [0] * len(self.class_names)
 
-        self._stats["image_counts_filter_by_id"] = [[] for _ in self._class_names]
-        self._stats["dataset_counts_filter_by_id"] = [[] for _ in self._class_names]
+        self.image_counts_filter_by_id = [[] for _ in self.class_names]
+        self.dataset_counts_filter_by_id = [{} for _ in self.class_names]
+        self.ds_position = [0 for _ in self.class_names]
+        self.accum_ids = [set() for _ in self.class_names]
 
-        self._stats["avg_nonzero_area"] = [None] * len(self._class_names)
-        self._stats["avg_nonzero_count"] = [None] * len(self._class_names)
+        self.avg_nonzero_area = [None] * len(self.class_names)
+        self.avg_nonzero_count = [None] * len(self.class_names)
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation):
         cur_class_names = ["unlabeled"]
@@ -70,28 +80,23 @@ class ClassBalance(BaseStats):
             stat_area = self._stat_cache[image.id]["stat_area"]
         else:
             masks = []
-            for cls in self._stats["class_names"]:
-                if cls != "unlabeled":
-                    render_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
-                    render_rgb[:] = UNLABELED_COLOR
-                    class_labels = [label for label in ann.labels if label.obj_class.name == cls]
-                    clann = ann.clone(labels=class_labels)
+            for cls in self.class_names[1:]:
+                render_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
 
-                    clann.draw(render_rgb, [1, 1, 1])
-                    masks.append(render_rgb)
+                class_labels = [label for label in ann.labels if label.obj_class.name == cls]
+                clann = ann.clone(labels=class_labels)
 
-            stat_area = {}
+                clann.draw(render_rgb, [1, 1, 1])
+                masks.append(render_rgb)
 
             bitmasks1channel = [mask[:, :, 0] for mask in masks]
-            stacked_masks = np.stack(bitmasks1channel, axis=2)
 
+            stacked_masks = np.stack(bitmasks1channel, axis=2)
             total_area = stacked_masks.shape[0] * stacked_masks.shape[1]
             mask_areas = (np.sum(stacked_masks, axis=(0, 1)) / total_area) * 100
 
             mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
-            stat_area = {
-                cls: area for cls, area in zip(self._stats["class_names"], mask_areas.tolist())
-            }
+            stat_area = {cls: area for cls, area in zip(self.class_names, mask_areas.tolist())}
 
             if self._stat_cache is not None:
                 if image.id in self._stat_cache:
@@ -104,37 +109,39 @@ class ClassBalance(BaseStats):
         if stat_area["unlabeled"] > 0:
             stat_count["unlabeled"] = 1
 
-        for idx, class_name in enumerate(self._stats["class_names"]):
+        for idx, class_name in enumerate(self.class_names):
             if class_name not in cur_class_names:
                 cur_area = 0
                 cur_count = 0
-                self._stats["images_count"][idx] += 0
+                self.images_count[idx] += 0
             else:
                 cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
                 cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
-                self._stats["images_count"][idx] += 1 if stat_count[class_name] > 0 else 0
+                self.images_count[idx] += 1 if stat_count[class_name] > 0 else 0
 
-            self._stats["sum_class_area_per_image"][idx] += cur_area
-            self._stats["objects_count"][idx] += cur_count
+            self.sum_class_area_per_image[idx] += cur_area
+            self.objects_count[idx] += cur_count
 
-            if self._stats["images_count"][idx] > 0:
-                self._stats["avg_nonzero_area"][idx] = (
-                    self._stats["sum_class_area_per_image"][idx] / self._stats["images_count"][idx]
+            if self.images_count[idx] > 0:
+                self.avg_nonzero_area[idx] = (
+                    self.sum_class_area_per_image[idx] / self.images_count[idx]
                 )
-                self._stats["avg_nonzero_count"][idx] = (
-                    self._stats["objects_count"][idx] / self._stats["images_count"][idx]
-                )
+                self.avg_nonzero_count[idx] = self.objects_count[idx] / self.images_count[idx]
 
-            if class_name == "unlabeled":
-                continue
-            elif class_name in cur_class_names:
+            if class_name in cur_class_names[1:]:
                 if (
-                    stat_count[class_name]
-                    > 0
-                    # and len(self._stats["image_counts_filter_by_id"][idx]) <= REFERENCES_LIMIT
+                    stat_count[class_name] > 0
+                    and random.random() < self.references_probabilities[class_name]
                 ):
-                    self._stats["image_counts_filter_by_id"][idx].append(image.id)
-                    self._stats["dataset_counts_filter_by_id"][idx].append(image.dataset_id)
+                    self.image_counts_filter_by_id[idx].append(image.id)
+
+                    if image.dataset_id not in self.accum_ids[idx]:
+                        self.dataset_counts_filter_by_id[idx].update(
+                            {self.ds_position[idx]: image.dataset_id}
+                        )
+                        self.accum_ids[idx].add(image.dataset_id)
+                        # self.accum_ids[idx] = list(set(self.accum_ids[idx]))
+                    self.ds_position[idx] += 1
 
     def to_json(self) -> Dict:
         columns = [
@@ -149,44 +156,23 @@ class ClassBalance(BaseStats):
             rows.append(
                 [
                     name,
-                    self._stats["images_count"][idx],
-                    self._stats["objects_count"][idx],
-                    round(self._stats["avg_nonzero_count"][idx] or 0, 2),
-                    round(self._stats["avg_nonzero_area"][idx] or 0, 2),
+                    self.images_count[idx],
+                    self.objects_count[idx],
+                    round(self.avg_nonzero_count[idx] or 0, 2),
+                    round(self.avg_nonzero_area[idx] or 0, 2),
                 ]
             )
-        notnonecount = [item for item in self._stats["avg_nonzero_count"] if item is not None]
-        notnonearea = [item for item in self._stats["avg_nonzero_area"] if item is not None]
-
-        # binded = [
-        #     (ds_id, img_id)
-        #     for ds_id, img_id in zip(
-        #         self._stats["image_counts_filter_by_id"][1:],
-        #         self._stats["dataset_counts_filter_by_id"][1:],
-        #     )
-        # ]
-
-        merged_list = [
-            list(zip(sublist1, sublist2))
-            for sublist1, sublist2 in zip(
-                self._stats["image_counts_filter_by_id"][1:],
-                self._stats["dataset_counts_filter_by_id"][1:],
-            )
-        ]
-
-        binded = self._constrain_total_value(merged_list, REFERENCES_LIMIT)
-
-        referencesRow = [[t[0] for t in sublist] for sublist in binded]
-        referencesRowDataset = [[t[1] for t in sublist] for sublist in binded]
+        notnonecount = [item for item in self.avg_nonzero_count if item is not None]
+        notnonearea = [item for item in self.avg_nonzero_area if item is not None]
 
         colomns_options = [None] * len(columns)
         colomns_options[0] = {"type": "class"}
         colomns_options[1] = {
-            "maxValue": max(self._stats["images_count"]),
+            "maxValue": max(self.images_count),
             "tooltip": "Number of images with at least one object of corresponding class",
         }
         colomns_options[2] = {
-            "maxValue": max(self._stats["objects_count"]),
+            "maxValue": max(self.objects_count),
             "tooltip": "Number of objects of corresponding class in the project",
         }
         colomns_options[3] = {
@@ -209,8 +195,8 @@ class ClassBalance(BaseStats):
         res = {
             "columns": columns,
             "data": rows,
-            "referencesRow": referencesRow,  # self._stats["image_counts_filter_by_id"][1:],
-            "referencesRowDataset": referencesRowDataset,  # self._stats["dataset_counts_filter_by_id"][ 1:],  # TODO optimize with {dataset.id:start_position_in_referencesRow}
+            "referencesRow": self.image_counts_filter_by_id[1:],
+            "referencesRowDataset": self.dataset_counts_filter_by_id[1:],
             "options": options,
             "columnsOptions": colomns_options,
         }

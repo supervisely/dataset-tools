@@ -58,7 +58,7 @@ class ClassesPerImage(BaseStats):
         self._stats["data"] = []
         self._referencesRow = []
 
-    def update(self, image_info: sly.ImageInfo, ann: sly.Annotation) -> None:
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         cur_class_names = ["unlabeled"]
         cur_class_colors = [UNLABELED_COLOR]
         classname_to_index = {}
@@ -70,20 +70,17 @@ class ClassesPerImage(BaseStats):
                 cur_class_colors.append([class_index, class_index, class_index])
                 classname_to_index[label.obj_class.name] = class_index
 
-        if self._stat_cache is not None and image_info.id in self._stat_cache:
-            stat_area = self._stat_cache[image_info.id]["stat_area"]
+        if self._stat_cache is not None and image.id in self._stat_cache:
+            stat_area = self._stat_cache[image.id]["stat_area"]
         else:
             masks = []
             for cls in self._class_names:
                 if cls != "unlabeled":
                     render_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
-                    render_rgb[:] = UNLABELED_COLOR
+
                     class_labels = [label for label in ann.labels if label.obj_class.name == cls]
                     clann = ann.clone(labels=class_labels)
-                    # if not class_labels:
-                    #     clanns.append(cls)  # List[Union[str, sly.Annotation]]
-                    # else:
-                    #     clanns.append(clann)  # List[Union[str, sly.Annotation]]
+
                     clann.draw(render_rgb, [1, 1, 1])
                     masks.append(render_rgb)
 
@@ -98,54 +95,11 @@ class ClassesPerImage(BaseStats):
             mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
             stat_area = {cls: area for cls, area in zip(self._class_names, mask_areas.tolist())}
 
-            # overlapping = self.check_overlap(masks)
-
-            # if overlapping:
-            #     stat_area = {}
-            #     stat_area["unlabeled"] = self.calc_unlabeled_area_in(masks)
-
-            #     grouped_equal_masks = self.group_equal_masks(masks)
-            #     unique_ann_dict = {}
-
-            #     for idx, clann in enumerate(clanns):
-            #         if isinstance(clann, str):
-            #             cls_name = clann
-            #             stat_area[cls_name] = 0
-            #             continue
-
-            #         assert (
-            #             len(set([label.obj_class.name for label in clann.labels])) == 1
-            #         ), "'clann' annotation should contain labels from single class"
-            #         cls_name = clann.labels[0].obj_class.name
-
-            #         same_cls = unique_ann_dict.get(grouped_equal_masks[idx])
-            #         unique_ann_dict[grouped_equal_masks[idx]] = cls_name
-            #         if same_cls is not None:
-            #             stat_area[cls_name] = stat_area[same_cls]
-            #             continue
-
-            #         render_idx_rgb = np.zeros(clann.img_size + (3,), dtype=np.uint8)
-            #         render_idx_rgb[:] = UNLABELED_COLOR
-
-            #         clann.draw_class_idx_rgb(render_idx_rgb, classname_to_index)
-            #         tmp_stat_area = sly.Annotation.stat_area(
-            #             render_idx_rgb, cur_class_names, cur_class_colors
-            #         )
-
-            #         stat_area[cls_name] = tmp_stat_area[cls_name]
-            # else:
-            #     render_idx_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
-            #     render_idx_rgb[:] = UNLABELED_COLOR
-            #     ann.draw_class_idx_rgb(render_idx_rgb, classname_to_index)
-            #     stat_area = sly.Annotation.stat_area(
-            #         render_idx_rgb, cur_class_names, cur_class_colors
-            #     )
-
             if self._stat_cache is not None:
-                if image_info.id in self._stat_cache:
-                    self._stat_cache[image_info.id]["stat_area"] = stat_area
+                if image.id in self._stat_cache:
+                    self._stat_cache[image.id]["stat_area"] = stat_area
                 else:
-                    self._stat_cache[image_info.id] = {"stat_area": stat_area}
+                    self._stat_cache[image.id] = {"stat_area": stat_area}
 
         stat_count = ann.stat_class_count(cur_class_names)
 
@@ -154,15 +108,15 @@ class ClassesPerImage(BaseStats):
 
         table_row = []
 
-        table_row.append(image_info.name)
+        table_row.append(image.name)
 
         if self._dataset_id_to_name is not None:
-            table_row.append(self._dataset_id_to_name[image_info.dataset_id])
+            table_row.append(self._dataset_id_to_name[image.dataset_id])
         area_unl = stat_area["unlabeled"] if not np.isnan(stat_area["unlabeled"]) else 0
         table_row.extend(
             [
-                image_info.height,  # stat_area["height"],
-                image_info.width,  # stat_area["width"],
+                image.height,  # stat_area["height"],
+                image.width,  # stat_area["width"],
                 round(area_unl, 2) if area_unl != 0 else 0,
             ]
         )
@@ -179,7 +133,7 @@ class ClassesPerImage(BaseStats):
             table_row.append(round(cur_area, 2) if cur_area != 0 else 0)
 
         self._stats["data"].append(table_row)
-        self._referencesRow.append([image_info.id])
+        self._referencesRow.append([image.id])
 
     def to_json(self) -> Dict:
         if self._dataset_id_to_name is not None:

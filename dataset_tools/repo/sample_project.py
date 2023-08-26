@@ -46,6 +46,74 @@ from supervisely.sly_logger import logger
 from supervisely.task.progress import Progress
 
 
+def get_sample_image_infos(api, project_info, project_stats, class_balance_json):
+    datasets = api.dataset.get_list(project_info.id)
+    mean_size = int(project_info.size) / project_info.items_count
+
+    MAX_WEIGHT_BYTES = 5e8
+    MAX_ITEMS_COUNT = 1e3
+    MIN_ITEMS_COUNT_PER_CLASS = 10
+
+    optimal_size = min(MAX_ITEMS_COUNT * mean_size, MAX_WEIGHT_BYTES)
+    optimal_items_count = int(optimal_size / mean_size)
+
+    classes_on_images_sum = sum(row[1] for row in class_balance_json["data"])
+    images_marked_sum = project_stats["images"]["total"]["imagesMarked"]
+    images_not_marked_sum = project_stats["images"]["total"]["imagesNotMarked"]
+
+    classes_per_image = classes_on_images_sum / images_marked_sum
+
+    num_classes_on_images_sum = classes_on_images_sum + images_not_marked_sum * classes_per_image
+    sample_factor = optimal_items_count / num_classes_on_images_sum
+
+    demo_data = []
+    for class_row, img_references, ds_references in zip(
+        class_balance_json["data"],
+        class_balance_json["referencesRow"],
+        class_balance_json["referencesRowDataset"],
+    ):
+        class_items_count = class_row[1]
+        sampled_items_count = max(MIN_ITEMS_COUNT_PER_CLASS, int(class_items_count * sample_factor))
+        pairs = []
+        for index, img_id in enumerate(img_references):
+            nearest_lower_index = max(filter(lambda x: int(x) <= index, ds_references.keys()))
+            ds_id = ds_references[nearest_lower_index]
+            pairs.append((ds_id, img_id))
+
+        if len(pairs) > sampled_items_count:
+            indices = sorted(random.sample(range(len(pairs)), sampled_items_count))
+            demo_data += [pairs[i] for i in indices]
+        else:
+            demo_data += pairs
+
+    imagesMarked_by_ds = {
+        x: list(set([img_id for ds_id, img_id in demo_data if ds_id == x]))
+        for x in [dataset.id for dataset in datasets]
+    }
+    after_shrinkage = {
+        k: len(v) / (images_marked_sum * sample_factor * classes_per_image)
+        for k, v in imagesMarked_by_ds.items()
+    }
+    shrinkage_factor = sum([v for v in after_shrinkage.values()])
+
+    imagesNotMarked_by_ds = {
+        ds["id"]: int(ds["imagesNotMarked"] * sample_factor * classes_per_image * shrinkage_factor)
+        for ds in project_stats["images"]["datasets"]
+    }
+
+    img_infos_sample = []
+    for dataset in datasets:
+        full_list = api.image.get_list(dataset.id)
+        notmarked = [img_info for img_info in full_list if img_info.labels_count == 0]
+        notmarked = random.sample(notmarked, imagesNotMarked_by_ds[dataset.id])
+
+        img_infos_sample += [
+            image for image in full_list if image.id in imagesMarked_by_ds[dataset.id]
+        ] + notmarked
+
+    return img_infos_sample
+
+
 def download_sample_image_project(
     api,
     project_id,
