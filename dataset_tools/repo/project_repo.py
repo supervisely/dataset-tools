@@ -166,6 +166,7 @@ class ProjectRepo:
         self.download_sly_url = download.prepare_link(
             self.api,
             self.project_info,
+            force,
             tf_urls_path,
             {
                 "LICENSE": self._build_license(license_path)

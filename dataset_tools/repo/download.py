@@ -16,7 +16,11 @@ PATH_DOWNLOAD_URLS = os.path.join(PARENT_DIR, "data/download_urls/released_datas
 
 
 def prepare_link(
-    api: sly.Api, project_info: sly.ProjectInfo, tf_urls_path: str, params_dtools: dict = None
+    api: sly.Api,
+    project_info: sly.ProjectInfo,
+    force: bool,
+    tf_urls_path: str,
+    params_dtools: dict = None,
 ):
     team_id = sly.env.team_id()
     workspace_id = sly.env.workspace_id()
@@ -46,57 +50,59 @@ def prepare_link(
     #         f"Download URL for dataset '{project_info.name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
     #     )
 
-    if (
-        urls.get(project_info.name) is not None
-        and urls[project_info.name].get("id") == project_info.id
-        and urls[project_info.name].get("download_sly_url") is not None
-    ):
-        sly.logger.info("URL already exists. Skipping creation of download link...")
-        return urls[project_info.name]["download_sly_url"]
-    else:
+    if not force:
+        if (
+            urls.get(project_info.name) is not None
+            and urls[project_info.name].get("id") == project_info.id
+            and urls[project_info.name].get("download_sly_url") is not None
+        ):
+            sly.logger.info("URL already exists. Skipping creation of download link...")
+            return urls[project_info.name]["download_sly_url"]
+
         sly.logger.info("URL not exists. Creating a download link...")
+    else:
+        sly.logger.info("Creating a download link...")
 
-        app_slug = "supervisely-ecosystem/export-to-supervisely-format"
-        # app_slug = "52c45a28bac2486fa880e2f20520714b/export-to-supervisely-format"
-        module_id = api.app.get_ecosystem_module_id(app_slug)
-        module_info = api.app.get_ecosystem_module_info(module_id)
+    app_slug = "supervisely-ecosystem/export-to-supervisely-format"
+    module_id = api.app.get_ecosystem_module_id(app_slug)
+    module_info = api.app.get_ecosystem_module_info(module_id)
 
-        sly.logger.info(f"Start app: {module_info.name}")
+    sly.logger.info(f"Start app: {module_info.name}")
 
-        params = module_info.get_arguments(images_project=project_info.id)
+    params = module_info.get_arguments(images_project=project_info.id)
 
-        session = api.app.start(
-            agent_id=agent_id,
-            module_id=module_id,
-            workspace_id=workspace_id,
-            task_name="Prepare download link",
-            params=params,
-            app_version="dninja",
-            is_branch=True,
-        )
-        sly.logger.info(f"Task started, task_id: {session.task_id}")
-        sly.logger.info(session)
+    session = api.app.start(
+        agent_id=agent_id,
+        module_id=module_id,
+        workspace_id=workspace_id,
+        task_name="Prepare download link",
+        params=params,
+        app_version="dninja",
+        is_branch=True,
+    )
+    sly.logger.info(f"Task started, task_id: {session.task_id}")
+    sly.logger.info(session)
 
-        try:
-            # wait until task end or specific task status
-            sly.logger.info("Waiting for the download link to finish being created...")
-            api.app.wait(session.task_id, target_status=api.task.Status.FINISHED)
+    try:
+        # wait until task end or specific task status
+        sly.logger.info("Waiting for the download link to finish being created...")
+        api.app.wait(session.task_id, target_status=api.task.Status.FINISHED)
 
-        except sly.WaitingTimeExceeded as e:
-            sly.logger.error(e)
-            # we don't want to wait more, let's stop our long-lived or "zombie" task
-            api.app.stop(session.task_id)
-        except sly.TaskFinishedWithError as e:
-            sly.logger.error(e)
+    except sly.WaitingTimeExceeded as e:
+        sly.logger.error(e)
+        # we don't want to wait more, let's stop our long-lived or "zombie" task
+        api.app.stop(session.task_id)
+    except sly.TaskFinishedWithError as e:
+        sly.logger.error(e)
 
-        # let's list all sessions of specific app in our team with additional optional filtering by statuses [finished]
-        sessions = api.app.get_sessions(
-            team_id=team_id, module_id=module_id, statuses=[api.task.Status.FINISHED]
-        )
-        return urljoin(
-            os.environ["SERVER_ADDRESS"],
-            sessions[0].details["meta"]["output"]["general"]["titleUrl"],
-        )
+    # let's list all sessions of specific app in our team with additional optional filtering by statuses [finished]
+    sessions = api.app.get_sessions(
+        team_id=team_id, module_id=module_id, statuses=[api.task.Status.FINISHED]
+    )
+    return urljoin(
+        os.environ["SERVER_ADDRESS"],
+        sessions[0].details["meta"]["output"]["general"]["titleUrl"],
+    )
 
 
 def update_sly_url_dict(api: sly.Api, new_dict: dict, tf_urls_path: str) -> None:
