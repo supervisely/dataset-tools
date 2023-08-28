@@ -1,48 +1,13 @@
 from __future__ import annotations
 
-import os
 import random
-import shutil
-from collections import namedtuple
-from enum import Enum
 from typing import Callable, Dict, Generator, List, NamedTuple, Optional, Tuple, Union
-
-import numpy as np
-from tqdm import tqdm
 
 import supervisely as sly
 from supervisely import OpenMode, Project
-from supervisely._utils import abs_url, batched, is_development
-from supervisely.annotation.annotation import ANN_EXT, Annotation, TagCollection
-from supervisely.annotation.obj_class import ObjClass
-from supervisely.annotation.obj_class_collection import ObjClassCollection
-from supervisely.api.api import Api
-from supervisely.api.image_api import ImageInfo
-from supervisely.collection.key_indexed_collection import (
-    KeyIndexedCollection,
-    KeyObject,
-)
-from supervisely.geometry.bitmap import Bitmap
-from supervisely.geometry.rectangle import Rectangle
-from supervisely.imaging import image as sly_image
-from supervisely.io.fs import (
-    copy_file,
-    dir_empty,
-    dir_exists,
-    ensure_base_path,
-    file_exists,
-    get_file_name_with_ext,
-    get_subdirs,
-    list_dir_recursively,
-    list_files,
-    list_files_recursively,
-    mkdir,
-    silent_remove,
-)
-from supervisely.io.fs_cache import FileCache
-from supervisely.io.json import dump_json_file, load_json_file
+from supervisely._utils import batched, is_development
+from supervisely.annotation.annotation import Annotation, TagCollection
 from supervisely.project.project_meta import ProjectMeta
-from supervisely.sly_logger import logger
 from supervisely.task.progress import Progress
 
 
@@ -57,44 +22,33 @@ def get_sample_image_infos(api, project_info, project_stats, class_balance_json)
     optimal_size = min(MAX_ITEMS_COUNT * mean_size, MAX_WEIGHT_BYTES)
     optimal_items_count = int(optimal_size / mean_size)
 
-    classes_on_images_sum = sum(row[1] for row in class_balance_json["data"])
+    classes_on_marked_images_sum = sum(row[1] for row in class_balance_json["data"])
     images_marked_sum = project_stats["images"]["total"]["imagesMarked"]
     images_not_marked_sum = project_stats["images"]["total"]["imagesNotMarked"]
 
-    classes_per_image = classes_on_images_sum / images_marked_sum
+    classes_per_image = classes_on_marked_images_sum / images_marked_sum
 
-    num_classes_on_images_sum = classes_on_images_sum + images_not_marked_sum * classes_per_image
-    sample_factor = optimal_items_count / num_classes_on_images_sum
+    classes_on_all_images_sum = (
+        classes_on_marked_images_sum + images_not_marked_sum * classes_per_image
+    )
+    sample_factor = optimal_items_count / classes_on_all_images_sum
 
     demo_data = []
-    for class_row, img_references, ds_references in zip(
+    for class_row, img_references in zip(
         class_balance_json["data"],
         class_balance_json["referencesRow"],
-        class_balance_json["referencesRowDataset"],
     ):
         class_items_count = class_row[1]
         sampled_items_count = max(MIN_ITEMS_COUNT_PER_CLASS, int(class_items_count * sample_factor))
-        pairs = []
-        for index, img_id in enumerate(img_references):
-            nearest_lower_index = max(filter(lambda x: int(x) <= index, ds_references.keys()))
-            ds_id = ds_references[nearest_lower_index]
-            pairs.append((ds_id, img_id))
 
-        if len(pairs) > sampled_items_count:
-            indices = sorted(random.sample(range(len(pairs)), sampled_items_count))
-            demo_data += [pairs[i] for i in indices]
+        if len(img_references) > sampled_items_count:
+            indices = sorted(random.sample(range(len(img_references)), sampled_items_count))
+            demo_data += [img_references[i] for i in indices]
         else:
-            demo_data += pairs
+            demo_data += img_references
 
-    imagesMarked_by_ds = {
-        x: list(set([img_id for ds_id, img_id in demo_data if ds_id == x]))
-        for x in [dataset.id for dataset in datasets]
-    }
-    after_shrinkage = {
-        k: len(v) / (images_marked_sum * sample_factor * classes_per_image)
-        for k, v in imagesMarked_by_ds.items()
-    }
-    shrinkage_factor = sum([v for v in after_shrinkage.values()])
+    shrinkage_factor = len(set(demo_data)) / len(demo_data)
+    demo_data = list(set(demo_data))
 
     imagesNotMarked_by_ds = {
         ds["id"]: int(ds["imagesNotMarked"] * sample_factor * classes_per_image * shrinkage_factor)
@@ -104,12 +58,13 @@ def get_sample_image_infos(api, project_info, project_stats, class_balance_json)
     img_infos_sample = []
     for dataset in datasets:
         full_list = api.image.get_list(dataset.id)
+
+        marked = [img for img in full_list if img.id in demo_data]
+
         notmarked = [img_info for img_info in full_list if img_info.labels_count == 0]
         notmarked = random.sample(notmarked, imagesNotMarked_by_ds[dataset.id])
 
-        img_infos_sample += [
-            image for image in full_list if image.id in imagesMarked_by_ds[dataset.id]
-        ] + notmarked
+        img_infos_sample += marked + notmarked
 
     return img_infos_sample
 
@@ -141,7 +96,6 @@ def download_sample_image_project(
             continue
 
         dataset_fs = project_fs.create_dataset(dataset_info.name)
-        # images = api.image.get_list(dataset_id)
 
         images = [image for image in image_infos if image.dataset_id == dataset_id]
 

@@ -115,9 +115,10 @@ class ProjectRepo:
         add_buttons(self.blog, "Blog Post", "blog")
 
         self.images_size = {}  # need to generate images first, then update
+        self.download_sly_sample_url = None
+        self.download_sample_archive_size = None
 
-        self._process_download_link()
-        self._update_custom_data()
+        self._process_download_link(force=settings.get("force_download_sly_url") or False)
 
     def _update_colors(self):
         sly.logger.info("Custom classes colors are specified. Updating...")
@@ -138,7 +139,7 @@ class ProjectRepo:
 
         sly.logger.info("Custom classes colors are updated.")
 
-    def _process_download_link(self):
+    def _process_download_link(self, force: bool = False):
         tf_urls_path = "/cache/released_datasets.json"
 
         license_path = "LICENSE.md"
@@ -147,30 +148,30 @@ class ProjectRepo:
             with open(license_path, "r") as f:
                 curr_license_content = f.read()
 
-        force = self.__dict__.get("force_texts")
-        if force is None:
-            force = []
+        force_texts = self.__dict__.get("force_texts") or []
 
-        if self.hide_dataset:
-            sly.logger.warn(
-                "Dataset is hidden. To generate download link, unhide dataset with 'HIDE_DATASET=False'"
-            )
-            self.download_sly_url = "Set 'HIDE_DATASET=False' to generate download link"
-        else:
+        if not force:
+            if self.hide_dataset:
+                sly.logger.warn(
+                    "Dataset is hidden. To generate download link, unhide dataset with 'HIDE_DATASET=False'"
+                )
+                self.download_sly_url = "Set 'HIDE_DATASET=False' to generate download link"
+                return
             sly.logger.warn(
                 "This is a release version of a dataset. Don't forget to double-check annotations shapes, colors, tags, etc."
             )
-            self.download_sly_url = download.prepare_link(
-                self.api,
-                self.project_info,
-                tf_urls_path,
-                {
-                    "LICENSE": self._build_license(license_path)
-                    if "license" in force or not sly.fs.file_exists(license_path)
-                    else curr_license_content,
-                    "README": self._build_readme(readme_path),
-                },
-            )
+
+        self.download_sly_url = download.prepare_link(
+            self.api,
+            self.project_info,
+            tf_urls_path,
+            {
+                "LICENSE": self._build_license(license_path)
+                if "license" in force_texts or not sly.fs.file_exists(license_path)
+                else curr_license_content,
+                "README": self._build_readme(readme_path),
+            },
+        )
 
         download.update_sly_url_dict(
             self.api,
@@ -212,6 +213,8 @@ class ProjectRepo:
             "buttons": self.buttons,
             "hide_dataset": self.hide_dataset,
             "images_size": self.images_size,
+            "download_sly_sample_url": self.download_sly_sample_url,
+            "download_sample_archive_size": self.download_sample_archive_size,
             #####################
             # ? optional fields #
             #####################
@@ -439,8 +442,6 @@ class ProjectRepo:
                     self.images_size[filename] = [width, height]
                     cap.release()
 
-        self._update_custom_data()
-
     def build_demo(self, force: bool = False):
         storage_dir = sly.app.get_data_dir()
         # workspace_id = sly.env.workspace_id()
@@ -458,6 +459,9 @@ class ProjectRepo:
         buffer_project_dir = os.path.join(storage_dir, sample_project_name)
         archive_name = self.project_info.name.lower().replace(" ", "-") + ".tar"
         buffer_project_dir_archive = os.path.join(storage_dir, archive_name)
+        teamfiles_archive_path = f"/sample-projects/{archive_name}"
+
+        # force = True
 
         if not force:
             if sample_project_exists or self.hide_dataset:
@@ -513,11 +517,19 @@ class ProjectRepo:
             self.api.file.upload(
                 team_id,
                 buffer_project_dir_archive,
-                f"/sample-projects/{archive_name}",
+                teamfiles_archive_path,
                 progress_cb=pbar,
             )
 
         sly.logger.info("Archive with sample project was uploaded to teamfiles")
+
+        file_info = self.api.file.get_info_by_path(team_id, teamfiles_archive_path)
+        self.download_sly_sample_url = file_info.full_storage_url
+
+        self.download_sample_archive_size = self.api.file.get_directory_size(
+            team_id, teamfiles_archive_path
+        )
+        self._update_custom_data()
 
     def build_texts(
         self,

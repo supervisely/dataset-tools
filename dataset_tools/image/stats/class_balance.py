@@ -57,9 +57,9 @@ class ClassBalance(BaseStats):
         self.images_count = [0] * len(self.class_names)
 
         self.image_counts_filter_by_id = [[] for _ in self.class_names]
-        self.dataset_counts_filter_by_id = [{} for _ in self.class_names]
-        self.ds_position = [0 for _ in self.class_names]
-        self.accum_ids = [set() for _ in self.class_names]
+        # self.dataset_counts_filter_by_id = [{} for _ in self.class_names]
+        # self.ds_position = [0 for _ in self.class_names]
+        # self.accum_ids = [set() for _ in self.class_names]
 
         self.avg_nonzero_area = [None] * len(self.class_names)
         self.avg_nonzero_count = [None] * len(self.class_names)
@@ -135,13 +135,13 @@ class ClassBalance(BaseStats):
                 ):
                     self.image_counts_filter_by_id[idx].append(image.id)
 
-                    if image.dataset_id not in self.accum_ids[idx]:
-                        self.dataset_counts_filter_by_id[idx].update(
-                            {self.ds_position[idx]: image.dataset_id}
-                        )
-                        self.accum_ids[idx].add(image.dataset_id)
-                        # self.accum_ids[idx] = list(set(self.accum_ids[idx]))
-                    self.ds_position[idx] += 1
+                    # if image.dataset_id not in self.accum_ids[idx]:
+                    #     self.dataset_counts_filter_by_id[idx].update(
+                    #         {self.ds_position[idx]: image.dataset_id}
+                    #     )
+                    #     self.accum_ids[idx].add(image.dataset_id)
+                    #     # self.accum_ids[idx] = list(set(self.accum_ids[idx]))
+                    # self.ds_position[idx] += 1
 
     def to_json(self) -> Dict:
         columns = [
@@ -196,7 +196,6 @@ class ClassBalance(BaseStats):
             "columns": columns,
             "data": rows,
             "referencesRow": self.image_counts_filter_by_id[1:],
-            "referencesRowDataset": self.dataset_counts_filter_by_id[1:],
             "options": options,
             "columnsOptions": colomns_options,
         }
