@@ -449,7 +449,6 @@ class ProjectRepo:
         storage_dir = sly.app.get_data_dir()
         # workspace_id = sly.env.workspace_id()
         workspace_id_sample_projects = 118
-        team_id = sly.env.team_id()
 
         sample_project_name = f"{self.project_info.name} demo"
         sample_project_exists = self.api.project.exists(
@@ -471,7 +470,10 @@ class ProjectRepo:
                 msg_ = [item for item in [hide_msg, exists_msg] if item is not None]
                 msg = f"Skipping building of demo project: '{sample_project_name}'{', and'.join(msg_)}."
                 sly.logger.info(msg)
+
+                self._demo_update_custom_data(teamfiles_archive_path)
                 return
+
         else:
             sly.logger.info("Demo sample project is passed with force: 'force_demo==True'")
 
@@ -518,7 +520,7 @@ class ProjectRepo:
             unit_scale=True,
         ) as pbar:
             self.api.file.upload(
-                team_id,
+                self.team_id,
                 buffer_project_dir_archive,
                 teamfiles_archive_path,
                 progress_cb=pbar,
@@ -526,12 +528,16 @@ class ProjectRepo:
 
         sly.logger.info("Archive with sample project was uploaded to teamfiles")
 
-        file_info = self.api.file.get_info_by_path(team_id, teamfiles_archive_path)
+        self._demo_update_custom_data(teamfiles_archive_path)
+
+    def _demo_update_custom_data(self, teamfiles_archive_path):
+        file_info = self.api.file.get_info_by_path(self.team_id, teamfiles_archive_path)
         self.download_sly_sample_url = file_info.full_storage_url
 
         self.download_sample_archive_size = self.api.file.get_directory_size(
-            team_id, teamfiles_archive_path
+            self.team_id, teamfiles_archive_path
         )
+        self._update_custom_data()
 
     def build_texts(
         self,
@@ -574,8 +580,6 @@ class ProjectRepo:
 
         if "summary" in force or not sly.fs.file_exists(summary_path):
             self._build_summary(summary_path, preview_class=preview_class)
-
-        self._update_custom_data()
 
     def _build_summary(self, summary_path, preview_class):
         classname2path = {
