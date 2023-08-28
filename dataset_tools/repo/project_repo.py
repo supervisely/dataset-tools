@@ -160,6 +160,8 @@ class ProjectRepo:
             sly.logger.warn(
                 "This is a release version of a dataset. Don't forget to double-check annotations shapes, colors, tags, etc."
             )
+        else:
+            sly.logger.info("Download sly url is passed with force: 'force_download_sly_url==True'")
 
         self.download_sly_url = download.prepare_link(
             self.api,
@@ -461,8 +463,6 @@ class ProjectRepo:
         buffer_project_dir_archive = os.path.join(storage_dir, archive_name)
         teamfiles_archive_path = f"/sample-projects/{archive_name}"
 
-        # force = True
-
         if not force:
             if sample_project_exists or self.hide_dataset:
                 hide_msg = " is hidden with 'HIDE_DATASET=True'" if self.hide_dataset else None
@@ -471,8 +471,10 @@ class ProjectRepo:
                 msg = f"Skipping building of demo project: '{sample_project_name}'{', and'.join(msg_)}."
                 sly.logger.info(msg)
                 return
+        else:
+            sly.logger.info("Demo sample project is passed with force: 'force_demo==True'")
 
-        sly.logger.info("Start to build demo project...")
+        sly.logger.info("Start to build demo sample project...")
 
         with open("./stats/class_balance.json", "r") as f:
             class_balance_json = json.load(f)
