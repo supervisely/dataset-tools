@@ -532,7 +532,6 @@ class ProjectRepo:
         self.download_sample_archive_size = self.api.file.get_directory_size(
             team_id, teamfiles_archive_path
         )
-        self._update_custom_data()
 
     def build_texts(
         self,
@@ -575,6 +574,8 @@ class ProjectRepo:
 
         if "summary" in force or not sly.fs.file_exists(summary_path):
             self._build_summary(summary_path, preview_class=preview_class)
+
+        self._update_custom_data()
 
     def _build_summary(self, summary_path, preview_class):
         classname2path = {
