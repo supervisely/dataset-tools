@@ -16,7 +16,10 @@ def get_sample_image_infos(api, project_info, project_stats, class_balance_json)
     MAX_ITEMS_COUNT = 1e3
     MIN_ITEMS_COUNT_PER_CLASS = 10
 
-    if project_info.size < MAX_WEIGHT_BYTES and project_info.items_count < MAX_ITEMS_COUNT:
+    if (
+        int(project_info.size) < MAX_WEIGHT_BYTES
+        and int(project_info.items_count) < MAX_ITEMS_COUNT
+    ):
         return None
 
     datasets = api.dataset.get_list(project_info.id)
