@@ -486,56 +486,61 @@ class ProjectRepo:
             self.api, self.project_info, self.project_stats, class_balance_json
         )
 
-        with tqdm.tqdm(
-            desc="Download sample project to buffer", total=len(img_infos_sample)
-        ) as pbar:
-            download_sample_image_project(
-                self.api,
-                self.project_id,
-                img_infos_sample,
-                buffer_project_dir,
-                progress_cb=pbar,
-            )
+        if img_infos_sample is None:
+            sly.logger.info("Dataset is small. Skipping building of demo.")
+        else:
+            with tqdm.tqdm(
+                desc="Download sample project to buffer", total=len(img_infos_sample)
+            ) as pbar:
+                download_sample_image_project(
+                    self.api,
+                    self.project_id,
+                    img_infos_sample,
+                    buffer_project_dir,
+                    progress_cb=pbar,
+                )
 
-        with tqdm.tqdm(
-            desc="Upload sample project to instance", total=len(img_infos_sample)
-        ) as pbar:
-            if sample_project_exists:
-                self.api.project.remove(sample_project_info.id)
-            sly.upload_project(
-                buffer_project_dir,
-                self.api,
-                workspace_id_sample_projects,
-                sample_project_name,
-                progress_cb=pbar,
-            )
+            with tqdm.tqdm(
+                desc="Upload sample project to instance", total=len(img_infos_sample)
+            ) as pbar:
+                if sample_project_exists:
+                    self.api.project.remove(sample_project_info.id)
+                sly.upload_project(
+                    buffer_project_dir,
+                    self.api,
+                    workspace_id_sample_projects,
+                    sample_project_name,
+                    progress_cb=pbar,
+                )
 
-        sly.logger.info("Start making arhive of a sample project")
-        archive_directory(buffer_project_dir, buffer_project_dir_archive)
+            sly.logger.info("Start making arhive of a sample project")
+            archive_directory(buffer_project_dir, buffer_project_dir_archive)
 
-        with tqdm.tqdm(
-            desc="Upload archive to Team files",
-            total=len(img_infos_sample),
-            unit="B",
-            unit_scale=True,
-        ) as pbar:
-            self.api.file.upload(
-                self.team_id,
-                buffer_project_dir_archive,
-                teamfiles_archive_path,
-                progress_cb=pbar,
-            )
+            with tqdm.tqdm(
+                desc="Upload archive to Team files",
+                total=len(img_infos_sample),
+                unit="B",
+                unit_scale=True,
+            ) as pbar:
+                self.api.file.upload(
+                    self.team_id,
+                    buffer_project_dir_archive,
+                    teamfiles_archive_path,
+                    progress_cb=pbar,
+                )
 
-        sly.logger.info("Archive with sample project was uploaded to teamfiles")
+            sly.logger.info("Archive with sample project was uploaded to teamfiles")
 
         self._demo_update_custom_data(teamfiles_archive_path)
 
     def _demo_update_custom_data(self, teamfiles_archive_path):
         file_info = self.api.file.get_info_by_path(self.team_id, teamfiles_archive_path)
-        self.download_sly_sample_url = file_info.full_storage_url
 
-        self.download_sample_archive_size = self.api.file.get_directory_size(
-            self.team_id, teamfiles_archive_path
+        self.download_sly_sample_url = file_info.full_storage_url if file_info is not None else None
+        self.download_sample_archive_size = (
+            self.api.file.get_directory_size(self.team_id, teamfiles_archive_path)
+            if file_info is not None
+            else None
         )
         self._update_custom_data()
 

@@ -1,3 +1,4 @@
+import multiprocessing
 import random
 from typing import Dict, List
 
@@ -201,32 +202,12 @@ class ClassBalance(BaseStats):
         }
         return res
 
-    def _constrain_total_value(self, list_of_lists, target_length) -> List[List[int]]:
-        # Calculate the current total length
-        current_length = sum(len(sublist) for sublist in list_of_lists)
+    def parallel_update(self, images, annotations, num_processes):
+        pool = multiprocessing.Pool(processes=num_processes)
+        pool.map(self.process_image, [(img, ann) for img, ann in zip(images, annotations)])
+        pool.close()
+        pool.join()
 
-        # Determine the difference between the current and target length
-        diff = current_length - target_length
-
-        # If the difference is already within an acceptable range (e.g., +/- 1), return the original list
-        if current_length < target_length:
-            return list_of_lists
-
-        # Flatten the list of lists into a single list of tuples
-        flat_list = [item for sublist in list_of_lists for item in sublist]
-
-        # Shuffle the flat list to introduce randomness
-        random.shuffle(flat_list)
-
-        probability = target_length / current_length
-
-        # Drop elements while reducing the difference
-        new_list = []
-        for sublist in list_of_lists:
-            new_sublist = []
-            for item in sublist:
-                if random.random() < probability:
-                    new_sublist.append(item)
-            new_list.append(new_sublist)
-
-        return new_list
+    def process_image(self, args):
+        image, annotation = args
+        self.update(image, annotation)

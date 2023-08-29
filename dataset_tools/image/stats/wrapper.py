@@ -1,10 +1,11 @@
+import multiprocessing
 import os
 import random
 from typing import List, Union
 
-import supervisely as sly
 import tqdm
 
+import supervisely as sly
 from dataset_tools import (
     ClassBalance,
     ClassCooccurrence,
@@ -15,6 +16,8 @@ from dataset_tools import (
 CLASSES_TO_OPTIMIZE = [ClassBalance, ClassCooccurrence, ClassesPerImage, ObjectsDistribution]
 MAX_HEIGHT = 500
 MAX_WIDTH = 500
+
+NUM_PROCESSING = multiprocessing.cpu_count()
 
 
 def sample_images(
@@ -133,6 +136,7 @@ def count_stats(
 
     samples, total = sample_images(api, project, datasets, sample_rate)
     desc = "Calculating stats" + (f" [sample={sample_rate}]" if sample_rate != 1 else "")
+    # sly.logger.info(f"CPU count: {NUM_PROCESSING}")
     with tqdm.tqdm(desc=desc, total=total) as pbar:
         for dataset, images in samples:
             for batch in sly.batched(images):
@@ -147,6 +151,11 @@ def count_stats(
 
                 # resized_anns = [resize_ann_with_aspect_ratio(ann) for ann in anns]
                 # FIXME: optimization is broken (resize labels area 0 px)
+
+                # TODO multiprocessing
+                # if isinstance(stat, ClassBalance):
+                #     stat.parallel_update(batch, anns, NUM_PROCESSING)
+                #     pbar.update(len(batch))
 
                 for img, ann in zip(batch, anns):
                     # pbar.set_postfix_str(img.name) #? for debug

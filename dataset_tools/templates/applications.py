@@ -153,9 +153,9 @@ class Industry:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
-    class Eco(DatasetApplications):
-        def __init__(self, is_used: bool = DatasetApplications().is_used):
-            super().__init__(is_used)
+    # class Eco(DatasetApplications):
+    #     def __init__(self, is_used: bool = DatasetApplications().is_used):
+    #         super().__init__(is_used)
 
     class Energy(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
@@ -166,6 +166,10 @@ class Industry:
             super().__init__(is_used)
 
     class Food(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
+    class Forestry(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
@@ -197,9 +201,9 @@ class Industry:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
-    class Satellite(DatasetApplications):
-        def __init__(self, is_used: bool = DatasetApplications().is_used):
-            super().__init__(is_used)
+    # class Satellite(DatasetApplications):
+    #     def __init__(self, is_used: bool = DatasetApplications().is_used):
+    #         super().__init__(is_used)
 
     class SearchAndRescue(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
