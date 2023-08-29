@@ -119,6 +119,7 @@ class ProjectRepo:
         self.download_sample_archive_size = None
 
         self._process_download_link(force=settings.get("force_download_sly_url") or False)
+        self._update_custom_data()
 
     def _update_colors(self):
         sly.logger.info("Custom classes colors are specified. Updating...")
