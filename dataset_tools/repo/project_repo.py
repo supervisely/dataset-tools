@@ -1,8 +1,9 @@
 import json
 import os
 import random
-from typing import List, Literal, Optional
 import shutil
+from typing import List, Literal, Optional
+
 import cv2
 import tqdm
 from dotenv import load_dotenv
@@ -142,6 +143,7 @@ class ProjectRepo:
 
     def _process_download_link(self, force: bool = False):
         if not self.license.redistributable:
+            self.download_sly_url = None
             return
         tf_urls_path = "/cache/released_datasets.json"
 
