@@ -14,7 +14,8 @@ from supervisely.task.progress import Progress
 def get_sample_image_infos(api, project_info, project_stats, class_balance_json):
     MAX_WEIGHT_BYTES = 5e8
     MAX_ITEMS_COUNT = 1e3
-    MIN_ITEMS_COUNT_PER_CLASS = 10
+    mean_size = int(project_info.size) / project_info.items_count
+    MIN_ITEMS_COUNT_PER_CLASS = 5 if mean_size > 1e6 else 10
 
     if (
         int(project_info.size) < MAX_WEIGHT_BYTES
@@ -23,7 +24,6 @@ def get_sample_image_infos(api, project_info, project_stats, class_balance_json)
         return None
 
     datasets = api.dataset.get_list(project_info.id)
-    mean_size = int(project_info.size) / project_info.items_count
 
     optimal_size = min(MAX_ITEMS_COUNT * mean_size, MAX_WEIGHT_BYTES)
     optimal_items_count = int(optimal_size / mean_size)
@@ -31,6 +31,12 @@ def get_sample_image_infos(api, project_info, project_stats, class_balance_json)
     classes_on_marked_images_sum = sum(row[1] for row in class_balance_json["data"])
     images_marked_sum = project_stats["images"]["total"]["imagesMarked"]
     images_not_marked_sum = project_stats["images"]["total"]["imagesNotMarked"]
+
+    value_factor = (
+        images_marked_sum / images_not_marked_sum
+        if images_not_marked_sum > images_marked_sum
+        else 1
+    )
 
     classes_per_image = classes_on_marked_images_sum / images_marked_sum
 
@@ -57,7 +63,13 @@ def get_sample_image_infos(api, project_info, project_stats, class_balance_json)
     demo_data = list(set(demo_data))
 
     imagesNotMarked_by_ds = {
-        ds["id"]: int(ds["imagesNotMarked"] * sample_factor * classes_per_image * shrinkage_factor)
+        ds["id"]: int(
+            ds["imagesNotMarked"]
+            * sample_factor
+            * classes_per_image
+            * shrinkage_factor
+            * value_factor
+        )
         for ds in project_stats["images"]["datasets"]
     }
 
