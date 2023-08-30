@@ -2,7 +2,7 @@ import json
 import os
 import random
 from typing import List, Literal, Optional
-
+import shutil
 import cv2
 import tqdm
 from dotenv import load_dotenv
@@ -498,6 +498,8 @@ class ProjectRepo:
             with tqdm.tqdm(
                 desc="Download sample project to buffer", total=len(img_infos_sample)
             ) as pbar:
+                if os.path.isdir(buffer_project_dir):
+                    shutil.rmtree(buffer_project_dir)
                 download_sample_image_project(
                     self.api,
                     self.project_id,
