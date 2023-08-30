@@ -15,6 +15,14 @@ class License:
             self.redistributable = False
             return self
 
+    class BSD_3_Clause:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "3-Clause BSD License"
+            self.url = "https://opensource.org/license/bsd-3-clause/"
+            self.redistributable = True
+            return self
+
     class CC0_1_0:
         def __new__(cls):
             self = super().__new__(cls)
@@ -60,6 +68,14 @@ class License:
             self = super().__new__(cls)
             self.name = "CC BY-SA 4.0"
             self.url = "https://creativecommons.org/licenses/by-sa/4.0/legalcode"
+            self.redistributable = True
+            return self
+
+    class CC_BY_NC_ND_2_0:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "CC BY-NC-ND 2.0"
+            self.url = "https://creativecommons.org/licenses/by-nc-nd/2.0/"
             self.redistributable = True
             return self
 
