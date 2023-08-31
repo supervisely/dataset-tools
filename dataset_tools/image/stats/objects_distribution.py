@@ -33,7 +33,7 @@ class ObjectsDistribution(BaseStats):
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
         self._data = []
 
-        total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
+        # total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         self._data.append((image, ann))
