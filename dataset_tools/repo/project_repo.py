@@ -144,6 +144,7 @@ class ProjectRepo:
     def _process_download_link(self, force: bool = False):
         if not self.license.redistributable:
             self.download_sly_url = None
+            sly.logger.info("Dataset is non-redistributable. Skipping creation of download url...")
             return
         tf_urls_path = "/cache/released_datasets.json"
 
@@ -452,6 +453,9 @@ class ProjectRepo:
 
     def build_demo(self, force: bool = False):
         if not self.license.redistributable:
+            sly.logger.info(
+                "Dataset is non-redistributable. Skipping creation of demo sample project..."
+            )
             return
 
         storage_dir = sly.app.get_data_dir()
