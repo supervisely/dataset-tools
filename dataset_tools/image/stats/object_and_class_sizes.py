@@ -1,10 +1,14 @@
-from typing import Dict, List
+import random
 from collections import defaultdict
+from typing import Dict, List
 
 import supervisely as sly
 from supervisely.app.widgets import TreemapChart
 
 from dataset_tools.image.stats.basestats import BaseStats
+
+MAX_SIZE_OBJECT_SIZES_BYTES = 1e7
+SHRINKAGE_COEF = 0.01
 
 
 class ObjectSizes(BaseStats):
@@ -25,44 +29,52 @@ class ObjectSizes(BaseStats):
     def __init__(
         self,
         project_meta: sly.ProjectMeta,
+        project_stats,
         datasets: List[sly.DatasetInfo] = None,
         force: bool = False,
     ):
         self.force = force
         self.project_meta = project_meta
+        self.project_stats = project_stats
         self._dataset_id_to_name = None
         if datasets is not None:
             self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
         self._stats = []
         self._object_id = 1
 
+        total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
+        self.probability = 1
+        if total_objects / SHRINKAGE_COEF > MAX_SIZE_OBJECT_SIZES_BYTES:
+            self.probability = MAX_SIZE_OBJECT_SIZES_BYTES / (total_objects / SHRINKAGE_COEF)
+
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        image_height, image_width = ann.img_size
+        if random.random() <= self.probability:
+            image_height, image_width = ann.img_size
 
-        for label in ann.labels:
-            if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
-                continue
+            for label in ann.labels:
+                if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
+                    continue
 
-            object_id = self._object_id
-            self._object_id += 1
+                object_id = self._object_id
+                self._object_id += 1
 
-            object_data = {
-                "object_id": object_id,
-                "class": label.obj_class.name,
-                "image_name": image.name,
-            }
+                object_data = {
+                    "object_id": object_id,
+                    "class": label.obj_class.name,
+                    "image_name": image.name,
+                }
 
-            if self._dataset_id_to_name:
-                dataset_name = self._dataset_id_to_name[image.dataset_id]
-                object_data["dataset_name"] = dataset_name
+                if self._dataset_id_to_name:
+                    dataset_name = self._dataset_id_to_name[image.dataset_id]
+                    object_data["dataset_name"] = dataset_name
 
-            object_data["image_size_hw"] = f"{image_height} x {image_width}"
+                object_data["image_size_hw"] = f"{image_height} x {image_width}"
 
-            object_data.update(calculate_obj_sizes(label, image_height, image_width))
+                object_data.update(calculate_obj_sizes(label, image_height, image_width))
 
-            object_data = list(object_data.values())
+                object_data = list(object_data.values())
 
-            self._stats.append((object_data, [image.id]))
+                self._stats.append((object_data, [image.id]))
 
     def to_json(self) -> Dict:
         if not self._stats:

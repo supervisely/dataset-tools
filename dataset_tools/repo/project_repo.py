@@ -5,20 +5,20 @@ import shutil
 from typing import List, Literal, Optional
 
 import cv2
+import supervisely as sly
 import tqdm
 from dotenv import load_dotenv
 from PIL import Image
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
-import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
     get_sample_image_infos,
 )
 from dataset_tools.templates import DatasetCategory, License
-from supervisely._utils import camel_to_snake
-from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
@@ -296,7 +296,7 @@ class ProjectRepo:
             dtools.ClassCooccurrence(self.project_meta),
             dtools.ClassesPerImage(self.project_meta, self.datasets, stat_cache=stat_cache),
             dtools.ObjectsDistribution(self.project_meta),
-            dtools.ObjectSizes(self.project_meta),
+            dtools.ObjectSizes(self.project_meta, self.project_stats),
             dtools.ClassSizes(self.project_meta),
             dtools.ClassesTreemap(self.project_meta),
         ]

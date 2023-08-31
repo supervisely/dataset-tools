@@ -4,15 +4,15 @@ from typing import Union
 
 import cv2
 import numpy as np
+import supervisely as sly
+from supervisely.imaging import font as sly_font
 from tqdm import tqdm
 
-import supervisely as sly
 from dataset_tools.image.renders.convert import (
     compress_mp4,
     compress_png,
     from_mp4_to_webm,
 )
-from supervisely.imaging import font as sly_font
 
 
 class HorizontalGrid:
@@ -21,8 +21,8 @@ class HorizontalGrid:
         project: Union[str, int],
         project_meta: sly.ProjectMeta,
         api: sly.Api = None,
-        rows: int = 2,
-        cols: int = 6,
+        rows: int = 3,
+        cols: int = 4,
         force: bool = False,
         is_detection_task: bool = False,
     ):

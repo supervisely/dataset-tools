@@ -2,10 +2,11 @@ from collections import defaultdict
 from typing import Dict, List
 
 import supervisely as sly
-from dataset_tools.image.stats.basestats import BaseStats
 from supervisely.app.widgets import HeatmapChart
 
-REFERENCES_LIMIT = 1000
+from dataset_tools.image.stats.basestats import BaseStats
+
+MAX_NUMBER_OF_COLUMNS = 100
 
 
 class ObjectsDistribution(BaseStats):
@@ -18,14 +19,22 @@ class ObjectsDistribution(BaseStats):
         etc.
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, force: bool = False):
+    def __init__(
+        self,
+        project_meta: sly.ProjectMeta,
+        project_stats,
+        force: bool = False,
+    ):
         self.force = force
 
         self.project_meta = project_meta
+        self.project_stats = project_stats
         self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})
         self._obj_classes = project_meta.obj_classes
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
         self._data = []
+
+        total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         self._data.append((image, ann))
@@ -115,11 +124,11 @@ class ObjectsDistribution(BaseStats):
         res["options"]["colors"] = colors
 
         # Disabling labels and ticks for x-axis if there are too many columns.
-        if 80 > number_of_columns > 40:
+        if MAX_NUMBER_OF_COLUMNS > number_of_columns > 40:
             res["options"]["xaxis"]["labels"] = {"show": False}
             res["options"]["xaxis"]["axisTicks"] = {"show": False}
             res["options"]["dataLabels"] = {"enabled": False}
-        elif number_of_columns >= 80:
+        elif number_of_columns >= MAX_NUMBER_OF_COLUMNS:
             return
 
         return res
