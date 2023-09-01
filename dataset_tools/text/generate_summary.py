@@ -378,7 +378,6 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         for idx, items in enumerate(slytag_splits.items()):
             if idx in [0, 1] and items[0] not in ["__PRETEXT__", "__POSTTEXT__"] and counter == 0:
                 content += f". Alternatively, the dataset could be split "
-                counter += 1
 
             if items[0] in ["__PRETEXT__", "__POSTTEXT__"]:
                 content += items[1]
@@ -390,8 +389,9 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
             #     group_name = p.plural_noun(items[0]) if len(items[1]) > 1 else items[0]
             group_name = items[0]
 
-            if idx == 0:
+            if idx in [0, 1] and items[0] not in ["__PRETEXT__", "__POSTTEXT__"] and counter == 0:
                 content += f"into {len(items[1])} {group_name}"
+                counter += 1
             else:
                 content += f", or into {len(items[1])} {group_name}"
             content += f": {list2sentence(items[1])}"

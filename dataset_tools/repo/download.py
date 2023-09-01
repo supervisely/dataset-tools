@@ -3,11 +3,11 @@ import os
 from urllib.parse import urljoin
 
 import requests
-import tqdm
-
 import supervisely as sly
-from dataset_tools.convert import unpack_if_archive
+import tqdm
 from supervisely._utils import camel_to_snake
+
+from dataset_tools.convert import unpack_if_archive
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(CURENT_DIR)
@@ -33,7 +33,7 @@ def prepare_link(
     #         urls = json.load(f)
 
     api.project.update_custom_data(project_info.id, params_dtools)
-    sly.logger.info("Custom data updated.")
+    sly.logger.info("Custom data updated with LICENSE.md and README.md contents.")
 
     if api.file.exists(team_id, tf_urls_path):
         api.file.download(team_id, tf_urls_path, local_save_path)

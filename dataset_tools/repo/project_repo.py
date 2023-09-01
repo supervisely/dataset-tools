@@ -68,6 +68,7 @@ class ProjectRepo:
 
         self.api = api
         self.team_id = sly.env.team_id()
+        self.workspace_id = sly.env.workspace_id()
 
         self.__dict__.update(settings)
 
@@ -112,9 +113,18 @@ class ProjectRepo:
                         self.buttons.append({"text": text, "icon": icon, "href": data[0]})
 
         self.buttons = []
-        add_buttons(self.paper, "Research Paper", "pdf")
-        add_buttons(self.blog, "Blog Post", "blog")
+        publications = [self.paper, self.blog]
+        for idx, pub, tit, ico in zip(
+            [0, 1], publications, ["Research Paper", "Blog Post"], ["pdf", "blog"]
+        ):
+            if isinstance(pub, list):
+                add_buttons(pub, tit, ico)
+            elif isinstance(pub, dict):
+                for k, v in pub.items():
+                    self.buttons.append({"text": k, "icon": ico, "href": v})
+                publications[idx] = [*pub.values()]
 
+        self.paper, self.blog = publications
         self.images_size = {}  # need to generate images first, then update
         self.download_sly_sample_url = None
         self.download_sample_archive_size = None
@@ -171,7 +181,7 @@ class ProjectRepo:
 
         self.download_sly_url = download.prepare_link(
             self.api,
-            self.project_info,
+            self.api.project.get_info_by_id(self.project_id),
             force,
             tf_urls_path,
             {
