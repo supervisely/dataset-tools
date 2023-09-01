@@ -5,29 +5,29 @@ import shutil
 from typing import List, Literal, Optional
 
 import cv2
-import supervisely as sly
 import tqdm
 from dotenv import load_dotenv
 from PIL import Image
-from supervisely._utils import camel_to_snake
-from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
     get_sample_image_infos,
 )
 from dataset_tools.templates import DatasetCategory, License
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
     "please cite the following reference:\n\n"
     "``` bibtex \n@dataset{{{project_name},\n"
-    "\tauthor={{{authors}}},\n"
-    "\ttitle={{{project_name_full}}},\n"
-    "\tyear={{{year}}},\n"
-    "\turl={{{homepage_url}}}\n}}\n```\n\n"
+    "  author={{{authors}}},\n"
+    "  title={{{project_name_full}}},\n"
+    "  year={{{year}}},\n"
+    "  url={{{homepage_url}}}\n}}\n```\n\n"
     "[Source]({homepage_url})"
 )
 
