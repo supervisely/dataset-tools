@@ -5,20 +5,20 @@ import shutil
 from typing import List, Literal, Optional
 
 import cv2
+import supervisely as sly
 import tqdm
 from dotenv import load_dotenv
 from PIL import Image
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
-import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
     get_sample_image_infos,
 )
 from dataset_tools.templates import DatasetCategory, License
-from supervisely._utils import camel_to_snake
-from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
@@ -113,18 +113,23 @@ class ProjectRepo:
                         self.buttons.append({"text": text, "icon": icon, "href": data[0]})
 
         self.buttons = []
-        publications = [self.paper, self.blog]
+        publications = [self.paper, self.blog, self.repository]
         for idx, pub, tit, ico in zip(
-            [0, 1], publications, ["Research Paper", "Blog Post"], ["pdf", "blog"]
+            [0, 1, 2],
+            publications,
+            ["Research Paper", "Blog Post", "Repository"],
+            ["pdf", "blog", "code"],
         ):
-            if isinstance(pub, list):
+            if isinstance(pub, (str, list)):
                 add_buttons(pub, tit, ico)
+            if isinstance(pub, str):
+                publications[idx] = [pub]
             elif isinstance(pub, dict):
                 for k, v in pub.items():
                     self.buttons.append({"text": k, "icon": ico, "href": v})
                 publications[idx] = [*pub.values()]
+        self.paper, self.blog, self.repository = publications
 
-        self.paper, self.blog = publications
         self.images_size = {}  # need to generate images first, then update
         self.download_sly_sample_url = None
         self.download_sample_archive_size = None
@@ -638,30 +643,35 @@ class ProjectRepo:
             summary_file.write(summary_content)
 
     def _build_citation(self, citation_path):
+        if self.citation_url is not None:
+            if not os.path.exists(citation_path):
+                citation_content = (
+                    f"If you make use of the {self.project_name} data, "
+                    f"please cite the following reference:\n\n"
+                    "``` bibtex\nPASTE HERE CUSTOM CITATION FROM THE SOURCE URL\n```\n\n"
+                    f"[Source]({self.citation_url})"
+                )
+                with open(citation_path, "w") as citation_file:
+                    citation_file.write(citation_content)
+                    sly.logger.warning("You must update 'CITATION.md' manually.")
+
+            sly.logger.warning("'CITATION.md' already exists. Skipping citation building...")
+            return
+
         sly.logger.info("Starting to build citation...")
 
-        if self.citation_url is not None:
-            citation_content = (
-                f"If you make use of the {self.project_name} data, "
-                f"please cite the following reference:\n\n"
-                "``` bibtex\nPASTE HERE CUSTOM CITATION FROM THE SOURCE URL\n```\n\n"
-                f"[Source]({self.citation_url})"
-            )
-        else:
-            citation_content = CITATION_TEMPLATE.format(
-                project_name_full=self.project_name_full,
-                authors=" and ".join(self.authors or []),
-                project_name=self.project_name,
-                homepage_url=self.homepage_url,
-                year=self.release_year,
-            )
+        citation_content = CITATION_TEMPLATE.format(
+            project_name_full=self.project_name_full,
+            authors=" and ".join(self.authors or []),
+            project_name=self.project_name,
+            homepage_url=self.homepage_url,
+            year=self.release_year,
+        )
 
         with open(citation_path, "w") as citation_file:
             citation_file.write(citation_content)
 
         sly.logger.info("Successfully built and saved citation.")
-        if self.citation_url is not None:
-            sly.logger.warning("You must update CITATION.md manually.")
 
     def _build_license(self, license_path) -> str:
         sly.logger.info("Starting to build license...")

@@ -14,3 +14,7 @@ class CVTask:
     class Classification:
         def __new__(cls):
             return "classification"
+
+    class Identification:
+        def __new__(cls):
+            return "identification"

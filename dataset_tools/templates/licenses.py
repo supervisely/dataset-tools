@@ -139,7 +139,15 @@ class License:
         def __new__(cls, url: str = None):
             self = super().__new__(cls)
             self.name = "MIT"
-            self.url = url or "https://spdx.org/licenses/MIT.html"
+            self.url = "https://spdx.org/licenses/MIT.html"
+            self.redistributable = True
+            return self
+
+    class NCGL_2_0:
+        def __new__(cls, url: str = None):
+            self = super().__new__(cls)
+            self.name = "NCGL v2.0"
+            self.url = "https://www.nationalarchives.gov.uk/doc/non-commercial-government-licence/version/2/"
             self.redistributable = True
             return self
 
