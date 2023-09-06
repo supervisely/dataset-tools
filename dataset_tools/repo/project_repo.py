@@ -77,6 +77,7 @@ class ProjectRepo:
         self.explore_datasets = self.__dict__.get("explore_datasets", None)
         self.tags = self.__dict__.get("tags", [])
         self.blog = self.__dict__.get("blog", None)
+        self.repository = self.__dict__.get("repository", None)
 
         if self.class2color:
             self._update_colors()
