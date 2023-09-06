@@ -103,6 +103,14 @@ class License:
             self.redistributable = True
             return self
 
+    class CC_BY_NC_3_0:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "CC BY-NC 3.0"
+            self.url = "https://creativecommons.org/licenses/by-nc/3.0/"
+            self.redistributable = True
+            return self
+
     class CC_BY_NC_4_0:
         def __new__(cls):
             self = super().__new__(cls)
