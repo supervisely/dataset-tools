@@ -410,7 +410,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
             f"The dataset was released in {release_year} by the {list2sentence(organization_name)}."
         )
     elif organization_name is None and organization_url is None:
-        content += f"The dataset was released in {release_year}."
+        content += f". The dataset was released in {release_year}."
 
     total_classes = totals.get("total_classes", 0)
     if vis_url is not None and isinstance(vis_url, str):
