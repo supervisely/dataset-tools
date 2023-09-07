@@ -516,6 +516,10 @@ class ProjectRepo:
 
         if img_infos_sample is None:
             sly.logger.info("Dataset is small. Skipping building of demo.")
+        elif len(img_infos_sample) == 0:
+            raise ValueError(
+                "Length of sample images set is zero. Please, check that 'class_balance.json' contains actual images reference_id. If not, rebuild the stat."
+            )
         else:
             with tqdm.tqdm(
                 desc="Download sample project to buffer", total=len(img_infos_sample)
