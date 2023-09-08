@@ -132,6 +132,8 @@ class ProjectRepo:
                 publications[idx] = [*pub.values()]
         self.paper, self.blog, self.repository = publications
 
+        # TODO Capitalize
+
         self.images_size = {}  # need to generate images first, then update
         self.download_sly_sample_url = None
         self.download_sample_archive_size = None
@@ -170,6 +172,10 @@ class ProjectRepo:
         if sly.fs.file_exists(license_path):
             with open(license_path, "r") as f:
                 curr_license_content = f.read()
+        elif not sly.fs.file_exists(license_path) and isinstance(self.license_url, License.Custom):
+            raise RuntimeError(
+                "Aborting creation of download url. Please complete the filling of Custom license first."
+            )
 
         force_texts = self.__dict__.get("force_texts") or []
 
@@ -740,6 +746,8 @@ class ProjectRepo:
             download_content = DOWNLOAD_NONREDISTRIBUTABLE_TEMPLATE.format(
                 homepage_url=self.homepage_url,
             )
+
+        # TODO Set 'HIDE_DATASET=False' to generate download link
 
         with open(download_path, "w") as download_file:
             download_file.write(download_content)

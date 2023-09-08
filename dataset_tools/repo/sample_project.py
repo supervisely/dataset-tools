@@ -14,8 +14,13 @@ from supervisely.task.progress import Progress
 def get_sample_image_infos(api, project_info, project_stats, class_balance_json):
     MAX_WEIGHT_BYTES = 5e8
     MAX_ITEMS_COUNT = 1e3
+
     mean_size = int(project_info.size) / project_info.items_count
     MIN_ITEMS_COUNT_PER_CLASS = 5 if mean_size > 1e6 else 10
+    total_num_classes = len(project_stats["images"]["objectClasses"])
+    MIN_ITEMS_COUNT_PER_CLASS = (
+        1 if mean_size > 1e6 and total_num_classes > 40 else MIN_ITEMS_COUNT_PER_CLASS
+    )
 
     if (
         int(project_info.size) < MAX_WEIGHT_BYTES
