@@ -600,19 +600,18 @@ class ProjectRepo:
             preview_class = "ClassesPreview"
 
         citation_path = "CITATION.md"
-        # license_path = "LICENSE.md"
-        # readme_path = "README.md"
+        license_path = "LICENSE.md"
+        readme_path = "README.md"
         download_path = "DOWNLOAD.md"
         summary_path = "SUMMARY.md"
 
         if "citation" in force or not sly.fs.file_exists(citation_path):
             self._build_citation(citation_path)
 
-        # if "license" in force or not sly.fs.file_exists(license_path):
-        #     self._build_license(license_path)
+        if "license" in force or not sly.fs.file_exists(license_path):
+            self._build_license(license_path)
 
-        # if "readme" in force or not sly.fs.file_exists(readme_path):
-        #     self._build_readme(readme_path)
+        self._build_readme(readme_path)
 
         if "download" in force or not sly.fs.file_exists(download_path):
             self._build_download(download_path)
