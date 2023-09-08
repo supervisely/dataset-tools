@@ -19,6 +19,7 @@ from dataset_tools.repo.sample_project import (
     get_sample_image_infos,
 )
 from dataset_tools.templates import DatasetCategory, License
+from dataset_tools.text.generate_summary import list2sentence
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
@@ -706,7 +707,7 @@ class ProjectRepo:
         readme_content = README_TEMPLATE.format(
             project_name_full=self.project_name_full,
             project_name=self.project_name,
-            cv_tasks=", ".join(self.cv_tasks),
+            cv_tasks=list2sentence(self.cv_tasks, "task"),
         )
 
         with open(readme_path, "w") as readme_file:

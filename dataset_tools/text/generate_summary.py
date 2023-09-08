@@ -23,7 +23,7 @@ def list2sentence(
     article=False,
     url: Optional[Union[List[str], str]] = None,
     char2wrap: Optional[str] = None,
-):
+) -> str:
     if isinstance(lst, str):
         lst = [lst]
     if isinstance(url, str):
