@@ -13,6 +13,7 @@ def sample_images(
     sample_cnt: float,
 ):
     total = 0
+    classification_only = False
     samples = []
     datasets_with_labels = []
 

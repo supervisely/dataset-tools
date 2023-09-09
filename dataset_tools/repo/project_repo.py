@@ -172,10 +172,10 @@ class ProjectRepo:
         if sly.fs.file_exists(license_path):
             with open(license_path, "r") as f:
                 curr_license_content = f.read()
-        elif not sly.fs.file_exists(license_path) and isinstance(self.license, License.Custom):
-            raise RuntimeError(
-                "Aborting creation of download url. Please complete the filling of Custom license first."
-            )
+        # elif not sly.fs.file_exists(license_path) and isinstance(self.license, License.Custom):
+        #     raise RuntimeError(
+        #         "Aborting creation of download url. Please complete the filling of Custom license first."
+        #     )
 
         force_texts = self.__dict__.get("force_texts") or []
 
