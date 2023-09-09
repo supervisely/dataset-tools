@@ -528,8 +528,11 @@ class ProjectRepo:
 
         sly.logger.info("Start to build demo sample project...")
 
-        with open("./stats/class_balance.json", "r") as f:
-            class_balance_json = json.load(f)
+        if self.project_stats["images"]["total"]["imagesMarked"] == 0:
+            class_balance_json = None
+        else:
+            with open("./stats/class_balance.json", "r") as f:
+                class_balance_json = json.load(f)
 
         img_infos_sample = get_sample_image_infos(
             self.api, self.project_info, self.project_stats, class_balance_json

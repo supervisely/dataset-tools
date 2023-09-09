@@ -11,7 +11,9 @@ from supervisely.project.project_meta import ProjectMeta
 from supervisely.task.progress import Progress
 
 
-def get_sample_image_infos(api, project_info, project_stats, class_balance_json):
+def get_sample_image_infos(
+    api, project_info, project_stats, class_balance_json=None
+) -> List[sly.ImageInfo]:
     MAX_WEIGHT_BYTES = 5e8
     MAX_ITEMS_COUNT = 1e3
 
@@ -32,6 +34,15 @@ def get_sample_image_infos(api, project_info, project_stats, class_balance_json)
 
     optimal_size = min(MAX_ITEMS_COUNT * mean_size, MAX_WEIGHT_BYTES)
     optimal_items_count = int(optimal_size / mean_size)
+
+    if class_balance_json is None:
+        full_list = []
+        for dataset in datasets:
+            full_list += api.image.get_list(dataset.id)
+        return_count = (
+            optimal_items_count if len(full_list) > optimal_items_count else len(full_list)
+        )
+        return random.sample(full_list, return_count)
 
     classes_on_marked_images_sum = sum(row[1] for row in class_balance_json["data"])
     images_marked_sum = project_stats["images"]["total"]["imagesMarked"]
