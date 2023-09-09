@@ -5,12 +5,12 @@ from typing import List, Union
 
 import cv2
 import numpy as np
+import supervisely as sly
 from PIL import Image, ImageDraw, ImageFont
+from supervisely.imaging import font as sly_font
 from tqdm import tqdm
 
-import supervisely as sly
 from dataset_tools.image.renders.convert import compress_png
-from supervisely.imaging import font as sly_font
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
@@ -136,6 +136,82 @@ class Poster:
                         sly.image.draw_text(np_img, label.obj_class.name, anchor, font=font)
                 if not self._is_detection_task:
                     ann.draw_pretty(np_img, thickness=3, opacity=0.7, fill_rectangles=False)
+                np_img = cv2.addWeighted(np_img, 0.8, background, 0.2, 0)
+
+                # backup
+                # if len(np_images) % 2 == 0:
+                #     h, w = np_img.shape[:2]
+                #     background = np.ones((h, w, 3), dtype=np.uint8) * 255
+                #     alpha = 0.5
+                #     np_img = cv2.addWeighted(background, 1 - alpha, np_img, alpha, 0)
+                #     ann.draw_pretty(np_img, thickness=0, opacity=0.6)
+                # else:
+                #     ann: sly.Annotation
+                #     thickness = 3
+                #     ann.draw_contour(np_img, thickness=thickness)
+
+                np_images.append(self._crop_image(np_img, i))
+                i += 1
+                pbar.update(1)
+
+        self._create_frame(np_images)
+        self._draw_text_and_rectangles()
+
+    def update_unlabeled(self, data: tuple):
+        np_images = []
+        join_data = [(ds, img) for ds, list1, list2 in data for img, ann in zip(list1, list2)]
+        random.shuffle(join_data)
+        i = 0
+        with tqdm(desc="Poster: download 7 sample images", total=7) as pbar:
+            while len(np_images) < 7:
+                # if i > len(join_data) * 3:
+                #     raise Exception("There are not enough images with labels in the project.")
+                ds, img_info = join_data[i % len(join_data)]
+                ds: sly.Dataset
+                # if len(ann.labels) < 1:
+                #     i += 1
+                #     continue
+                np_img = (
+                    sly.image.read(ds.get_img_path(img_info.name))
+                    if self._local
+                    else self._api.image.download_np(img_info.id)
+                )
+
+                h, w = np_img.shape[:2]
+                background = np.ones((h, w, 3), dtype=np.uint8) * 255
+
+                h, w = self._size_line_1 if i < 3 else self._size_line_2
+                img_h, img_w = np_img.shape[:2]
+                scale_ratio = max(h / img_h, w / img_w)
+                img_h, img_w = int(img_h * scale_ratio), int(img_w * scale_ratio)
+                np_img = sly.image.resize(np_img, (img_h, img_w))
+
+                background = sly.image.resize(background, np_img.shape[:2])
+                # try:
+                #     ann = ann.resize(np_img.shape[:2])
+                # except Exception:
+                #     sly.logger.warn(
+                #         f"Skipping image: can not resize annotation. Image name: {img_info.name}"
+                #     )
+                #     i += 1
+                #     continue
+
+                # ann: sly.Annotation
+                # thickness = ann._get_thickness()
+                # for label in ann.labels:
+                #     if type(label.geometry) == sly.Point:
+                #         label.draw(np_img, thickness=int(thickness * 2))
+                #     if self._is_detection_task:
+                #         bbox = label.geometry.to_bbox()
+                #         pt1, pt2 = (bbox.left, bbox.top), (bbox.right, bbox.bottom)
+                #         cv2.rectangle(np_img, pt1, pt2, label.obj_class.color, thickness)
+                #         font_size = int(sly_font.get_readable_font_size(np_img.shape[:2]) * 1.4)
+                #         font = sly_font.get_font(font_size=font_size)
+                #         _, _, _, bottom = font.getbbox(label.obj_class.name)
+                #         anchor = (bbox.top - bottom, bbox.left)
+                #         sly.image.draw_text(np_img, label.obj_class.name, anchor, font=font)
+                # if not self._is_detection_task:
+                #     ann.draw_pretty(np_img, thickness=3, opacity=0.7, fill_rectangles=False)
                 np_img = cv2.addWeighted(np_img, 0.8, background, 0.2, 0)
 
                 # backup

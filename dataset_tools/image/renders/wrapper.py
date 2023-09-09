@@ -34,7 +34,20 @@ def sample_images(
         datasets_with_labels.append((dataset, ds_images))
 
     if len(datasets_with_labels) == 0:
-        raise Exception("There are not enough images with labels on them in the project.")
+        datasets_without_labels = []
+        for dataset in datasets:
+            ds_images = (
+                api.image.get_list(dataset.id)
+                if isinstance(project, int)
+                else [
+                    dataset.get_image_info(sly.fs.get_file_name(img))
+                    for img in os.listdir(dataset.ann_dir)
+                ]
+            )
+            datasets_without_labels.append((dataset, ds_images))
+
+        datasets_with_labels = datasets_without_labels  # classification-only case
+        classification_only = True
 
     for dataset, ds_images in datasets_with_labels:
         dataset: sly.Dataset
@@ -57,6 +70,8 @@ def sample_images(
         )
         samples.append((dataset, s, anns))
         total += len(s)
+
+    total = -1 if classification_only else total
     return samples, total
 
 
@@ -84,5 +99,9 @@ def prepare_renders(
     if len(samples) == 0:
         raise Exception("There are not any images with labels on them in the project.")
 
-    for renderer in renderers:
-        renderer.update(samples)
+    if total == -1:
+        poster = renderers[0]
+        poster.update_unlabeled(samples)
+    else:
+        for renderer in renderers:
+            renderer.update(samples)

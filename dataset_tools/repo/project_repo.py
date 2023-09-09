@@ -172,7 +172,7 @@ class ProjectRepo:
         if sly.fs.file_exists(license_path):
             with open(license_path, "r") as f:
                 curr_license_content = f.read()
-        elif not sly.fs.file_exists(license_path) and isinstance(self.license_url, License.Custom):
+        elif not sly.fs.file_exists(license_path) and isinstance(self.license, License.Custom):
             raise RuntimeError(
                 "Aborting creation of download url. Please complete the filling of Custom license first."
             )
@@ -369,6 +369,12 @@ class ProjectRepo:
         if settings.get("Other") is not None:
             srate = settings["Other"].get("sample_rate", 1)
 
+        if self.project_stats["images"]["total"]["imagesMarked"] == 0:
+            sly.logger.info(
+                "This is a classification-only dataset. It has zero annotations. Skipping building stats and ClassesPreview"
+            )
+            return
+
         dtools.count_stats(self.project_id, stats=stats + vstats, sample_rate=srate)
 
         sly.logger.info("Saving stats...")
@@ -437,6 +443,14 @@ class ProjectRepo:
             ):
                 a.force = True
         animators = [a for a in animators if a.force]
+
+        if self.project_stats["images"]["total"]["imagesMarked"] == 0:
+            sly.logger.info(
+                "This is a classification-only dataset. It has zero annotations. Building only the Poster."
+            )
+            renderers, animators = [
+                r for r in renderers if r.__class__.__name__ == "Poster" and r.force
+            ], []
 
         # ? Download fonts from: https://fonts.google.com/specimen/Fira+Sans
         dtools.prepare_renders(

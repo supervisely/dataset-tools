@@ -3,9 +3,9 @@ import os
 import random
 from typing import List, Union
 
+import supervisely as sly
 import tqdm
 
-import supervisely as sly
 from dataset_tools import (
     ClassBalance,
     ClassCooccurrence,
@@ -139,7 +139,7 @@ def count_stats(
     # sly.logger.info(f"CPU count: {NUM_PROCESSING}")
     with tqdm.tqdm(desc=desc, total=total) as pbar:
         for dataset, images in samples:
-            for batch in sly.batched(images):
+            for batch in sly.batched(images, 100):
                 image_ids = [image.id for image in batch]
                 image_names = [image.name for image in batch]
 

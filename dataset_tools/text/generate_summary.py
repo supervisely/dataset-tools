@@ -114,7 +114,7 @@ def get_summary_data(
         [cls["objectClass"]["name"], cls["total"]] for cls in stats["images"]["objectClasses"]
     ]
     totals_dct = {
-        "total_assets": stats["images"]["total"]["imagesInDataset"],
+        "total_assets": project_info.items_count,
         "total_objects": stats["objects"]["total"]["objectsInDataset"],
         "total_classes": len(stats["images"]["objectClasses"]),
         "top_classes": list(
@@ -123,7 +123,9 @@ def get_summary_data(
     }
 
     unlabeled_num = stats["images"]["total"]["imagesNotMarked"]
-    unlabeled_percent = round(unlabeled_num / totals_dct["total_assets"] * 100)
+    unlabeled_percent = (
+        round(unlabeled_num / totals_dct["total_assets"] * 100) if unlabeled_num != 0 else 100
+    )  # "Cast off the crutch that kills the pain!"
 
     slydssplits_list = [
         {"name": item["name"], "split_size": item["imagesCount"]}
@@ -349,22 +351,32 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} "
     if len(top_classes) == 1:
         content += f"single class "
+    if len(top_classes) == 0:
+        content += f"classes."
     else:
         content += f"different classes "
+
     if len(top_classes) > 3:
         content += f"including *{'*, *'.join(top_classes[:3])}*, and other: {list2sentence(top_classes[3:], char2wrap='*' )}."
     elif len(top_classes) == 1:
         content += f"(*{top_classes[0]}*)."
+    elif len(top_classes) == 0:
+        pass
     else:
         content += f"including {list2sentence(top_classes[:3], char2wrap='*')}."
 
-    content += f"\n\n{modality.capitalize()} in the {name} dataset have {annotations}. "
-    if unlabeled_assets_num == 0:
-        content += f"All {modality} are labeled (i.e. with annotations). "
-    elif unlabeled_assets_num == 1:
-        content += f"There is 1 unlabeled {p.singular_noun(modality)} (i.e. without annotations). "
+    if unlabeled_assets_percent == 100:
+        content += " "
     else:
-        content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
+        content += f"\n\n{modality.capitalize()} in the {name} dataset have {annotations}. "
+        if unlabeled_assets_num == 0:
+            content += f"All {modality} are labeled (i.e. with annotations). "
+        elif unlabeled_assets_num == 1:
+            content += (
+                f"There is 1 unlabeled {p.singular_noun(modality)} (i.e. without annotations). "
+            )
+        else:
+            content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
 
     if len(slyds_splits) == 1:
         content += f"There are no pre-defined <i>train/val/test</i> splits in the dataset"
