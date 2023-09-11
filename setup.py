@@ -29,6 +29,7 @@ INSTALL_REQUIRES = [
     "gdown>=4.7.1",
     "urllib3==1.26.15",
     "geojson>=3.0.0",
+    "titlecase==2.4",
 ]
 
 ALT_INSTALL_REQUIRES = {
