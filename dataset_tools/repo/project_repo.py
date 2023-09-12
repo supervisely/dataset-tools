@@ -2,7 +2,6 @@ import json
 import os
 import random
 import shutil
-from titlecase import titlecase
 from typing import List, Literal, Optional
 
 import cv2
@@ -36,7 +35,7 @@ CITATION_TEMPLATE = (
 LICENSE_TEMPLATE = "{project_name_full} is under [{license_name}]({license_url}) license."
 UNKNOWN_LICENSE_TEMPLATE = "License is unknown for the {project_name_full} dataset."
 
-README_TEMPLATE = "# {project_name_full}\n\n{project_name} is a dataset for {cv_tasks} tasks."
+README_TEMPLATE = "# {project_name_full}\n\n{project_name} is a dataset for {cv_tasks}."
 
 DOWNLOAD_SLY_TEMPLATE = (
     "Dataset **{project_name}** can be downloaded in [Supervisely format](https://developer.supervisely.com/api-references/supervisely-annotation-json-format):\n\n [Download]({download_sly_url})\n\n"
@@ -74,7 +73,6 @@ class ProjectRepo:
 
         self.__dict__.update(settings)
 
-        self.project_name_full = titlecase(self.project_name_full)
         self.hide_dataset = self.__dict__.get("hide_dataset", True)
         self.buttons = self.__dict__.get("buttons", None)
         self.explore_datasets = self.__dict__.get("explore_datasets", None)
@@ -104,7 +102,6 @@ class ProjectRepo:
 
         def add_buttons(data, text, icon):
             if data is not None:
-                text = titlecase(text)
                 if isinstance(data, str):
                     self.buttons.append({"text": text, "icon": icon, "href": data})
                 elif isinstance(data, list):
@@ -128,10 +125,10 @@ class ProjectRepo:
             if isinstance(pub, (str, list)):
                 add_buttons(pub, tit, ico)
             if isinstance(pub, str):
-                publications[idx] = [titlecase(pub)]
+                publications[idx] = [pub]
             elif isinstance(pub, dict):
                 for k, v in pub.items():
-                    self.buttons.append({"text": titlecase(k), "icon": ico, "href": v})
+                    self.buttons.append({"text": k, "icon": ico, "href": v})
                 publications[idx] = [*pub.values()]
         self.paper, self.blog, self.repository = publications
 
