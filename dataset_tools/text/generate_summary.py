@@ -378,8 +378,12 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         else:
             content += f"There are {unlabeled_assets_num} ({unlabeled_assets_percent}% of the total) unlabeled {modality} (i.e. without annotations). "
 
-    if len(slyds_splits) == 1:
+    if len(slyds_splits) == 1 and "ds" in slyds_splits[0]:
         content += f"There are no pre-defined <i>train/val/test</i> splits in the dataset"
+    elif len(slyds_splits) == 1:
+        content += (
+            f"There is 1 split in the dataset: {slyds_splits[0]}"  # case Semantic Drone Dataset
+        )
     else:
         content += (
             f"There are {len(slyds_splits)} splits in the dataset: {list2sentence(slyds_splits)}"
