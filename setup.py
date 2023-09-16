@@ -31,6 +31,7 @@ INSTALL_REQUIRES = [
     "geojson>=3.0.0",
     "titlecase==2.4",
     "pycocotools>=2.0.0",
+    "memory-profiler==0.61.0",
 ]
 
 ALT_INSTALL_REQUIRES = {

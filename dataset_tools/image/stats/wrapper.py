@@ -2,7 +2,7 @@ import multiprocessing
 import os
 import random
 from typing import List, Union
-
+from memory_profiler import profile
 import supervisely as sly
 import tqdm
 
@@ -139,32 +139,34 @@ def count_stats(
     # sly.logger.info(f"CPU count: {NUM_PROCESSING}")
     with tqdm.tqdm(desc=desc, total=total) as pbar:
         for dataset, images in samples:
-            for batch in sly.batched(images, 100):
-                image_ids = [image.id for image in batch]
-                image_names = [image.name for image in batch]
+            for batch in sly.batched(images, 30):
+                do_batch(batch, api, project, dataset, project_meta, stats, pbar)
 
-                if isinstance(project, int):
-                    janns = api.annotation.download_json_batch(dataset.id, [id for id in image_ids])
-                    anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in janns]
-                else:
-                    anns = [dataset.get_ann(name, project_meta) for name in image_names]
+                # image_ids = [image.id for image in batch]
+                # image_names = [image.name for image in batch]
 
-                # resized_anns = [resize_ann_with_aspect_ratio(ann) for ann in anns]
-                # FIXME: optimization is broken (resize labels area 0 px)
+                # if isinstance(project, int):
+                #     janns = api.annotation.download_json_batch(dataset.id, [id for id in image_ids])
+                #     anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in janns]
+                # else:
+                #     anns = [dataset.get_ann(name, project_meta) for name in image_names]
 
-                # TODO multiprocessing
-                # if isinstance(stat, ClassBalance):
-                #     stat.parallel_update(batch, anns, NUM_PROCESSING)
-                #     pbar.update(len(batch))
+                # # resized_anns = [resize_ann_with_aspect_ratio(ann) for ann in anns]
+                # # FIXME: optimization is broken (resize labels area 0 px)
 
-                for img, ann in zip(batch, anns):
-                    # pbar.set_postfix_str(img.name) #? for debug
-                    for stat in stats:
-                        # if stat.__class__ in CLASSES_TO_OPTIMIZE:
-                        #     stat.update(img, resized_anns)
-                        # else:
-                        stat.update(img, ann)
-                    pbar.update(1)
+                # # TODO multiprocessing
+                # # if isinstance(stat, ClassBalance):
+                # #     stat.parallel_update(batch, anns, NUM_PROCESSING)
+                # #     pbar.update(len(batch))
+
+                # for img, ann in zip(batch, anns):
+                #     # pbar.set_postfix_str(img.name) #? for debug
+                #     for stat in stats:
+                #         # if stat.__class__ in CLASSES_TO_OPTIMIZE:
+                #         #     stat.update(img, resized_anns)
+                #         # else:
+                #         stat.update(img, ann)
+                #     pbar.update(1)
 
 
 def resize_ann_with_aspect_ratio(ann: sly.Annotation):
@@ -181,3 +183,18 @@ def resize_ann_with_aspect_ratio(ann: sly.Annotation):
         new_ann = ann.resize((new_width, new_height))
         return new_ann
     return ann
+
+
+@profile
+def do_batch(batch, api, project, dataset, project_meta, stats, pbar):
+    image_ids = [image.id for image in batch]
+    image_names = [image.name for image in batch]
+    if isinstance(project, int):
+        janns = api.annotation.download_json_batch(dataset.id, [id for id in image_ids])
+        anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in janns]
+    else:
+        anns = [dataset.get_ann(name, project_meta) for name in image_names]
+    for img, ann in zip(batch, anns):
+        for stat in stats:
+            stat.update(img, ann)
+        pbar.update(1)
