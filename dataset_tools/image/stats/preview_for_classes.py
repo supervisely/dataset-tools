@@ -1,3 +1,4 @@
+import gc
 import math
 import os
 import random
@@ -6,10 +7,10 @@ from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
+import supervisely as sly
 from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 
-import supervisely as sly
 from dataset_tools.image.renders.convert import compress_mp4, from_mp4_to_webm
 from dataset_tools.image.stats.basestats import BaseVisual
 
@@ -77,6 +78,7 @@ class ClassesPreview(BaseVisual):
                 continue
             class_name = label.obj_class.name
             self._classname2images[class_name].append((image, ann))
+        gc.collect()
 
     def animate(
         self,

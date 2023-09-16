@@ -168,16 +168,15 @@ def count_stats(
         #                 # else:
         #                 stat.update(img, ann)
         #             pbar.update(1)
-        gc.collect()
 
 
-@profile
 def do_samples(samples, api, project, project_meta, stats, pbar):
     for dataset, images in samples:
         for batch in sly.batched(images, 30):
             do_batch(batch, api, project, dataset, project_meta, stats, pbar)
 
 
+@profile
 def do_batch(batch, api, project, dataset, project_meta, stats, pbar):
     image_ids = [image.id for image in batch]
     image_names = [image.name for image in batch]
