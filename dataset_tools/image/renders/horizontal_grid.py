@@ -74,7 +74,13 @@ class HorizontalGrid:
                 ann: sly.Annotation
                 img = self._resize_image(img, self._row_height)
                 try:
-                    ann = ann.resize(img.shape[:2])
+                    def _resize_label(label):
+                        try:
+                            return [label.resize(ann.img_size, img.shape[:2])]
+                        except:
+                            return []
+
+                    ann = ann.transform_labels(_resize_label, img.shape[:2])
                 except Exception:
                     sly.logger.warn(
                         f"Skipping image: can not resize annotation. Image name: {img_info.name}"
