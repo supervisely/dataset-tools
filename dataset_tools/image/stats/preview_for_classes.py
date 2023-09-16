@@ -20,7 +20,7 @@ GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
 CLASSES_CNT_LIMIT = 25
-LABELAREA_THRESHOLD = 250 * 250
+LABELAREA_THRESHOLD = 400 * 400
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
@@ -32,7 +32,7 @@ class ClassesPreview(BaseVisual):
     def __init__(
         self,
         project_meta: sly.ProjectMeta,
-        project_name: str,
+        project_info: sly.ProjectInfo,
         api: sly.Api = None,
         row_height: int = None,
         force: bool = False,
@@ -42,7 +42,7 @@ class ClassesPreview(BaseVisual):
     ):
         self.force = force
         self._meta = project_meta
-        self._project_name = project_name
+        self._project_name = project_info.name
         classes_cnt = len(self._meta.obj_classes)
         classes_text = "classes" if classes_cnt > 1 else "class"
         self._title = f"{self._project_name} · {classes_cnt} {classes_text}"
@@ -60,6 +60,7 @@ class ClassesPreview(BaseVisual):
 
         self._api = api if api is not None else sly.Api.from_env()
 
+        self.update_freq = 1000 / project_info.items_count
         self._classname2images = defaultdict(list)
         self._np_images = {}
         self._np_anns = {}
@@ -68,17 +69,17 @@ class ClassesPreview(BaseVisual):
         self._logo_path = "logo.png"
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        for label in ann.labels:
-            image_area = image.width * image.height
-            label_bbox = label.geometry.to_bbox()
-            if (
-                not (image_area * 0.1 <= label_bbox.area <= image_area * 0.8)
-                or label_bbox.area < LABELAREA_THRESHOLD
-            ):
-                continue
-            class_name = label.obj_class.name
-            self._classname2images[class_name].append((image, ann))
-        gc.collect()
+        if self.update_freq > random.random():
+            for label in ann.labels:
+                image_area = image.width * image.height
+                label_bbox = label.geometry.to_bbox()
+                if (
+                    not (image_area * 0.1 <= label_bbox.area <= image_area * 0.8)
+                    or label_bbox.area < LABELAREA_THRESHOLD
+                ):
+                    continue
+                class_name = label.obj_class.name
+                self._classname2images[class_name].append((image, ann))
 
     def animate(
         self,

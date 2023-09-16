@@ -172,7 +172,7 @@ def count_stats(
 
 def do_samples(samples, api, project, project_meta, stats, pbar):
     for dataset, images in samples:
-        for batch in sly.batched(images, 30):
+        for batch in sly.batched(images, 100):
             do_batch(batch, api, project, dataset, project_meta, stats, pbar)
 
 

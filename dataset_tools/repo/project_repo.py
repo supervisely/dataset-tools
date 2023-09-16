@@ -326,7 +326,7 @@ class ProjectRepo:
         ]
         heatmaps = dtools.ClassesHeatmaps(self.project_meta)
         classes_previews = dtools.ClassesPreview(
-            self.project_meta, self.project_info.name, **cls_prevs_settings
+            self.project_meta, self.project_info, **cls_prevs_settings
         )
         # previews = dtools.Previews(
         #     self.project_id, self.project_meta, self.api, self.team_id, **previews_settings
