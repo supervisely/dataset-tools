@@ -60,7 +60,6 @@ class ClassesPreview(BaseVisual):
 
         self._api = api if api is not None else sly.Api.from_env()
 
-        self.update_freq = 1000 / project_info.items_count
         self._classname2images = defaultdict(list)
         self._np_images = {}
         self._np_anns = {}
@@ -69,17 +68,17 @@ class ClassesPreview(BaseVisual):
         self._logo_path = "logo.png"
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        if self.update_freq > random.random():
-            for label in ann.labels:
-                image_area = image.width * image.height
-                label_bbox = label.geometry.to_bbox()
-                if (
-                    not (image_area * 0.1 <= label_bbox.area <= image_area * 0.8)
-                    or label_bbox.area < LABELAREA_THRESHOLD
-                ):
-                    continue
-                class_name = label.obj_class.name
-                self._classname2images[class_name].append((image, ann))
+        for label in ann.labels:
+            image_area = image.width * image.height
+            label_bbox = label.geometry.to_bbox()
+            if (
+                not (image_area * 0.1 <= label_bbox.area <= image_area * 0.8)
+                or label_bbox.area < LABELAREA_THRESHOLD
+            ):
+                continue
+            class_name = label.obj_class.name
+            if image.id not in self._classname2images[class_name]:
+                self._classname2images[class_name].append(image.id)
 
     def animate(
         self,
@@ -125,6 +124,9 @@ class ClassesPreview(BaseVisual):
         sly.fs.silent_remove(tmp_video_path)
 
         sly.logger.info(f"Animation saved to: {path}, {video_path}")
+        self._classname2images = None
+        self._np_images = None
+        self._np_anns = {}
 
     def _prepare_layouts(self):
         canvas = self._create_grid(list(self._np_images.values()))
@@ -149,11 +151,13 @@ class ClassesPreview(BaseVisual):
             total=limit,
         ) as pbar:
             while len(self._np_images) < limit:
-                cls_name, items = list(self._classname2images.items())[i]
-                random.shuffle(items)
-                image, ann = items[0]
+                cls_name, ids = list(self._classname2images.items())[i]
+                random.shuffle(ids)
+                image_id = ids[0]
 
-                img = self._api.image.download_np(image.id)
+                img = self._api.image.download_np(image_id)
+                ann_json = self._api.annotation.download_json(image_id)
+                ann = sly.Annotation.from_json(ann_json, self._meta)
 
                 crops = sly.aug.instance_crop(
                     img=img,
@@ -171,7 +175,7 @@ class ClassesPreview(BaseVisual):
                     cropped_ann = cropped_ann.resize(cropped_img.shape[:2])
                 except Exception:
                     sly.logger.warn(
-                        f"Skipping image: can not resize annotation. Image id: {image.id}"
+                        f"Skipping image: can not resize annotation. Image id: {image_id}"
                     )
                     i += 1
                     continue
