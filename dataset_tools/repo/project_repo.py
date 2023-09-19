@@ -550,6 +550,8 @@ class ProjectRepo:
             ) as pbar:
                 if os.path.isdir(buffer_project_dir):
                     shutil.rmtree(buffer_project_dir)
+                self._build_license(f"{buffer_project_dir}/LICENSE.md")
+                self._build_readme(f"{buffer_project_dir}/README.md")
                 download_sample_image_project(
                     self.api,
                     self.project_id,

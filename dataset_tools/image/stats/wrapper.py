@@ -176,7 +176,7 @@ def do_samples(samples, api, project, project_meta, stats, pbar):
             do_batch(batch, api, project, dataset, project_meta, stats, pbar)
 
 
-@profile
+# @profile
 def do_batch(batch, api, project, dataset, project_meta, stats, pbar):
     image_ids = [image.id for image in batch]
     image_names = [image.name for image in batch]
