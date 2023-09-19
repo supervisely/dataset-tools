@@ -138,6 +138,9 @@ class ProjectRepo:
         self.download_sly_sample_url = None
         self.download_sample_archive_size = None
 
+        self.original_license_path = "LICENSE.md"
+        self.original_citation_path = "CITATION.md"
+
         self._process_download_link(force=settings.get("force_download_sly_url") or False)
         self._update_custom_data()
 
@@ -558,7 +561,7 @@ class ProjectRepo:
                     buffer_project_dir,
                     progress_cb=pbar,
                 )
-                self._build_license(f"{buffer_project_dir}/LICENSE.md")
+                self._build_license(f"{buffer_project_dir}/LICENSE.md", self.original_license_path)
                 self._build_readme(f"{buffer_project_dir}/README.md")
 
             with tqdm.tqdm(
@@ -626,8 +629,8 @@ class ProjectRepo:
         if preview_class is None:
             preview_class = "ClassesPreview"
 
-        citation_path = "CITATION.md"
-        license_path = "LICENSE.md"
+        citation_path = self.original_citation_path
+        license_path = self.original_license_path
         readme_path = "README.md"
         download_path = "DOWNLOAD.md"
         summary_path = "SUMMARY.md"
@@ -639,9 +642,7 @@ class ProjectRepo:
             self._build_license(license_path)
 
         self._build_readme(readme_path)
-
-        if "download" in force or not sly.fs.file_exists(download_path):
-            self._build_download(download_path)
+        self._build_download(download_path)
 
         if "summary" in force or not sly.fs.file_exists(summary_path):
             self._build_summary(summary_path, preview_class=preview_class)
@@ -704,12 +705,16 @@ class ProjectRepo:
 
         sly.logger.info("Successfully built and saved citation.")
 
-    def _build_license(self, license_path) -> str:
+    def _build_license(self, license_path, original_license_path=None) -> str:
         sly.logger.info("Starting to build license...")
 
         if isinstance(self.license, License.Custom):
-            license_content = "ADD CUSTOM LICENSE MANUALLY"
-            sly.logger.warning("Custom license must be added manually.")
+            if sly.fs.file_exists(license_path) and original_license_path is not None:
+                with open(original_license_path, "r") as license_file:
+                    license_content = license_file.read()
+            else:
+                license_content = "ADD CUSTOM LICENSE MANUALLY"
+                sly.logger.warning("Custom license must be added manually.")
         elif isinstance(self.license, License.Unknown):
             license_content = UNKNOWN_LICENSE_TEMPLATE.format(
                 project_name_full=self.project_name_full,
