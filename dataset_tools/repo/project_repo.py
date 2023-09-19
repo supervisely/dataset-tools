@@ -709,7 +709,7 @@ class ProjectRepo:
         sly.logger.info("Starting to build license...")
 
         if isinstance(self.license, License.Custom):
-            if sly.fs.file_exists(license_path) and original_license_path is not None:
+            if sly.fs.file_exists(original_license_path) and original_license_path is not None:
                 with open(original_license_path, "r") as license_file:
                     license_content = license_file.read()
             else:
