@@ -20,7 +20,7 @@ GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
 CLASSES_CNT_LIMIT = 25
-LABELAREA_THRESHOLD = 100 * 100
+LABELAREA_THRESHOLD = 400 * 400
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
