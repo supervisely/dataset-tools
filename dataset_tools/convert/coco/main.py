@@ -101,7 +101,7 @@ def to_supervisely(
             img_dir = os.path.join(sly_dataset_dir, "img")
             ann_dir = os.path.join(sly_dataset_dir, "ann")
             add_captions = coco_captions is not None
-            meta = get_sly_meta_from_coco(META, dst_path, categories, dataset_name, add_captions)
+            META = get_sly_meta_from_coco(META, dst_path, categories, dataset_name, add_captions)
 
             ds_progress = tqdm(desc=f"Converting dataset: {dataset_name}", total=len(coco_images))
 
@@ -113,7 +113,7 @@ def to_supervisely(
                     img_ann = coco_anns[img_id]
                     img_size = (img_info["height"], img_info["width"])
                     ann = create_sly_ann_from_coco_annotation(
-                        meta=meta,
+                        meta=META,
                         coco_categories=categories,
                         coco_ann=img_ann,
                         image_size=img_size,
@@ -124,7 +124,7 @@ def to_supervisely(
                     current_dataset_images_cnt += 1
                 ds_progress.update(1)
         else:
-            meta = get_sly_meta_from_coco(META, dst_path, [], dataset_name, False)
+            META = get_sly_meta_from_coco(META, dst_path, [], dataset_name, False)
             sly_dataset_dir = create_sly_dataset_dir(dst_path, dataset_name=dataset_name)
             src_img_dir = os.path.join(coco_dataset_dir, "images")
             dst_img_dir = os.path.join(sly_dataset_dir, "img")
