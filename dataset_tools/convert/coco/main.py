@@ -129,7 +129,7 @@ def to_supervisely(
             src_img_dir = os.path.join(coco_dataset_dir, "images")
             dst_img_dir = os.path.join(sly_dataset_dir, "img")
             ann_dir = os.path.join(sly_dataset_dir, "ann")
-            move_testds_to_sly_dataset(dataset=dataset_name)
+            current_dataset_images_cnt = move_testds_to_sly_dataset(dataset=dataset_name, images_cnt=current_dataset_images_cnt)
         if current_dataset_images_cnt == 0:
             sly.logger.warn(f"Dataset {dataset_name} has no images.")
             remove_empty_sly_dataset_dir(sly_base_dir=dst_path, dataset_name=dataset_name)
@@ -415,7 +415,7 @@ def move_trainvalds_to_sly_dataset(dataset_dir, coco_image, ann):
         shutil.copy(coco_img_path, sly_img_path)
 
 
-def move_testds_to_sly_dataset(dataset):
+def move_testds_to_sly_dataset(dataset, images_cnt):
     ds_progress = tqdm(desc=f"Converting dataset: {dataset}", total=len(os.listdir(src_img_dir)))
     for image in os.listdir(src_img_dir):
         src_image_path = os.path.join(src_img_dir, image)
@@ -428,6 +428,8 @@ def move_testds_to_sly_dataset(dataset):
         ann_json = ann.to_json()
         sly.json.dump_json_file(ann_json, os.path.join(ann_dir, f"{image}.json"))
         ds_progress.update(1)
+        images_cnt += 1
+    return images_cnt
 
 
 def prepare_meta(meta):
