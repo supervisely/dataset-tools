@@ -292,7 +292,8 @@ def create_sly_meta_from_coco_categories(meta, coco_categories, add_captions):
         obj_class = sly.ObjClass(category["name"], sly.AnyGeometry, new_color)
         meta = meta.add_obj_class(obj_class)
     if add_captions:
-        meta = meta.add_tag_meta(sly.TagMeta("caption", sly.TagValueType.ANY_STRING))
+        if meta.get_tag_meta("caption") is None:
+            meta = meta.add_tag_meta(sly.TagMeta("caption", sly.TagValueType.ANY_STRING))
     return meta
 
 
