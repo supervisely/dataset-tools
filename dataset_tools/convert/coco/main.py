@@ -416,7 +416,7 @@ def move_trainvalds_to_sly_dataset(dataset_dir, coco_image, ann):
 
 
 def move_testds_to_sly_dataset(dataset):
-    ds_progress = tqdm(f"Converting dataset: {dataset}", len(os.listdir(src_img_dir)))
+    ds_progress = tqdm(desc=f"Converting dataset: {dataset}", total=len(os.listdir(src_img_dir)))
     for image in os.listdir(src_img_dir):
         src_image_path = os.path.join(src_img_dir, image)
         dst_image_path = os.path.join(dst_img_dir, image)
