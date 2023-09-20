@@ -226,12 +226,12 @@ def download_coco_images(dataset, archive_path, save_path):
     link = images_links[dataset]
     response = requests.head(link, allow_redirects=True)
     sizeb = int(response.headers.get("content-length", 0))
-    # p = tqdm(desc=f"Downloading COCO images", total=sizeb, unit="B", unit_scale=True)
-    # if not sly.fs.file_exists(archive_path):
-    #     sly.fs.download(link, archive_path, progress=p.update)
-    # sly.fs.unpack_archive(archive_path, save_path)
-    # os.rename(os.path.join(save_path, dataset), os.path.join(save_path, "images"))
-    # sly.fs.silent_remove(archive_path)
+    p = tqdm(desc=f"Downloading COCO images", total=sizeb, unit="B", unit_scale=True)
+    if not sly.fs.file_exists(archive_path):
+        sly.fs.download(link, archive_path, progress=p.update)
+    sly.fs.unpack_archive(archive_path, save_path)
+    os.rename(os.path.join(save_path, dataset), os.path.join(save_path, "images"))
+    sly.fs.silent_remove(archive_path)
 
 
 def download_coco_annotations(dataset, archive_path, save_path):
