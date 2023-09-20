@@ -124,8 +124,8 @@ def to_supervisely(
                     current_dataset_images_cnt += 1
                 ds_progress.update(1)
         else:
-            META = get_sly_meta_from_coco(META, dst_path, [], dataset_name, False)
             sly_dataset_dir = create_sly_dataset_dir(dst_path, dataset_name=dataset_name)
+            META = get_sly_meta_from_coco(META, dst_path, [], dataset_name, False)
             src_img_dir = os.path.join(coco_dataset_dir, "images")
             dst_img_dir = os.path.join(sly_dataset_dir, "img")
             ann_dir = os.path.join(sly_dataset_dir, "ann")
@@ -226,12 +226,12 @@ def download_coco_images(dataset, archive_path, save_path):
     link = images_links[dataset]
     response = requests.head(link, allow_redirects=True)
     sizeb = int(response.headers.get("content-length", 0))
-    p = tqdm(desc=f"Downloading COCO images", total=sizeb, unit="B", unit_scale=True)
-    if not sly.fs.file_exists(archive_path):
-        sly.fs.download(link, archive_path, progress=p.update)
-    sly.fs.unpack_archive(archive_path, save_path)
-    os.rename(os.path.join(save_path, dataset), os.path.join(save_path, "images"))
-    sly.fs.silent_remove(archive_path)
+    # p = tqdm(desc=f"Downloading COCO images", total=sizeb, unit="B", unit_scale=True)
+    # if not sly.fs.file_exists(archive_path):
+    #     sly.fs.download(link, archive_path, progress=p.update)
+    # sly.fs.unpack_archive(archive_path, save_path)
+    # os.rename(os.path.join(save_path, dataset), os.path.join(save_path, "images"))
+    # sly.fs.silent_remove(archive_path)
 
 
 def download_coco_annotations(dataset, archive_path, save_path):
