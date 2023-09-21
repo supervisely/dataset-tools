@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from typing import Dict, List
 
 import supervisely as sly
@@ -8,6 +8,8 @@ from pympler import asizeof
 from dataset_tools.image.stats.basestats import BaseStats
 
 MAX_NUMBER_OF_COLUMNS = 100
+LiteLabel = namedtuple("LiteLabel", ["obj_class_name"])
+LiteAnnotation = namedtuple("LiteAnnotation", ["labels"])
 
 
 class ObjectsDistribution(BaseStats):
@@ -28,7 +30,6 @@ class ObjectsDistribution(BaseStats):
         self.force = force
 
         self.project_meta = project_meta
-        # self.project_stats = project_stats
         self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})
         self._obj_classes = project_meta.obj_classes
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
@@ -36,11 +37,13 @@ class ObjectsDistribution(BaseStats):
         self._images = []
         self._anns = []
 
-        # total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
-
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         self._images.append(image)
-        self._anns.append(ann)
+
+        lite_labels = [LiteLabel(obj_class_name=label.obj_class.name) for label in ann.labels]
+        lite_ann = LiteAnnotation(labels=lite_labels)
+
+        self._anns.append(lite_ann)
 
         if len(self._images) % 100 == 0:
             number_of_images = len(self._images)
@@ -69,11 +72,11 @@ class ObjectsDistribution(BaseStats):
             counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
             for class_title in self._class_titles:
-                if class_title not in [label.obj_class.name for label in ann.labels]:
+                if class_title not in [label.obj_class_name for label in ann.labels]:
                     counters[class_title]["image_ids"].append(image_id)
 
             for label in ann.labels:
-                class_title = label.obj_class.name
+                class_title = label.obj_class_name
                 counters[class_title]["count"] += 1
                 counters[class_title]["image_ids"].append(image_id)
 
@@ -82,12 +85,6 @@ class ObjectsDistribution(BaseStats):
                 image_ids = counters[class_title]["image_ids"]
                 self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
                 self._stats[class_title][count]["count"] += 1
-
-            # size_of_stats = round(asizeof.asizeof(self._stats) / 1024 / 1024, 3)
-            # size_of_counters = round(asizeof.asizeof(counters) / 1024 / 1024, 3)
-
-            # sly.logger.info(f"🚨 Size of stats: {size_of_stats} MB")
-            # sly.logger.info(f"🚨 Size of counters: {size_of_counters} MB")
 
         max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
         columns = [i for i in range(max_column + 1)]
