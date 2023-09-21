@@ -10,6 +10,8 @@ from dataset_tools.image.stats.basestats import BaseStats
 
 MAX_NUMBER_OF_COLUMNS = 100
 
+console = Console()
+
 
 class ObjectsDistribution(BaseStats):
     """
@@ -40,6 +42,12 @@ class ObjectsDistribution(BaseStats):
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         self._data.append((image, ann))
 
+        if len(self._data) % 100 == 0:
+            console.log(f"ℹ️ Added {len(self._data)} images")
+            # size in megabytes
+            size_of_data = round(asizeof.asizeof(self._data) / 1024 / 1024, 3)
+            console.log(f"🚨 Size of data: {size_of_data} MB")
+
     def to_json(self) -> Dict:
         if not self._data:
             sly.logger.warning("No stats were added in update() method, the result will be None.")
@@ -67,12 +75,11 @@ class ObjectsDistribution(BaseStats):
                 self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
                 self._stats[class_title][count]["count"] += 1
 
-            size_of_stats = asizeof.asizeof(self._stats)
-            size_of_counters = asizeof.asizeof(counters)
+            size_of_stats = round(asizeof.asizeof(self._stats) / 1024 / 1024, 3)
+            size_of_counters = round(asizeof.asizeof(counters) / 1024 / 1024, 3)
 
-            console = Console()
-            console.log(f"ℹ️ Size of stats: {size_of_stats}")
-            console.log(f"ℹ️ Size of counters: {size_of_counters}")
+            console.log(f"🚨 Size of stats: {size_of_stats} MB")
+            console.log(f"🚨 Size of counters: {size_of_counters} MB")
 
         max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
         columns = [i for i in range(max_column + 1)]
