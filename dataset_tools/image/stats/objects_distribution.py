@@ -83,11 +83,11 @@ class ObjectsDistribution(BaseStats):
                 self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
                 self._stats[class_title][count]["count"] += 1
 
-            size_of_stats = round(asizeof.asizeof(self._stats) / 1024 / 1024, 3)
-            size_of_counters = round(asizeof.asizeof(counters) / 1024 / 1024, 3)
+            # size_of_stats = round(asizeof.asizeof(self._stats) / 1024 / 1024, 3)
+            # size_of_counters = round(asizeof.asizeof(counters) / 1024 / 1024, 3)
 
-            sly.logger.info(f"🚨 Size of stats: {size_of_stats} MB")
-            sly.logger.info(f"🚨 Size of counters: {size_of_counters} MB")
+            # sly.logger.info(f"🚨 Size of stats: {size_of_stats} MB")
+            # sly.logger.info(f"🚨 Size of counters: {size_of_counters} MB")
 
         max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
         columns = [i for i in range(max_column + 1)]
