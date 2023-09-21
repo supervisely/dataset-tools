@@ -3,7 +3,6 @@ from typing import Dict, List
 
 import supervisely as sly
 from supervisely.app.widgets import HeatmapChart
-from pympler import asizeof
 
 from dataset_tools.image.stats.basestats import BaseStats
 
@@ -44,20 +43,6 @@ class ObjectsDistribution(BaseStats):
         lite_ann = LiteAnnotation(labels=lite_labels)
 
         self._anns.append(lite_ann)
-
-        if len(self._images) % 100 == 0:
-            number_of_images = len(self._images)
-            size_of_images = round((asizeof.asizeof(self._images) / 1024 / 1024), 3)
-            size_of_anns = round((asizeof.asizeof(self._anns) / 1024 / 1024), 3)
-
-            avg_size_of_image = round(size_of_images / number_of_images, 3)
-            avg_size_of_ann = round(size_of_anns / number_of_images, 3)
-
-            sly.logger.info(
-                f"⏺️ Number of images: {len(self._images)}. "
-                f"🚨 Size of images: {size_of_images}, size of anns: {size_of_anns}, total size {size_of_images + size_of_anns} MB. "
-                f"*️⃣ Average size of image: {avg_size_of_image} MB, average size of annotation: {avg_size_of_ann} MB."
-            )
 
     def to_json(self) -> Dict:
         if not self._images:
