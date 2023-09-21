@@ -321,7 +321,7 @@ class ProjectRepo:
         stats = [
             dtools.ClassBalance(self.project_meta, self.project_stats, stat_cache=stat_cache),
             dtools.ClassCooccurrence(self.project_meta),
-            dtools.ClassesPerImage(self.project_meta, self.datasets, stat_cache=stat_cache),
+            dtools.ClassesPerImage(self.project_meta, self.project_stats, self.datasets, stat_cache=stat_cache),
             dtools.ObjectsDistribution(self.project_meta),
             dtools.ObjectSizes(self.project_meta, self.project_stats),
             dtools.ClassSizes(self.project_meta),
