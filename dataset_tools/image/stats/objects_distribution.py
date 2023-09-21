@@ -3,6 +3,8 @@ from typing import Dict, List
 
 import supervisely as sly
 from supervisely.app.widgets import HeatmapChart
+from pympler import asizeof
+from rich.console import Console
 
 from dataset_tools.image.stats.basestats import BaseStats
 
@@ -64,6 +66,13 @@ class ObjectsDistribution(BaseStats):
                 image_ids = counters[class_title]["image_ids"]
                 self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
                 self._stats[class_title][count]["count"] += 1
+
+            size_of_stats = asizeof.asizeof(self._stats)
+            size_of_counters = asizeof.asizeof(counters)
+
+            console = Console()
+            console.log(f"ℹ️ Size of stats: {size_of_stats}")
+            console.log(f"ℹ️ Size of counters: {size_of_counters}")
 
         max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
         columns = [i for i in range(max_column + 1)]

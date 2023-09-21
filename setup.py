@@ -32,6 +32,7 @@ INSTALL_REQUIRES = [
     "titlecase==2.4",
     "pycocotools>=2.0.0",
     "memory-profiler==0.61.0",
+    "Pympler==1.0.1",
 ]
 
 ALT_INSTALL_REQUIRES = {
