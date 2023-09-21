@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from typing import Dict, List
 
 import supervisely as sly
@@ -7,6 +7,8 @@ from supervisely.app.widgets import HeatmapChart
 from dataset_tools.image.stats.basestats import BaseStats
 
 MAX_NUMBER_OF_COLUMNS = 100
+LiteLabel = namedtuple("LiteLabel", ["obj_class_name"])
+LiteAnnotation = namedtuple("LiteAnnotation", ["labels"])
 
 
 class ObjectsDistribution(BaseStats):
@@ -27,35 +29,39 @@ class ObjectsDistribution(BaseStats):
         self.force = force
 
         self.project_meta = project_meta
-        # self.project_stats = project_stats
         self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})
         self._obj_classes = project_meta.obj_classes
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
-        self._data = []
 
-        # total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
+        self._images = []
+        self._anns = []
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        self._data.append((image, ann))
+        self._images.append(image)
+
+        lite_labels = [LiteLabel(obj_class_name=label.obj_class.name) for label in ann.labels]
+        lite_ann = LiteAnnotation(labels=lite_labels)
+
+        self._anns.append(lite_ann)
 
     def to_json(self) -> Dict:
-        if not self._data:
+        if not self._images:
             sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
         self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
         counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
-        for image, ann in self._data:
+        for image, ann in zip(self._images, self._anns):
             image_id = image.id
             counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
             for class_title in self._class_titles:
-                if class_title not in [label.obj_class.name for label in ann.labels]:
+                if class_title not in [label.obj_class_name for label in ann.labels]:
                     counters[class_title]["image_ids"].append(image_id)
 
             for label in ann.labels:
-                class_title = label.obj_class.name
+                class_title = label.obj_class_name
                 counters[class_title]["count"] += 1
                 counters[class_title]["image_ids"].append(image_id)
 
