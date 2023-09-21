@@ -32,27 +32,32 @@ class ObjectsDistribution(BaseStats):
         self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})
         self._obj_classes = project_meta.obj_classes
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
-        # self._data = []
+
         self._images = []
         self._anns = []
 
         # total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        # self._data.append((image, ann))
         self._images.append(image)
         self._anns.append(ann)
 
         if len(self._images) % 100 == 0:
-            # sly.logger.info(f"ℹ️ Added {len{self._images}}...")
+            number_of_images = len(self._images)
             size_of_images = round((asizeof.asizeof(self._images) / 1024 / 1024), 3)
             size_of_anns = round((asizeof.asizeof(self._anns) / 1024 / 1024), 3)
+
+            avg_size_of_image = round(size_of_images / number_of_images, 3)
+            avg_size_of_ann = round(size_of_anns / number_of_images, 3)
+
             sly.logger.info(
-                f"🚨 Size of images: {size_of_images}, size of anns: {size_of_anns}, total size {size_of_images + size_of_anns} MB"
+                f"⏺️ Number of images: {len(self._images)}. "
+                f"🚨 Size of images: {size_of_images}, size of anns: {size_of_anns}, total size {size_of_images + size_of_anns} MB. "
+                f"*️⃣ Average size of image: {avg_size_of_image} MB, average size of annotation: {avg_size_of_ann} MB."
             )
 
     def to_json(self) -> Dict:
-        if not self._data:
+        if not self._images:
             sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
