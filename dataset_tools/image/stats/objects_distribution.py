@@ -4,13 +4,10 @@ from typing import Dict, List
 import supervisely as sly
 from supervisely.app.widgets import HeatmapChart
 from pympler import asizeof
-from rich.console import Console
 
 from dataset_tools.image.stats.basestats import BaseStats
 
 MAX_NUMBER_OF_COLUMNS = 100
-
-console = Console()
 
 
 class ObjectsDistribution(BaseStats):
@@ -35,18 +32,24 @@ class ObjectsDistribution(BaseStats):
         self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})
         self._obj_classes = project_meta.obj_classes
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
-        self._data = []
+        # self._data = []
+        self._images = []
+        self._anns = []
 
         # total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        self._data.append((image, ann))
+        # self._data.append((image, ann))
+        self._images.append(image)
+        self._anns.append(ann)
 
-        if len(self._data) % 100 == 0:
-            console.log(f"ℹ️ Added {len(self._data)} images")
-            # size in megabytes
-            size_of_data = round(asizeof.asizeof(self._data) / 1024 / 1024, 3)
-            console.log(f"🚨 Size of data: {size_of_data} MB")
+        if len(self._images) % 100 == 0:
+            # sly.logger.info(f"ℹ️ Added {len{self._images}}...")
+            size_of_images = round((asizeof.asizeof(self._images) / 1024 / 1024), 3)
+            size_of_anns = round((asizeof.asizeof(self._anns) / 1024 / 1024), 3)
+            sly.logger.info(
+                f"🚨 Size of images: {size_of_images}, size of anns: {size_of_anns}, total size {size_of_images + size_of_anns} MB"
+            )
 
     def to_json(self) -> Dict:
         if not self._data:
@@ -56,7 +59,7 @@ class ObjectsDistribution(BaseStats):
         self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
         counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
-        for image, ann in self._data:
+        for image, ann in zip(self._images, self._anns):
             image_id = image.id
             counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
@@ -78,8 +81,8 @@ class ObjectsDistribution(BaseStats):
             size_of_stats = round(asizeof.asizeof(self._stats) / 1024 / 1024, 3)
             size_of_counters = round(asizeof.asizeof(counters) / 1024 / 1024, 3)
 
-            console.log(f"🚨 Size of stats: {size_of_stats} MB")
-            console.log(f"🚨 Size of counters: {size_of_counters} MB")
+            sly.logger.info(f"🚨 Size of stats: {size_of_stats} MB")
+            sly.logger.info(f"🚨 Size of counters: {size_of_counters} MB")
 
         max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
         columns = [i for i in range(max_column + 1)]
