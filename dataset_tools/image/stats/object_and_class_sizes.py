@@ -1,5 +1,5 @@
 import random
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from typing import Dict, List
 
 import supervisely as sly
@@ -10,6 +10,8 @@ from dataset_tools.image.stats.basestats import BaseStats
 MAX_SIZE_OBJECT_SIZES_BYTES = 1e7
 SHRINKAGE_COEF = 0.01
 
+LiteLabel = namedtuple("LiteLabel", ["obj_class_name"])
+LiteAnnotation = namedtuple("LiteAnnotation", ["labels"])
 
 class ObjectSizes(BaseStats):
     """
@@ -43,12 +45,12 @@ class ObjectSizes(BaseStats):
         self._object_id = 1
 
         total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
-        self.probability = 1
-        if total_objects / SHRINKAGE_COEF > MAX_SIZE_OBJECT_SIZES_BYTES:
-            self.probability = MAX_SIZE_OBJECT_SIZES_BYTES / (total_objects / SHRINKAGE_COEF)
+        self.update_freq = 1
+        if total_objects  > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
+            self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES* SHRINKAGE_COEF / total_objects
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        if random.random() <= self.probability:
+        if self.update_freq >= random.random():
             image_height, image_width = ann.img_size
 
             for label in ann.labels:
@@ -300,13 +302,15 @@ class ClassesTreemap(BaseStats):
         self._class_rgbs = [obj_class.color for obj_class in project_meta.obj_classes]
         self._class_colors = [rgb_to_hex(rgb) for rgb in self._class_rgbs]
 
-        self._data = []
+        self._anns = []
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        self._data.append(ann)
+        lite_labels = [LiteLabel(obj_class_name=label.obj_class.name) for label in ann.labels]
+        lite_ann = LiteAnnotation(labels=lite_labels)
+        self._anns.append(lite_ann)        
 
     def to_json(self) -> Dict:
-        if not self._data:
+        if not self._anns:
             sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
@@ -321,7 +325,7 @@ class ClassesTreemap(BaseStats):
         class_areas_pc = defaultdict(list)
         class_object_counts = defaultdict(int)
 
-        for ann in self._data:
+        for ann in self._anns:
             image_height, image_width = ann.img_size
             for label in ann.labels:
                 if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
