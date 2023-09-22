@@ -705,15 +705,15 @@ class ProjectRepo:
 
         sly.logger.info("Successfully built and saved citation.")
 
-    def _build_license(self, license_path, original_license_path=None) -> str:
+    def _build_license(self, license_path:str, original_license_path:str="") -> str:
         sly.logger.info("Starting to build license...")
 
         if isinstance(self.license, License.Custom):
-            if sly.fs.file_exists(original_license_path) and original_license_path is not None:
+            if sly.fs.file_exists(original_license_path) and original_license_path != "":
                 with open(original_license_path, "r") as license_file:
                     license_content = license_file.read()
             else:
-                license_content = "ADD CUSTOM LICENSE MANUALLY"
+                license_content = f"ADD CUSTOM LICENSE MANUALLY\n[Source]({self.license.url})"
                 sly.logger.warning("Custom license must be added manually.")
         elif isinstance(self.license, License.Unknown):
             license_content = UNKNOWN_LICENSE_TEMPLATE.format(

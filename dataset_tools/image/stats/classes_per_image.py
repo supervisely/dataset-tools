@@ -1,5 +1,6 @@
-from typing import Dict, List
 import random
+from typing import Dict, List
+
 import numpy as np
 import supervisely as sly
 
@@ -9,7 +10,7 @@ UNLABELED_COLOR = [0, 0, 0]
 CLASSES_CNT_LIMIT = 100
 
 MAX_SIZE_OBJECT_SIZES_BYTES = 1e7
-SHRINKAGE_COEF = 0.01
+SHRINKAGE_COEF = 0.1
 
 class ClassesPerImage(BaseStats):
     """
