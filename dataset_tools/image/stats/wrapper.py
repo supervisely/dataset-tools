@@ -19,7 +19,7 @@ CLASSES_TO_OPTIMIZE = [ClassBalance, ClassCooccurrence, ClassesPerImage, Objects
 MAX_HEIGHT = 500
 MAX_WIDTH = 500
 
-# NUM_PROCESSING = multiprocessing.cpu_count()
+NUM_PROCESSING = multiprocessing.cpu_count()
 
 
 def sample_images(
