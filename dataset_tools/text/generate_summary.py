@@ -351,7 +351,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} "
     if len(top_classes) == 1:
         content += f"single class "
-    if len(top_classes) == 0:
+    elif len(top_classes) == 0:
         content += f"classes."
     else:
         content += f"different classes "
