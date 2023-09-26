@@ -182,3 +182,12 @@ class License:
             self.url = "https://cdla.dev/permissive-1-0/"
             self.redistributable = True
             return self
+        
+    class OpenAccess:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "OpenAccess"
+            self.url = "http://purl.org/eprint/accessRights/OpenAccess"
+            self.redistributable = True
+            return self            
+
