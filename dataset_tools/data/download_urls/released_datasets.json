@@ -872,6 +872,7 @@
     "CosegPP": {
         "id": 2129,
         "download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/q/h/RW/wWIb2IZqR9cwAkmcf5Y56553JhRcSpumfxaPqAsh9vWfENkHcgYk8zKemIvG3MmRSMDxandL2M42yIm5OKZBpsaPfLlpwmW5azP7MI97ZKy3N6X07TUXWEoOP5ic.tar",
+        
         "download_original_url": {
             "Images": "https://zenodo.org/record/5117176/files/CosegPP.zip?download=1",
             "Annotations": "https://zenodo.org/record/5117176/files/CosegPP_groundtruth.zip?download=1"
