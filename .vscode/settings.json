@@ -3,7 +3,7 @@
         "**/__pycache__": true,
         "build": true,
         "dataset_tools.egg-info": true,
-        ".venv": true,
+        // ".venv": true,
     },
     "python.defaultInterpreterPath": ".venv/bin/python",
     "editor.formatOnSave": true,

@@ -128,11 +128,8 @@ def update_sly_url_dict(api: sly.Api, new_dict: dict, tf_urls_path: str) -> None
     sly.logger.info(f"Dictionary saved to Team files: '{tf_urls_path}'")
 
 
-def download(dataset: str, dst_dir: str = None) -> str:
+def download(dataset: str, dst_dir: str = "~/dataset-ninja/", unpack_archive: bool = True) -> str:
     dataset_name = dataset.lower().replace(" ", "-")
-
-    if dst_dir is None:
-        dst_dir = "~/dataset-ninja/"
 
     dst_dir = os.path.expanduser(dst_dir)
     os.makedirs(dst_dir, exist_ok=True)
@@ -159,10 +156,14 @@ def download(dataset: str, dst_dir: str = None) -> str:
 
     dst_path = os.path.join(dst_dir, f"{dataset_name}.tar")
 
-    with tqdm.tqdm(desc="Downloading", total=total_size, unit="B", unit_scale=True) as pbar:
+    with tqdm.tqdm(
+        desc=f"Downloading '{dataset}'", total=total_size, unit="B", unit_scale=True
+    ) as pbar:
         with open(dst_path, "wb") as file:
             for data in response.iter_content(block_size):
                 file.write(data)
                 pbar.update(len(data))
 
-    return unpack_if_archive(dst_path)
+    if unpack_archive:
+        return unpack_if_archive(dst_path)
+    return dst_path

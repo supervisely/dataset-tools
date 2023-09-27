@@ -1,6 +1,6 @@
 supervisely
-dataframe_image
-inflect
-matplotlib
-scikit-image
-Pympler
+#dataframe_image
+#inflect
+#matplotlib
+#scikit-image
+#Pympler
