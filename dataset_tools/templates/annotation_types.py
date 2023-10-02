@@ -1,12 +1,16 @@
 class AnnotationType:
-    class SemanticSegmentation:
+    class InstanceSegmentation:
         def __new__(cls):
-            return "semantic segmentation"
+            return "instance segmentation"
+
+    class MonocularDepthEstimation:
+        def __new__(cls):
+            return "monocular depth estimation"
 
     class ObjectDetection:
         def __new__(cls):
             return "object detection"
 
-    class InstanceSegmentation:
+    class SemanticSegmentation:
         def __new__(cls):
-            return "instance segmentation"
+            return "semantic segmentation"
