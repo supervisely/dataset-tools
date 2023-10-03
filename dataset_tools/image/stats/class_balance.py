@@ -3,8 +3,8 @@ import random
 from typing import Dict, List
 
 import numpy as np
-
 import supervisely as sly
+
 from dataset_tools.image.stats.basestats import BaseStats
 
 UNLABELED_COLOR = [0, 0, 0]
@@ -81,7 +81,7 @@ class ClassBalance(BaseStats):
             stat_area = self._stat_cache[image.id]["stat_area"]
         else:
             masks = []
-            for cls in self.class_names[1:]:
+            for cls in cur_class_names[1:]:
                 render_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
 
                 class_labels = [label for label in ann.labels if label.obj_class.name == cls]
@@ -90,20 +90,23 @@ class ClassBalance(BaseStats):
                 clann.draw(render_rgb, [1, 1, 1])
                 masks.append(render_rgb)
 
-            bitmasks1channel = [mask[:, :, 0] for mask in masks]
+            if len(masks) == 0:
+                stat_area = {"unlabeled": 100}
 
-            stacked_masks = np.stack(bitmasks1channel, axis=2)
-            total_area = stacked_masks.shape[0] * stacked_masks.shape[1]
-            mask_areas = (np.sum(stacked_masks, axis=(0, 1)) / total_area) * 100
+            else:
+                bitmasks1channel = [mask[:, :, 0] for mask in masks]
+                stacked_masks = np.stack(bitmasks1channel, axis=2)
+                total_area = stacked_masks.shape[0] * stacked_masks.shape[1]
+                mask_areas = (np.sum(stacked_masks, axis=(0, 1)) / total_area) * 100
 
-            mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
-            stat_area = {cls: area for cls, area in zip(self.class_names, mask_areas.tolist())}
+                mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
+                stat_area = {cls: area for cls, area in zip(cur_class_names, mask_areas.tolist())}
 
-            if self._stat_cache is not None:
-                if image.id in self._stat_cache:
-                    self._stat_cache[image.id]["stat_area"] = stat_area
-                else:
-                    self._stat_cache[image.id] = {"stat_area": stat_area}
+                if self._stat_cache is not None:
+                    if image.id in self._stat_cache:
+                        self._stat_cache[image.id]["stat_area"] = stat_area
+                    else:
+                        self._stat_cache[image.id] = {"stat_area": stat_area}
 
         stat_count = ann.stat_class_count(cur_class_names)
 
@@ -116,9 +119,9 @@ class ClassBalance(BaseStats):
                 cur_count = 0
                 self.images_count[idx] += 0
             else:
-                cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
-                cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
-                self.images_count[idx] += 1 if stat_count[class_name] > 0 else 0
+                cur_area = stat_area.get(class_name, 0)# if not np.isnan(stat_area[class_name]) else 0
+                cur_count = stat_count.get(class_name, 0) #] if not np.isnan(stat_count[class_name]) else 0
+                self.images_count[idx] += 1 if cur_count > 0 else 0
 
             self.sum_class_area_per_image[idx] += cur_area
             self.objects_count[idx] += cur_count

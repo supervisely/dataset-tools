@@ -87,32 +87,33 @@ class ClassesPerImage(BaseStats):
                 stat_area = self._stat_cache[image.id]["stat_area"]
             else:
                 masks = []
-                for cls in self._class_names:
-                    if cls != "unlabeled":
-                        render_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
+                for cls in cur_class_names[1:]:
+                    render_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
 
-                        class_labels = [label for label in ann.labels if label.obj_class.name == cls]
-                        clann = ann.clone(labels=class_labels)
+                    class_labels = [label for label in ann.labels if label.obj_class.name == cls]
+                    clann = ann.clone(labels=class_labels)
 
-                        clann.draw(render_rgb, [1, 1, 1])
-                        masks.append(render_rgb)
+                    clann.draw(render_rgb, [1, 1, 1])
+                    masks.append(render_rgb)
 
-                stat_area = {}
+                if len(masks) == 0:
+                    stat_area = {"unlabeled": 100}
 
-                bitmasks1channel = [mask[:, :, 0] for mask in masks]
-                stacked_masks = np.stack(bitmasks1channel, axis=2)
+                else:
+                    bitmasks1channel = [mask[:, :, 0] for mask in masks]
+                    stacked_masks = np.stack(bitmasks1channel, axis=2)
 
-                total_area = stacked_masks.shape[0] * stacked_masks.shape[1]
-                mask_areas = (np.sum(stacked_masks, axis=(0, 1)) / total_area) * 100
+                    total_area = stacked_masks.shape[0] * stacked_masks.shape[1]
+                    mask_areas = (np.sum(stacked_masks, axis=(0, 1)) / total_area) * 100
 
-                mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
-                stat_area = {cls: area for cls, area in zip(self._class_names, mask_areas.tolist())}
+                    mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
+                    stat_area = {cls: area for cls, area in zip(cur_class_names, mask_areas.tolist())}
 
-                if self._stat_cache is not None:
-                    if image.id in self._stat_cache:
-                        self._stat_cache[image.id]["stat_area"] = stat_area
-                    else:
-                        self._stat_cache[image.id] = {"stat_area": stat_area}
+                    if self._stat_cache is not None:
+                        if image.id in self._stat_cache:
+                            self._stat_cache[image.id]["stat_area"] = stat_area
+                        else:
+                            self._stat_cache[image.id] = {"stat_area": stat_area}
 
             stat_count = ann.stat_class_count(cur_class_names)
 
@@ -125,7 +126,7 @@ class ClassesPerImage(BaseStats):
 
             if self._dataset_id_to_name is not None:
                 table_row.append(self._dataset_id_to_name[image.dataset_id])
-            area_unl = stat_area["unlabeled"] if not np.isnan(stat_area["unlabeled"]) else 0
+            area_unl = stat_area.get("unlabeled", 0) # if not np.isnan(stat_area["unlabeled"]) else 0
             table_row.extend(
                 [
                     image.height,  # stat_area["height"],
@@ -133,9 +134,9 @@ class ClassesPerImage(BaseStats):
                     round(area_unl, 2) if area_unl != 0 else 0,
                 ]
             )
-            for class_name in self._class_names:
-                if class_name == "unlabeled":
-                    continue
+            for class_name in self._class_names[1:]:
+                # if class_name == "unlabeled":
+                #     continue
                 if class_name not in cur_class_names:
                     cur_area = 0
                     cur_count = 0
