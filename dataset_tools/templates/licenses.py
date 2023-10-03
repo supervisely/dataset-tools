@@ -174,6 +174,14 @@ class License:
             self.url = "https://www.gnu.org/licenses/gpl-3.0.en.html"
             self.redistributable = True
             return self
+        
+    class GNU_GPL_v2:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "GNU GPL 2.0"
+            self.url = "https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html"
+            self.redistributable = True
+            return self
 
     class CDLA_Permissive_1_0:
         def __new__(cls):
