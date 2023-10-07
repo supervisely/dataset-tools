@@ -5,10 +5,10 @@ from typing import Union
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import supervisely as sly
 from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 
+import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseVisual
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -20,9 +20,10 @@ class ClassesHeatmaps(BaseVisual):
     Get heatmaps of visual density of aggregated annotations for every class in the dataset
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, heatmap_img_size: tuple = None, force=False):
+    def __init__(self, project_meta: sly.ProjectMeta, project_stats:dict, heatmap_img_size: tuple = None, force=False):
         self.force = force
         self._meta = project_meta
+        self._project_stats = project_stats
         self.classname_heatmap = {}
         self._ds_image_sizes = []
         self.heatmap_image_paths = []
@@ -34,10 +35,24 @@ class ClassesHeatmaps(BaseVisual):
         else:
             self._heatmap_img_size = (720, 1280)
 
-        for obj_class in self._meta.obj_classes:
-            self.classname_heatmap[obj_class.name] = np.zeros(
-                self._heatmap_img_size + (3,), dtype=np.float32
-            )
+        # TODO remove later
+        self._shortlist_cls = None
+        if len(self._project_stats['images']['objectClasses']) > 500:
+            totals = [(cls['objectClass']['name'], cls['total'] ) for cls in self._project_stats['images']['objectClasses']]
+            self._shortlist_cls = [x[0] for x in totals if x[1] > 50]
+
+        if self._shortlist_cls is None:
+            for obj_class in self._meta.obj_classes:
+                self.classname_heatmap[obj_class.name] = np.zeros(
+                    self._heatmap_img_size + (3,), dtype=np.float32
+                )
+        else:
+            for obj_class_name in self._shortlist_cls:
+                self.classname_heatmap[obj_class_name] = np.zeros(
+                    self._heatmap_img_size + (3,), dtype=np.float32
+                )        
+
+        
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         image_height, image_width = ann.img_size
@@ -50,6 +65,10 @@ class ClassesHeatmaps(BaseVisual):
         ]
 
         for label in ann.labels:
+            if self._shortlist_cls is not None:
+                if label.obj_class.name not in self._shortlist_cls:
+                    continue
+
             temp_canvas = np.zeros(ann.img_size + (3,), dtype=np.uint8)
             if label.geometry.name() in geometry_types_to_heatmap:
                 if label.geometry.name() == sly.Point.name():

@@ -175,6 +175,14 @@ class License:
             self.redistributable = True
             return self
         
+    class GNU_AGPL_v3:
+        def __new__(cls):
+            self = super().__new__(cls)
+            self.name = "GNU GPL 3.0"
+            self.url = "https://www.gnu.org/licenses/agpl-3.0.html"
+            self.redistributable = True
+            return self        
+        
     class GNU_GPL_v2:
         def __new__(cls):
             self = super().__new__(cls)

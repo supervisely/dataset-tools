@@ -5,14 +5,12 @@ import shutil
 from typing import List, Literal, Optional
 
 import cv2
-import supervisely as sly
 import tqdm
 from dotenv import load_dotenv
 from PIL import Image
-from supervisely._utils import camel_to_snake
-from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
@@ -20,6 +18,8 @@ from dataset_tools.repo.sample_project import (
 )
 from dataset_tools.templates import DatasetCategory, License
 from dataset_tools.text.generate_summary import list2sentence
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
@@ -327,7 +327,7 @@ class ProjectRepo:
             dtools.ClassSizes(self.project_meta),
             dtools.ClassesTreemap(self.project_meta),
         ]
-        heatmaps = dtools.ClassesHeatmaps(self.project_meta)
+        heatmaps = dtools.ClassesHeatmaps(self.project_meta, self.project_stats)
         classes_previews = dtools.ClassesPreview(
             self.project_meta, self.project_info, **cls_prevs_settings
         )
