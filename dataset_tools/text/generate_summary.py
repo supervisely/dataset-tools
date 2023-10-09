@@ -127,9 +127,10 @@ def get_summary_data(
         round(unlabeled_num / totals_dct["total_assets"] * 100) if unlabeled_num != 0 else 100
     )  # "Cast off the crutch that kills the pain!"
 
+    sorted_datasets_items = sorted(stats["datasets"]["items"], key=lambda x: x['imagesCount'], reverse=True)
     slydssplits_list = [
         {"name": item["name"], "split_size": item["imagesCount"]}
-        for item in stats["datasets"]["items"]
+        for item in sorted_datasets_items
     ]
 
     slytagsplits_dict = {}
@@ -139,13 +140,14 @@ def get_summary_data(
                 slytagsplits_dict[group_name] = ". " + slytag_names
                 continue
             if isinstance(slytag_names, list):
+                sorted_data = sorted(stats["imageTags"]["items"], key=lambda x: x['total'], reverse=True)
                 slytagsplits_dict[group_name] = [
                     {
                         "name": item["tagMeta"]["name"],
                         "split_size": item["total"],
                         "datasets": item["datasets"],
                     }
-                    for item in stats["imageTags"]["items"]
+                    for item in sorted_data
                     if item["tagMeta"]["name"] in slytag_names
                 ]
             # elif isinstance(slytag_names, str):
