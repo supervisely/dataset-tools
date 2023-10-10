@@ -20,7 +20,7 @@ GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
 CLASSES_CNT_LIMIT = 25
-LABELAREA_THRESHOLD = 400 * 400
+LABELAREA_THRESHOLD = 300 * 300
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
@@ -158,6 +158,19 @@ class ClassesPreview(BaseVisual):
                 img = self._api.image.download_np(image_id)
                 ann_json = self._api.annotation.download_json(image_id)
                 ann = sly.Annotation.from_json(ann_json, self._meta)
+
+                grouped_labels = {}
+                for label in ann.labels:
+                    if label.obj_class.name in grouped_labels:
+                        grouped_labels[label.obj_class.name].append(label)
+                    else:
+                        grouped_labels[label.obj_class.name] = [label]
+                for key, labels in grouped_labels.items():
+                    if len(labels)>1:
+                        grouped_labels[key] = [label for label in labels if not isinstance(label.geometry, sly.Rectangle)]
+
+                refined_labels_flat  = [value for values in grouped_labels.values() for value in values]
+                ann = ann.clone(labels=refined_labels_flat)
 
                 crops = sly.aug.instance_crop(
                     img=img,
