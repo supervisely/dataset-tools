@@ -209,9 +209,6 @@ class ProjectRepo:
             },
         )
 
-        response = requests.head(self.download_sly_url)
-        self.download_archive_size = int(response.headers['Content-Length'])
-
         download.update_sly_url_dict(
             self.api,
             {
@@ -226,6 +223,9 @@ class ProjectRepo:
 
     def _update_custom_data(self):
         sly.logger.info("Updating project custom data...")
+
+        # response = requests.head(self.download_sly_url)
+        # self.download_archive_size = int(response.headers['Content-Length'])
 
         custom_data = {
             #####################
