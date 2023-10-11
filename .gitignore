@@ -6,6 +6,8 @@ tmp/
 dataset_tools.egg-info/
 build/
 demo/
+venv/
+local2.env
 .flake8
 ./data/
 /stats/

@@ -6,7 +6,7 @@ from typing import List, Union
 
 import supervisely as sly
 import tqdm
-from memory_profiler import profile
+#from memory_profiler import profile
 
 from dataset_tools import (
     ClassBalance,

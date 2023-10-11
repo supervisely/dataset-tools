@@ -7,9 +7,9 @@ import supervisely as sly
 import dataset_tools as dtools
 
 # use creentials for debugging
-# if sly.is_development():
-#     load_dotenv(os.path.expanduser("~/ninja.env"))
-#     load_dotenv("local.env")
+if sly.is_development():
+    load_dotenv(os.path.expanduser("~/ninja.env"))
+    load_dotenv("local.env")
 
 os.makedirs("./stats/", exist_ok=True)
 api = sly.Api.from_env()
@@ -19,6 +19,7 @@ project_id = sly.env.project_id()
 project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
 datasets = api.dataset.get_list(project_id)
 project = api.project.get_info_by_id(project_id)
+project_stats = api.project.get_stats(project_id)
 
 # 2. localdir way
 # project_path = os.environ["LOCAL_DATA_DIR"]
@@ -28,21 +29,18 @@ project = api.project.get_info_by_id(project_id)
 
 def main():
     stats = [
-        dtools.ClassesPerImage(project_meta, datasets),
-        dtools.ClassBalance(project_meta),
+        dtools.ClassesPerImage(project_meta, project_stats, datasets),
+        dtools.ClassBalance(project_meta, project_stats),
         dtools.ClassCooccurrence(project_meta),
         dtools.ObjectsDistribution(project_meta),
-        dtools.ObjectSizes(project_meta),
+        dtools.ObjectSizes(project_meta, project_stats, datasets),
         dtools.ClassSizes(project_meta),
     ]
-    heatmaps = dtools.ClassesHeatmaps(project_meta)
-    classes_previews = dtools.ClassesPreview(project_meta, project.name)
-    vstats = [heatmaps, classes_previews]
 
     # pass project_id or project_path as a first argument
     dtools.count_stats(
         project_id,
-        stats=stats + vstats,
+        stats=stats,
         sample_rate=0.01,
     )
     print("Saving stats...")
@@ -51,8 +49,18 @@ def main():
             json.dump(stat.to_json(), f)
         stat.to_image(f"./stats/{stat.basename_stem}.png")
 
+
+    heatmaps = dtools.ClassesHeatmaps(project_meta, project_stats)
+    classes_previews = dtools.ClassesPreview(project_meta, project)
+    vstats = [heatmaps, classes_previews]
+    dtools.count_stats(
+        project_id,
+        stats=vstats,
+        sample_rate=0.01,
+    )
     heatmaps.to_image(f"./stats/{heatmaps.basename_stem}.png", draw_style="outside_black")
     classes_previews.animate(f"./stats/{classes_previews.basename_stem}.webm")
+    
     print("Done.")
 
 

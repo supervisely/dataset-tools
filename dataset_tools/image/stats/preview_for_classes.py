@@ -11,8 +11,12 @@ import supervisely as sly
 from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 
+from supervisely.io.fs import file_exists
+from supervisely.io.json import load_json_file
+
 from dataset_tools.image.renders.convert import compress_mp4, from_mp4_to_webm
 from dataset_tools.image.stats.basestats import BaseVisual
+
 
 UNLABELED_COLOR = [0, 0, 0]
 GRADIEN_COLOR_1 = (225, 181, 62)
@@ -20,10 +24,11 @@ GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
 CLASSES_CNT_LIMIT = 25
-LABELAREA_THRESHOLD = 300 * 300
+FIXED_LABELAREA_THRESHOLD = 300 * 300
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
+CLASS_BALANCE_JSON = os.path.join("stats","class_balance.json")
 
 
 class ClassesPreview(BaseVisual):
@@ -68,12 +73,26 @@ class ClassesPreview(BaseVisual):
         self._logo_path = "logo.png"
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
+    
+        if file_exists(CLASS_BALANCE_JSON):
+            class_balance = load_json_file(CLASS_BALANCE_JSON)
+            classes_area = defaultdict()
+            for row in class_balance["data"]:
+                class_name = row[0]
+                area_on_image = row[4]
+                classes_area[class_name] = area_on_image / 100 #absolute value
+
         for label in ann.labels:
             image_area = image.width * image.height
+            if image_area*classes_area[class_name] < FIXED_LABELAREA_THRESHOLD:
+                label_area = image_area*classes_area[class_name]
+                label_area_tresh = 0.99*label_area
+            else:
+                label_area_tresh = FIXED_LABELAREA_THRESHOLD
             label_bbox = label.geometry.to_bbox()
             if (
                 not (image_area * 0.1 <= label_bbox.area <= image_area * 0.8)
-                or label_bbox.area < LABELAREA_THRESHOLD
+                or label_bbox.area < label_area_tresh
             ):
                 continue
             class_name = label.obj_class.name
