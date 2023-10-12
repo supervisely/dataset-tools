@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import re
 import shutil
 from typing import List, Literal, Optional
 
@@ -21,6 +22,8 @@ from dataset_tools.repo.sample_project import (
 )
 from dataset_tools.templates import DatasetCategory, License
 from dataset_tools.text.generate_summary import list2sentence
+
+DOWNLOAD_ARCHIVE_TEAMFILES_DIR = "/tmp/supervisely/export/export-to-supervisely-format/"
 
 CITATION_TEMPLATE = (
     "If you make use of the {project_name} data, "
@@ -209,6 +212,23 @@ class ProjectRepo:
             },
         )
 
+        files = self.api.file.list(self.team_id, DOWNLOAD_ARCHIVE_TEAMFILES_DIR, return_type='fileinfo')
+        filenames = [file.name for file in files if self.project_name in file.name]
+
+        def sorting_key(filename):
+            match = re.search(r'(\d+)_', filename)
+            if match:
+                return int(match.group(1))
+            else:
+                return 0
+        sorted_filenames = sorted(filenames, key=sorting_key, reverse=True)
+
+        teamfiles_archive_path = os.path.join(DOWNLOAD_ARCHIVE_TEAMFILES_DIR, sorted_filenames[0])
+        file_info = self.api.file.get_info_by_path(self.team_id, teamfiles_archive_path)
+
+        # self.download_sly_url = file_info.full_storage_url if file_info is not None else None
+        self.download_archive_size = file_info.sizeb if file_info is not None else -1
+
         download.update_sly_url_dict(
             self.api,
             {
@@ -223,9 +243,6 @@ class ProjectRepo:
 
     def _update_custom_data(self):
         sly.logger.info("Updating project custom data...")
-
-        # response = requests.head(self.download_sly_url)
-        # self.download_archive_size = int(response.headers['Content-Length'])
 
         custom_data = {
             #####################
@@ -605,11 +622,7 @@ class ProjectRepo:
         file_info = self.api.file.get_info_by_path(self.team_id, teamfiles_archive_path)
 
         self.download_sly_sample_url = file_info.full_storage_url if file_info is not None else None
-        self.download_sample_archive_size = (
-            self.api.file.get_directory_size(self.team_id, teamfiles_archive_path)
-            if file_info is not None
-            else None
-        )
+        self.download_sample_archive_size = file_info.sizeb if file_info is not None else None
         self._update_custom_data()
 
     def build_texts(
