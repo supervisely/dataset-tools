@@ -440,10 +440,10 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         elif vis_url.endswith(".webm"):
             if "classes_preview" in vis_url:
                 if total_classes > MAX_CLASSES_IN_TEXT:
-                    content += f"\n\nHere is a visualized example for {MAX_CLASSES_IN_TEXT} randomly selected sample classes:\n\n"
+                    content += f"\n\nHere is a visualized example for randomly selected sample classes:\n\n"
                     content += f"[Dataset classes]({vis_url})\n"
                 else:
-                    content += f"\n\nHere are the visualized examples for each of the {total_classes} classes:\n\n"
+                    content += f"\n\nHere are the visualized examples for the classes:\n\n"
                     content += f"[Dataset classes]({vis_url})\n"
             else:
                 content += f"\n\nHere is the visualized example grid with animated annotations:\n\n"

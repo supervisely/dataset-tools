@@ -45,7 +45,7 @@ class ClassesPreview(BaseVisual):
         self._project_name = project_info.name
         classes_cnt = len(self._meta.obj_classes)
         classes_text = "classes" if classes_cnt > 1 else "class"
-        self._title = f"{self._project_name} · {classes_cnt} {classes_text}"
+        self._title = f"{self._project_name} · some of {classes_cnt} {classes_text} "
         self._pad = pad
 
         self._gap = gap
