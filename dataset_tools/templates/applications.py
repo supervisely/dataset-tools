@@ -77,6 +77,10 @@ class Domain:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class OCR(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+            self.text = "optical character recognition (OCR)"
 
 class Research:
     class Agricultural(DatasetApplications):
