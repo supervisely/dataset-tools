@@ -140,15 +140,21 @@ def get_summary_data(
                 slytagsplits_dict[group_name] = ". " + slytag_names
                 continue
             if isinstance(slytag_names, list):
-                sorted_data = sorted(stats["imageTags"]["items"], key=lambda x: x['total'], reverse=True)
+                data = []
+                for image, object in zip(stats["imageTags"]["items"], stats["objectTags"]["items"]):
+                    data.append(('objects', object)) if image['total']==0 else data.append(('images', image))
+                        
+
+                sorted_data = sorted((data), key=lambda x: x[1]['total'], reverse=True)
                 slytagsplits_dict[group_name] = [
                     {
-                        "name": item["tagMeta"]["name"],
-                        "split_size": item["total"],
-                        "datasets": item["datasets"],
+                        "name": item[1]["tagMeta"]["name"],
+                        "split_size": item[1]["total"],
+                        "datasets": item[1]["datasets"],
+                        'type': item[0]
                     }
                     for item in sorted_data
-                    if item["tagMeta"]["name"] in slytag_names
+                    if item[1]["tagMeta"]["name"] in slytag_names
                 ]
             # elif isinstance(slytag_names, str):
             #     slytagsplits_dict[group_name] =
@@ -253,7 +259,7 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
             continue
 
         slytag_splits[group_name] = [
-            f'***{split["name"]}*** ({split["split_size"]} {modality})' for split in splits
+            f'***{split["name"]}*** ({split["split_size"]} {split["type"]})' for split in splits
         ]
         # <span style="background-color: #bfef45; padding: 2px 4px; border-radius: 4px;">tubingen</span>
 
