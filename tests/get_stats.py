@@ -52,7 +52,13 @@ def main():
 
     heatmaps = dtools.ClassesHeatmaps(project_meta, project_stats)
     classes_previews = dtools.ClassesPreview(project_meta, project)
-    vstats = [heatmaps, classes_previews]
+    vstats = [heatmaps]
+    dtools.count_stats(
+        project_id,
+        stats=vstats,
+        sample_rate=0.01,
+    )
+    vstats = [classes_previews]
     dtools.count_stats(
         project_id,
         stats=vstats,

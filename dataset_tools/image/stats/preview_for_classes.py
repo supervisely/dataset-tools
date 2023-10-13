@@ -24,7 +24,7 @@ GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
 CLASSES_CNT_LIMIT = 25
-FIXED_LABELAREA_THRESHOLD = 300 * 300
+LABELAREA_THRESHOLD = 200 * 200
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
@@ -41,7 +41,7 @@ class ClassesPreview(BaseVisual):
         api: sly.Api = None,
         row_height: int = None,
         force: bool = False,
-        pad: dict = {"top": "10%", "bottom": "10%", "left": "10%", "right": "10%"},
+        pad: dict = {"top": "30%", "bottom": "30%", "left": "30%", "right": "30%"},
         rows: int = None,
         gap: int = 20,
     ):
@@ -66,6 +66,8 @@ class ClassesPreview(BaseVisual):
         self._api = api if api is not None else sly.Api.from_env()
 
         self._classname2images = defaultdict(list)
+        self._average_classes_area = defaultdict()
+        self._biggest_label = defaultdict()
         self._np_images = {}
         self._np_anns = {}
         self._np_texts = {}
@@ -73,31 +75,29 @@ class ClassesPreview(BaseVisual):
         self._logo_path = "logo.png"
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-    
-        if file_exists(CLASS_BALANCE_JSON):
+        if file_exists(CLASS_BALANCE_JSON) and not self._average_classes_area:
             class_balance = load_json_file(CLASS_BALANCE_JSON)
-            classes_area = defaultdict()
             for row in class_balance["data"]:
                 class_name = row[0]
                 area_on_image = row[4]
-                classes_area[class_name] = area_on_image / 100 #absolute value
+                self._average_classes_area[class_name] = area_on_image / 100 #abs
+                self._biggest_label[class_name] = 0
 
         for label in ann.labels:
             image_area = image.width * image.height
-            if image_area*classes_area[class_name] < FIXED_LABELAREA_THRESHOLD:
-                label_area = image_area*classes_area[class_name]
-                label_area_tresh = 0.99*label_area
-            else:
-                label_area_tresh = FIXED_LABELAREA_THRESHOLD
+            class_name = label.obj_class.name
+            average_label_area = image_area*self._average_classes_area[class_name]
+            label_area_tresh = 0.95*average_label_area
             label_bbox = label.geometry.to_bbox()
             if (
-                not (image_area * 0.1 <= label_bbox.area <= image_area * 0.8)
-                or label_bbox.area < label_area_tresh
+                (label_bbox.area > max(label_area_tresh, LABELAREA_THRESHOLD))
+                and (label_bbox.area > self._biggest_label[class_name])
             ):
+                self._biggest_label[class_name] = label_bbox.area
+            else:
                 continue
-            class_name = label.obj_class.name
             if image.id not in self._classname2images[class_name]:
-                self._classname2images[class_name].append(image.id)
+                self._classname2images[class_name] = [image.id]
 
     def animate(
         self,
