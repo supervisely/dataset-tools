@@ -7,14 +7,12 @@ from typing import List, Literal, Optional
 
 import cv2
 import requests
-import supervisely as sly
 import tqdm
 from dotenv import load_dotenv
 from PIL import Image
-from supervisely._utils import camel_to_snake
-from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
@@ -22,6 +20,8 @@ from dataset_tools.repo.sample_project import (
 )
 from dataset_tools.templates import DatasetCategory, License
 from dataset_tools.text.generate_summary import list2sentence
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 DOWNLOAD_ARCHIVE_TEAMFILES_DIR = "/tmp/supervisely/export/export-to-supervisely-format/"
 
@@ -36,8 +36,8 @@ CITATION_TEMPLATE = (
     "[Source]({homepage_url})"
 )
 
-LICENSE_TEMPLATE = "{project_name_full} is under [{license_name}]({license_url}) license."
-UNKNOWN_LICENSE_TEMPLATE = "License is unknown for the {project_name_full} dataset."
+LICENSE_TEMPLATE = "{project_name_full} is under [{license_name}]({license_url}) license.\n\n[Source]({source_url})"
+UNKNOWN_LICENSE_TEMPLATE = "License is unknown for the {project_name_full} dataset.\n\n[Source]({source_url})"
 
 README_TEMPLATE = "# {project_name_full}\n\n{project_name} is a dataset for {cv_tasks}."
 
@@ -142,6 +142,8 @@ class ProjectRepo:
         self.download_sly_sample_url = None
         self.download_sample_archive_size = None
 
+        if self.license.source_url is None:
+            self.license.source_url = self.homepage_url
         self.original_license_path = "LICENSE.md"
         self.original_citation_path = "CITATION.md"
 
@@ -661,8 +663,8 @@ class ProjectRepo:
         self._build_readme(readme_path)
         self._build_download(download_path)
 
-        if "summary" in force or not sly.fs.file_exists(summary_path):
-            self._build_summary(summary_path, preview_class=preview_class)
+        # if "summary" in force or not sly.fs.file_exists(summary_path):
+        self._build_summary(summary_path, preview_class=preview_class)
 
     def _build_summary(self, summary_path, preview_class):
         classname2path = {
@@ -730,17 +732,19 @@ class ProjectRepo:
                 with open(original_license_path, "r") as license_file:
                     license_content = license_file.read()
             else:
-                license_content = f"ADD CUSTOM LICENSE MANUALLY\n[Source]({self.license.url})"
+                license_content = f"ADD CUSTOM LICENSE MANUALLY\n\n[Source]({self.license.source_url})"
                 sly.logger.warning("Custom license must be added manually.")
         elif isinstance(self.license, License.Unknown):
             license_content = UNKNOWN_LICENSE_TEMPLATE.format(
                 project_name_full=self.project_name_full,
+                source_url=self.license.source_url,
             )
         else:
             license_content = LICENSE_TEMPLATE.format(
                 project_name_full=self.project_name_full,
                 license_name=self.license.name,
                 license_url=self.license.url,
+                source_url=self.license.source_url,
             )
 
         with open(license_path, "w") as license_file:
