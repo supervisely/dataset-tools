@@ -62,7 +62,7 @@ def main():
     dtools.count_stats(
         project_id,
         stats=vstats,
-        sample_rate=0.01,
+        sample_rate=1,
     )
     heatmaps.to_image(f"./stats/{heatmaps.basename_stem}.png", draw_style="outside_black")
     classes_previews.animate(f"./stats/{classes_previews.basename_stem}.webm")

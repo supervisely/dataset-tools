@@ -24,7 +24,7 @@ GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
 CLASSES_CNT_LIMIT = 25
-LABELAREA_THRESHOLD = 200 * 200
+LABELAREA_THRESHOLD = 300 * 300
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
@@ -41,7 +41,7 @@ class ClassesPreview(BaseVisual):
         api: sly.Api = None,
         row_height: int = None,
         force: bool = False,
-        pad: dict = {"top": "30%", "bottom": "30%", "left": "30%", "right": "30%"},
+        pad: dict = {"top": "10%", "bottom": "10%", "left": "10%", "right": "10%"},
         rows: int = None,
         gap: int = 20,
     ):
@@ -67,7 +67,6 @@ class ClassesPreview(BaseVisual):
 
         self._classname2images = defaultdict(list)
         self._average_classes_area = defaultdict()
-        self._biggest_label = defaultdict()
         self._np_images = {}
         self._np_anns = {}
         self._np_texts = {}
@@ -81,7 +80,6 @@ class ClassesPreview(BaseVisual):
                 class_name = row[0]
                 area_on_image = row[4]
                 self._average_classes_area[class_name] = area_on_image / 100 #abs
-                self._biggest_label[class_name] = 0
 
         for label in ann.labels:
             image_area = image.width * image.height
@@ -90,14 +88,11 @@ class ClassesPreview(BaseVisual):
             label_area_tresh = 0.95*average_label_area
             label_bbox = label.geometry.to_bbox()
             if (
-                (label_bbox.area > max(label_area_tresh, LABELAREA_THRESHOLD))
-                and (label_bbox.area > self._biggest_label[class_name])
+                (label_bbox.area < max(label_area_tresh, LABELAREA_THRESHOLD))
             ):
-                self._biggest_label[class_name] = label_bbox.area
-            else:
                 continue
             if image.id not in self._classname2images[class_name]:
-                self._classname2images[class_name] = [image.id]
+                self._classname2images[class_name].append(image.id)
 
     def animate(
         self,
@@ -191,17 +186,25 @@ class ClassesPreview(BaseVisual):
                 refined_labels_flat  = [value for values in grouped_labels.values() for value in values]
                 ann = ann.clone(labels=refined_labels_flat)
 
+                if self._average_classes_area[cls_name] < 0.01:
+                    pad = {"top": "70%", "bottom": "70%", "left": "70%", "right": "70%"}
+                else:
+                    pad = self._pad
+
                 crops = sly.aug.instance_crop(
                     img=img,
                     ann=ann,
                     class_title=cls_name,
                     save_other_classes_in_crop=False,
-                    padding_config=self._pad,
+                    padding_config=pad,
                 )
 
                 random.shuffle(crops)
-                cropped_img, cropped_ann = crops[0]
-
+                for crop in crops:
+                    if crop[1].img_size[0]*crop[1].img_size[0] > LABELAREA_THRESHOLD:
+                        cropped_img, cropped_ann = crop
+                        break
+                        
                 cropped_img = self._resize_image_by_height(cropped_img, self._row_height)
                 try:
                     cropped_ann = cropped_ann.resize(cropped_img.shape[:2])
