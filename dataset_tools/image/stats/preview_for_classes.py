@@ -24,11 +24,11 @@ GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
 CLASSES_CNT_LIMIT = 25
-LABELAREA_THRESHOLD = 300 * 300
+LABELAREA_THRESHOLD_SMALL = 200 * 200
+LABELAREA_THRESHOLD_BIG = 400 * 400
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
-CLASS_BALANCE_JSON = os.path.join("stats","class_balance.json")
 
 
 class ClassesPreview(BaseVisual):
@@ -66,7 +66,7 @@ class ClassesPreview(BaseVisual):
         self._api = api if api is not None else sly.Api.from_env()
 
         self._classname2images = defaultdict(list)
-        self._average_classes_area = defaultdict()
+        self._bigclasses = defaultdict(list)
         self._np_images = {}
         self._np_anns = {}
         self._np_texts = {}
@@ -74,23 +74,17 @@ class ClassesPreview(BaseVisual):
         self._logo_path = "logo.png"
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        if file_exists(CLASS_BALANCE_JSON) and not self._average_classes_area:
-            class_balance = load_json_file(CLASS_BALANCE_JSON)
-            for row in class_balance["data"]:
-                class_name = row[0]
-                area_on_image = row[4]
-                self._average_classes_area[class_name] = area_on_image / 100 #abs
-
         for label in ann.labels:
-            image_area = image.width * image.height
             class_name = label.obj_class.name
-            average_label_area = image_area*self._average_classes_area[class_name]
-            label_area_tresh = 0.95*average_label_area
             label_bbox = label.geometry.to_bbox()
             if (
-                (label_bbox.area < max(label_area_tresh, LABELAREA_THRESHOLD))
+                (label_bbox.area < LABELAREA_THRESHOLD_SMALL)
             ):
                 continue
+            if (
+                (label_bbox.area > LABELAREA_THRESHOLD_BIG)
+            ):
+                self._bigclasses[class_name].append(image.id)
             if image.id not in self._classname2images[class_name]:
                 self._classname2images[class_name].append(image.id)
 
@@ -160,6 +154,8 @@ class ClassesPreview(BaseVisual):
         classes_cnt = len(self._classname2images)
         limit = classes_cnt if classes_cnt < CLASSES_CNT_LIMIT else CLASSES_CNT_LIMIT
         i = 0
+        for cls2 in self._bigclasses:
+            self._classname2images[cls2] = self._bigclasses[cls2]
         with tqdm(
             desc="ClassesPreview: download and prepare images with annotations",
             total=limit,
@@ -168,7 +164,6 @@ class ClassesPreview(BaseVisual):
                 cls_name, ids = list(self._classname2images.items())[i]
                 random.shuffle(ids)
                 image_id = ids[0]
-
                 img = self._api.image.download_np(image_id)
                 ann_json = self._api.annotation.download_json(image_id)
                 ann = sly.Annotation.from_json(ann_json, self._meta)
@@ -186,10 +181,12 @@ class ClassesPreview(BaseVisual):
                 refined_labels_flat  = [value for values in grouped_labels.values() for value in values]
                 ann = ann.clone(labels=refined_labels_flat)
 
-                if self._average_classes_area[cls_name] < 0.01:
+                if not self._bigclasses[cls_name]:
                     pad = {"top": "70%", "bottom": "70%", "left": "70%", "right": "70%"}
+                    crop_threshold = LABELAREA_THRESHOLD_SMALL
                 else:
                     pad = self._pad
+                    crop_threshold = LABELAREA_THRESHOLD_BIG
 
                 crops = sly.aug.instance_crop(
                     img=img,
@@ -198,13 +195,11 @@ class ClassesPreview(BaseVisual):
                     save_other_classes_in_crop=False,
                     padding_config=pad,
                 )
-
                 random.shuffle(crops)
                 for crop in crops:
-                    if crop[1].img_size[0]*crop[1].img_size[0] > LABELAREA_THRESHOLD:
+                    if crop[1].img_size[0]*crop[1].img_size[1] > crop_threshold:
                         cropped_img, cropped_ann = crop
                         break
-                        
                 cropped_img = self._resize_image_by_height(cropped_img, self._row_height)
                 try:
                     cropped_ann = cropped_ann.resize(cropped_img.shape[:2])
@@ -242,6 +237,7 @@ class ClassesPreview(BaseVisual):
                 self._np_anns[cls_name] = ann_mask
                 self._np_texts[cls_name] = text_mask
                 i += 1
+                del cropped_img, cropped_ann
                 pbar.update(1)
 
     def _resize_image_by_height(self, image: np.ndarray, height: int) -> np.ndarray:
