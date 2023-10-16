@@ -20,7 +20,8 @@ GRADIEN_COLOR_2 = (219, 84, 150)
 font_name = "FiraSans-Regular.ttf"
 
 CLASSES_CNT_LIMIT = 25
-LABELAREA_THRESHOLD = 200 * 200
+LABELAREA_THRESHOLD_SMALL = 200 * 200
+LABELAREA_THRESHOLD_BIG = 400 * 400
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
@@ -61,6 +62,7 @@ class ClassesPreview(BaseVisual):
         self._api = api if api is not None else sly.Api.from_env()
 
         self._classname2images = defaultdict(list)
+        self._bigclasses = defaultdict(list)
         self._np_images = {}
         self._np_anns = {}
         self._np_texts = {}
@@ -69,14 +71,16 @@ class ClassesPreview(BaseVisual):
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         for label in ann.labels:
-            image_area = image.width * image.height
+            class_name = label.obj_class.name
             label_bbox = label.geometry.to_bbox()
             if (
-                not (image_area * 0.1 <= label_bbox.area <= image_area * 0.8)
-                or label_bbox.area < LABELAREA_THRESHOLD
+                (label_bbox.area < LABELAREA_THRESHOLD_SMALL)
             ):
                 continue
-            class_name = label.obj_class.name
+            if (
+                (label_bbox.area > LABELAREA_THRESHOLD_BIG)
+            ):
+                self._bigclasses[class_name].append(image.id)
             if image.id not in self._classname2images[class_name]:
                 self._classname2images[class_name].append(image.id)
 
@@ -146,6 +150,8 @@ class ClassesPreview(BaseVisual):
         classes_cnt = len(self._classname2images)
         limit = classes_cnt if classes_cnt < CLASSES_CNT_LIMIT else CLASSES_CNT_LIMIT
         i = 0
+        for big_class in self._bigclasses:
+            self._classname2images[big_class] = self._bigclasses[big_class]
         with tqdm(
             desc="ClassesPreview: download and prepare images with annotations",
             total=limit,
@@ -154,7 +160,6 @@ class ClassesPreview(BaseVisual):
                 cls_name, ids = list(self._classname2images.items())[i]
                 random.shuffle(ids)
                 image_id = ids[0]
-
                 img = self._api.image.download_np(image_id)
                 ann_json = self._api.annotation.download_json(image_id)
                 ann = sly.Annotation.from_json(ann_json, self._meta)
@@ -172,17 +177,25 @@ class ClassesPreview(BaseVisual):
                 refined_labels_flat  = [value for values in grouped_labels.values() for value in values]
                 ann = ann.clone(labels=refined_labels_flat)
 
+                if not self._bigclasses[cls_name]:
+                    pad = {"top": "15%", "bottom": "15%", "left": "15%", "right": "15%"}
+                    crop_threshold = LABELAREA_THRESHOLD_SMALL
+                else:
+                    pad = self._pad
+                    crop_threshold = LABELAREA_THRESHOLD_BIG
+
                 crops = sly.aug.instance_crop(
                     img=img,
                     ann=ann,
                     class_title=cls_name,
                     save_other_classes_in_crop=False,
-                    padding_config=self._pad,
+                    padding_config=pad,
                 )
-
                 random.shuffle(crops)
-                cropped_img, cropped_ann = crops[0]
-
+                for crop in crops:
+                    if crop[1].img_size[0]*crop[1].img_size[1] > crop_threshold:
+                        cropped_img, cropped_ann = crop
+                        break
                 cropped_img = self._resize_image_by_height(cropped_img, self._row_height)
                 try:
                     cropped_ann = cropped_ann.resize(cropped_img.shape[:2])
@@ -200,15 +213,12 @@ class ClassesPreview(BaseVisual):
                         label.draw_contour(ann_mask, thickness=5)
                     else:
                         label.draw(ann_mask, thickness=5)
-
-                    bbox = label.geometry.to_bbox()
                     font_size = self._get_base_font_size(cls_name, ann_mask.shape[:2])
                     font = ImageFont.truetype(self._font, int(font_size * 0.75))
 
                     white = (255, 255, 255, 255)
                     black = (0, 0, 0, 0)
-                    x, y = bbox.center.col, bbox.center.row
-
+                    x, y = cropped_img.shape[1]/2, cropped_img.shape[0]/2
                     tmp_canvas = Image.fromarray(text_mask)
                     draw = ImageDraw.Draw(tmp_canvas)
                     draw.text(
