@@ -107,11 +107,20 @@ class License:
             self.source_url = source_url
             return self
 
+    class CC_BY_3_0:
+        def __new__(cls, source_url: str = None):
+            self = super().__new__(cls)
+            self.name = "CC BY 3.0"
+            self.url = "https://creativecommons.org/licenses/by/3.0"
+            self.redistributable = True
+            self.source_url = source_url
+            return self
+
     class CC_BY_4_0:
         def __new__(cls, source_url: str = None):
             self = super().__new__(cls)
             self.name = "CC BY 4.0"
-            self.url = "https://creativecommons.org/licenses/by/4.0/legalcode"
+            self.url = "https://creativecommons.org/licenses/by/4.0"
             self.redistributable = True
             self.source_url = source_url
             return self
