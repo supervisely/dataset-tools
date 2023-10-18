@@ -170,8 +170,8 @@ class ClassesPreview(BaseVisual):
                         grouped_labels[label.obj_class.name].append(label)
                     else:
                         grouped_labels[label.obj_class.name] = [label]
-                cls_type = self._meta.get_obj_class(cls_name).geometry_type.__name__
-                if cls_type != "Rectangle":
+                cls_type = self._meta.get_obj_class(cls_name).geometry_type
+                if cls_type != sly.Rectangle:
                     for key, labels in grouped_labels.items():
                         if len(labels)>1:
                             grouped_labels[key] = [label for label in labels if not isinstance(label.geometry, sly.Rectangle)]
