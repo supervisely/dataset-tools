@@ -22,3 +22,7 @@ class CVTask:
     class MonocularDepthEstimation:
         def __new__(cls):
             return "monocular depth estimation"
+
+    class CellWiseSegmentation:
+        def __new__(cls):
+            return "cell-wise segmentation"
