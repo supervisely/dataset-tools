@@ -223,6 +223,15 @@ class License:
             self.redistributable = True
             self.source_url = source_url
             return self
+        
+    class GNU_LGPL_v3:
+        def __new__(cls, source_url: str = None):
+            self = super().__new__(cls)
+            self.name = "GNU LGPL 3.0"
+            self.url = "https://www.gnu.org/licenses/lgpl-3.0.html"
+            self.redistributable = True
+            self.source_url = source_url
+            return self
 
     class CDLA_Permissive_1_0:
         def __new__(cls, source_url: str = None):
