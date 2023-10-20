@@ -39,6 +39,17 @@ class Category:
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
+    class DemoExample(DatasetCategory):
+        def __init__(
+            self,
+            extra: Union[Category, List[Category]] = None,
+            benchmark: bool = False,
+            featured: bool = False,
+            is_original_dataset: bool = True,
+            sensitive_content: bool = False,
+        ):
+            super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
+
     class Agriculture(DatasetCategory):
         def __init__(
             self,
