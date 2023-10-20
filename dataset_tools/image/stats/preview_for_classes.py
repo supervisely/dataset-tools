@@ -27,6 +27,7 @@ CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
 
 
+        
 class ClassesPreview(BaseVisual):
     """Get previews for classes in the dataset."""
 
@@ -473,3 +474,125 @@ class ClassesPreview(BaseVisual):
         draw.text(anchor, text, white, font, "mm")
         frame = np.array(tmp_canvas, dtype=np.uint8)
         return frame
+
+
+class ClassesPreviewTags(ClassesPreview):
+    """Get previews for classes in the dataset."""
+
+    def __init__(
+        self,
+        project_meta: sly.ProjectMeta,
+        project_info: sly.ProjectInfo,
+        tags: List[str] = None,        
+        api: sly.Api = None,
+        row_height: int = None,
+        force: bool = False,
+        pad: dict = {"top": "10%", "bottom": "10%", "left": "10%", "right": "10%"},
+        rows: int = None,
+        gap: int = 20,
+    ):
+        super().__init__(project_meta, project_info, api, row_height, force, pad, rows, gap)
+        self._tags = tags
+        if self._tags is not None:
+            classes_cnt = len(self._tags)
+            classes_text = "classes" if classes_cnt > 1 else "class"
+            self._title = f"{self._project_name} · {classes_cnt} {classes_text} "
+
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:              
+        for class_tag in ann.img_tags.items():
+            if class_tag.name in self._tags:                
+                self._classname2images[class_tag.name].append(image.id) 
+
+    def animate(
+        self,
+        path: str = None,
+        font: str = os.path.join(PARENT_DIR, "fonts/FiraSans-Bold.ttf"),
+    ):
+        if len(self._classname2images) > 0:
+            self._font = font
+            dirname = os.path.dirname(path)
+            os.makedirs(dirname, exist_ok=True)
+            self._collect_images()
+            canvas, texts = self._prepare_layouts()
+
+            # duration, fps = 1.5, 15
+            # num_frames = int(duration * fps)
+            num_frames = 1
+            frames = []
+            num_frames_list = [0] * 10
+            num_frames_list.extend(list(range(0, num_frames)))
+            num_frames_list.extend([num_frames] * 10)
+            num_frames_list.extend(list(range(num_frames, 0, -1)))
+
+            for _ in num_frames_list:
+                frame = self._overlay_images(canvas, texts, 1)
+                frame = self._add_logo(frame)
+                frame = self._draw_title(frame, self._title)
+                frames.append(frame)
+        else:
+            text = "No suitable images to create a classes preview."
+            sly.logger.warn(text)
+            frames = [self._create_empty_frame(font, text)]
+
+        tmp_video_path = f"{os.path.splitext(path)[0]}-o.mp4"
+        video_path = f"{os.path.splitext(path)[0]}.mp4"
+        self._save_video(tmp_video_path, frames)
+        from_mp4_to_webm(tmp_video_path, path)
+        compress_mp4(tmp_video_path, video_path)
+        sly.fs.silent_remove(tmp_video_path)
+
+        sly.logger.info(f"Animation saved to: {path}, {video_path}")
+        self._classname2images = None
+        self._np_images = None
+        self._np_anns = {}
+
+    def _collect_images(self) -> None:
+        classes_cnt = len(self._classname2images)
+        limit = classes_cnt if classes_cnt < CLASSES_CNT_LIMIT else CLASSES_CNT_LIMIT
+        i = 0
+
+        with tqdm(
+            desc="ClassesPreviewTags: download and prepare images without annotations",
+            total=limit,
+        ) as pbar:
+            while len(self._np_images) < limit:
+                cls_name, ids = list(self._classname2images.items())[i]
+                random.shuffle(ids)
+                image_id = ids[0]
+                img = self._api.image.download_np(image_id)
+                ann_json = self._api.annotation.download_json(image_id)
+                ann = sly.Annotation.from_json(ann_json, self._meta)
+
+                img = self._resize_image_by_height(img, self._row_height)
+                text_mask = np.zeros((*img.shape[:2], 3), dtype=np.uint8)
+
+                for class_tag in ann.img_tags.items():
+                    font_size = self._get_base_font_size(cls_name, img.shape[:2])
+                    font = ImageFont.truetype(self._font, int(font_size * 0.75))
+
+                    white = (255, 255, 255, 255)
+                    black = (0, 0, 0, 0)
+                    x, y = img.shape[1]/2, img.shape[0]/2
+                    tmp_canvas = Image.fromarray(text_mask)
+                    draw = ImageDraw.Draw(tmp_canvas)
+                    draw.text(
+                        (x, y), cls_name, white, font, "mm", stroke_width=1, stroke_fill=black
+                    )
+                    text_mask = np.array(tmp_canvas, dtype=np.uint8)
+
+                self._np_images[cls_name] = img                
+                self._np_texts[cls_name] = text_mask
+                i += 1
+                pbar.update(1)
+
+    def _prepare_layouts(self):
+        canvas = self._create_grid(list(self._np_images.values()))
+        texts = self._create_grid(list(self._np_texts.values()))
+
+        alpha = np.zeros((self._img_height, self._row_width), dtype=canvas.dtype)
+        canvas = cv2.merge([canvas, alpha])
+        texts = cv2.merge([texts, alpha])
+        texts[:, :, 3] = np.where(np.all(texts == 0, axis=-1), 0, 255).astype(np.uint8)
+
+        return canvas, texts                
+    

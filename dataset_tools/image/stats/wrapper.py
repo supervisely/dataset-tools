@@ -25,13 +25,17 @@ NUM_PROCESSING = multiprocessing.cpu_count()
 def sample_images(
     api: sly.Api,
     project: Union[int, str],
+    project_stats: dict,
     datasets: List[Union[sly.DatasetInfo, sly.Project.DatasetDict]],
     sample_rate: float,
 ):
     total = 0
     samples = []
-    for dataset in datasets:
-        if dataset.items_count == 0:
+    image_stats, imageTag_stats, objectTag_stats = project_stats['images']['datasets'], project_stats['imageTags']['datasets'], project_stats['objectTags']['datasets']
+    
+    for dataset, image_stat, imageTag_stat, objectTag_stat  in zip(datasets, image_stats, imageTag_stats, objectTag_stats):
+        is_unlabeled = image_stat['imagesMarked'] == 0 and imageTag_stat['imagesTagged'] == 0 and objectTag_stat['objectsTagged'] == 0
+        if dataset.items_count == 0 or is_unlabeled:
             continue
         k = int(
             max(
@@ -61,7 +65,7 @@ def sample_images(
 
 
 def count_stats(
-    project: Union[int, str], stats: list, sample_rate: float = 1, api: sly.Api = None
+    project: Union[int, str], project_stats: dict, stats: list, sample_rate: float = 1, api: sly.Api = None
 ) -> None:
     """
     Count dtools statistics instances passed as a list.
@@ -136,59 +140,39 @@ def count_stats(
     else:
         raise ValueError("Project should be either an integer project ID or a string project path.")
 
-    samples, total = sample_images(api, project, datasets, sample_rate)
+    samples, total = sample_images(api, project, project_stats, datasets, sample_rate)
     desc = "Calculating stats" + (f" [sample={sample_rate}]" if sample_rate != 1 else "")
     # sly.logger.info(f"CPU count: {NUM_PROCESSING}")
     with tqdm.tqdm(desc=desc, total=total) as pbar:
-        do_samples(samples, api, project, project_meta, stats, pbar)
-        # for dataset, images in samples:
-        #     for batch in sly.batched(images, 100):
-        #         image_ids = [image.id for image in batch]
-        #         image_names = [image.name for image in batch]
+        
+        for dataset, images in samples:
+            for batch in sly.batched(images, 100):
+                image_ids = [image.id for image in batch]
+                image_names = [image.name for image in batch]
 
-        #         if isinstance(project, int):
-        #             janns = api.annotation.download_json_batch(dataset.id, [id for id in image_ids])
-        #             anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in janns]
-        #         else:
-        #             anns = [dataset.get_ann(name, project_meta) for name in image_names]
+                if isinstance(project, int):
+                    janns = api.annotation.download_json_batch(dataset.id, [id for id in image_ids])
+                    anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in janns]
+                else:
+                    anns = [dataset.get_ann(name, project_meta) for name in image_names]
 
-        #         # resized_anns = [resize_ann_with_aspect_ratio(ann) for ann in anns]
-        #         # FIXME: optimization is broken (resize labels area 0 px)
+                # resized_anns = [resize_ann_with_aspect_ratio(ann) for ann in anns]
+                # FIXME: optimization is broken (resize labels area 0 px)
 
-        #         # TODO multiprocessing
-        #         # if isinstance(stat, ClassBalance):
-        #         #     stat.parallel_update(batch, anns, NUM_PROCESSING)
-        #         #     pbar.update(len(batch))
+                # TODO multiprocessing
+                # if isinstance(stat, ClassBalance):
+                #     stat.parallel_update(batch, anns, NUM_PROCESSING)
+                #     pbar.update(len(batch))
 
-        #         for img, ann in zip(batch, anns):
-        #             # pbar.set_postfix_str(img.name) #? for debug
-        #             for stat in stats:
-        #                 # if stat.__class__ in CLASSES_TO_OPTIMIZE:
-        #                 #     stat.update(img, resized_anns)
-        #                 # else:
-        #                 stat.update(img, ann)
-        #             pbar.update(1)
+                for img, ann in zip(batch, anns):
+                    # pbar.set_postfix_str(img.name) #? for debug
+                    for stat in stats:
+                        # if stat.__class__ in CLASSES_TO_OPTIMIZE:
+                        #     stat.update(img, resized_anns)
+                        # else:
+                        stat.update(img, ann)
+                    pbar.update(1)
 
-
-def do_samples(samples, api, project, project_meta, stats, pbar):
-    for dataset, images in samples:
-        for batch in sly.batched(images, 100):
-            do_batch(batch, api, project, dataset, project_meta, stats, pbar)
-
-
-# @profile
-def do_batch(batch, api, project, dataset, project_meta, stats, pbar):
-    image_ids = [image.id for image in batch]
-    image_names = [image.name for image in batch]
-    if isinstance(project, int):
-        janns = api.annotation.download_json_batch(dataset.id, [id for id in image_ids])
-        anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in janns]
-    else:
-        anns = [dataset.get_ann(name, project_meta) for name in image_names]
-    for img, ann in zip(batch, anns):
-        for stat in stats:
-            stat.update(img, ann)
-        pbar.update(1)
 
 
 def resize_ann_with_aspect_ratio(ann: sly.Annotation):

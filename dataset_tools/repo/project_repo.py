@@ -7,12 +7,14 @@ from typing import List, Literal, Optional
 
 import cv2
 import requests
+import supervisely as sly
 import tqdm
 from dotenv import load_dotenv
 from PIL import Image
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
-import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
@@ -20,8 +22,6 @@ from dataset_tools.repo.sample_project import (
 )
 from dataset_tools.templates import DatasetCategory, License
 from dataset_tools.text.generate_summary import list2sentence
-from supervisely._utils import camel_to_snake
-from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 DOWNLOAD_ARCHIVE_TEAMFILES_DIR = "/tmp/supervisely/export/export-to-supervisely-format/"
 
@@ -351,12 +351,17 @@ class ProjectRepo:
             dtools.ClassesTreemap(self.project_meta),
         ]
         heatmaps = dtools.ClassesHeatmaps(self.project_meta, self.project_stats)
+        cls_prevs_tags = None
+        if cls_prevs_settings.get('tags') is not None:
+            cls_prevs_tags = cls_prevs_settings.pop('tags')
+
         classes_previews = dtools.ClassesPreview(
             self.project_meta, self.project_info, **cls_prevs_settings
         )
-        # previews = dtools.Previews(
-        #     self.project_id, self.project_meta, self.api, self.team_id, **previews_settings
-        # )
+        cls_prevs_settings['tags'] = cls_prevs_tags
+        classes_previews_tags = dtools.ClassesPreviewTags(
+            self.project_meta, self.project_info, **cls_prevs_settings
+        )
 
         for stat in stats:
             if (
@@ -371,7 +376,7 @@ class ProjectRepo:
                 stat.force = False
         stats = [stat for stat in stats if stat.force]
 
-        vstats = [heatmaps, classes_previews]  # , previews]
+        vstats = [heatmaps, classes_previews, classes_previews_tags] 
 
         for vstat in vstats:
             if vstat.__class__.__name__ in force:
@@ -386,9 +391,11 @@ class ProjectRepo:
             not sly.fs.file_exists(f"./visualizations/{classes_previews.basename_stem}.webm")
             or classes_previews.__class__.__name__ in force
         ):
-            classes_previews.force = True
-        # if not self.api.file.dir_exists(self.team_id, f"/dataset/{self.project_id}/renders/"):
-        #     previews.force = True
+            if cls_prevs_tags is None:
+                classes_previews.force = True
+            else:
+                classes_previews_tags.force = True
+          
         vstats = [stat for stat in vstats if stat.force]
 
         srate = 1
@@ -397,11 +404,15 @@ class ProjectRepo:
 
         if self.project_stats["images"]["total"]["imagesMarked"] == 0:
             sly.logger.info(
-                "This is a classification-only dataset. It has zero annotations. Skipping building stats and ClassesPreview"
+                "This is a classification-only dataset. It has zero annotations. Building only ClassesPreview and Poster."
             )
-            return
+            if classes_previews_tags.force is not True:
+                return
+            stats = []
+            vstats = [vstat for vstat in vstats if isinstance(vstat, dtools.ClassesPreviewTags)]
+            heatmaps.force, classes_previews.force, classes_previews_tags.force = False, False, True
 
-        dtools.count_stats(self.project_id, stats=stats + vstats, sample_rate=srate)
+        dtools.count_stats(self.project_id, self.project_stats, stats=stats + vstats, sample_rate=srate)
 
         sly.logger.info("Saving stats...")
         for stat in stats:
@@ -419,8 +430,8 @@ class ProjectRepo:
                 heatmaps.to_image(f"./stats/{heatmaps.basename_stem}.png", **heatmaps_settings)
             if classes_previews.force:
                 classes_previews.animate(f"./visualizations/{classes_previews.basename_stem}.webm")
-            # if previews.force:
-            # previews.close()
+            elif classes_previews_tags.force: # classification-only dataset
+                classes_previews_tags.animate(f"./visualizations/{classes_previews.basename_stem}.webm")      
 
         sly.logger.info("Successfully built and saved stats.")
 
