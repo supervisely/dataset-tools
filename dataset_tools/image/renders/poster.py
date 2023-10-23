@@ -25,6 +25,7 @@ class Poster:
         force: bool = False,
         is_detection_task: bool = False,
         title: str = None,
+        num_classes: int = None,
     ) -> None:
         self.force = force
         self._project_meta = project_meta
@@ -39,6 +40,8 @@ class Poster:
         self._title = title
         self._title_font: str = os.path.join(PARENT_DIR, "fonts/FiraSans-SemiBold.ttf")
         self._subs_font: str = os.path.join(PARENT_DIR, "fonts/FiraSans-Bold.ttf")
+
+        self._num_classes = num_classes
 
         if isinstance(project, int):
             self._project = self._api.project.get_info_by_id(project)
@@ -386,7 +389,7 @@ class Poster:
 
         subs = []
         subs.append(f"{self._items_count} images")
-        classes_cnt = len(self._project_meta.obj_classes)
+        classes_cnt = self._num_classes or len(self._project_meta.obj_classes)
         classes_text = f'{classes_cnt} {"class" if classes_cnt == 1 else "classes"}'
         subs.append(classes_text)
         if self._total_labels:
