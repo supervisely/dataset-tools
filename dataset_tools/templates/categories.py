@@ -39,7 +39,7 @@ class Category:
         ):
             super().__init__(extra, benchmark, featured, is_original_dataset, sensitive_content)
 
-    class DemoExample(DatasetCategory):
+    class Tutorial(DatasetCategory):
         def __init__(
             self,
             extra: Union[Category, List[Category]] = None,
