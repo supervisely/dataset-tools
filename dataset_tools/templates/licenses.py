@@ -2,7 +2,7 @@ class License:
     class Custom:
         def __new__(cls, source_url: str = None, redistributable=True, **kwargs):
             self = super().__new__(cls)
-            self.name = "custom"     
+            self.name = "custom"
             self.url = kwargs.get('url', source_url)             
             self.redistributable = redistributable        
             self.source_url = kwargs.get('url', source_url)

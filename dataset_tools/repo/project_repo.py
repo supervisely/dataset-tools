@@ -282,6 +282,7 @@ class ProjectRepo:
             "blog": self.blog,
             "citation_url": self.citation_url,
             "authors": self.authors,
+            "authors_contacts": self.authors_contacts,
             "organization_name": self.organization_name,
             "organization_url": self.organization_url,
             "slytagsplit": self.slytagsplit,

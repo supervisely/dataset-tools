@@ -33,6 +33,10 @@ def sample_images(
     samples = []
     image_stats, imageTag_stats, objectTag_stats = project_stats['images']['datasets'], project_stats['imageTags']['datasets'], project_stats['objectTags']['datasets']
     
+    image_stats = sorted(image_stats, key=lambda x: x['id'])
+    imageTag_stats = sorted(imageTag_stats, key=lambda x: x['id'])
+    objectTag_stats = sorted(objectTag_stats, key=lambda x: x['id'])
+
     for dataset, image_stat, imageTag_stat, objectTag_stat  in zip(datasets, image_stats, imageTag_stats, objectTag_stats):
         is_unlabeled = image_stat['imagesMarked'] == 0 and imageTag_stat['imagesTagged'] == 0 and objectTag_stat['objectsTagged'] == 0
         if dataset.items_count == 0 or is_unlabeled:
