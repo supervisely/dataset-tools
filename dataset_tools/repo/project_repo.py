@@ -83,6 +83,7 @@ class ProjectRepo:
         self.tags = self.__dict__.get("tags", [])
         self.blog = self.__dict__.get("blog", None)
         self.repository = self.__dict__.get("repository", None)
+        self.authors_contacts = self.__dict__.get("authors_contacts", None)
 
         if self.class2color:
             self._update_colors()
