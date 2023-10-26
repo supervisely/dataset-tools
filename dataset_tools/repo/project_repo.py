@@ -7,14 +7,12 @@ from typing import List, Literal, Optional
 
 import cv2
 import requests
-import supervisely as sly
 import tqdm
 from dotenv import load_dotenv
 from PIL import Image
-from supervisely._utils import camel_to_snake
-from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
@@ -22,6 +20,8 @@ from dataset_tools.repo.sample_project import (
 )
 from dataset_tools.templates import DatasetCategory, License
 from dataset_tools.text.generate_summary import list2sentence
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 DOWNLOAD_ARCHIVE_TEAMFILES_DIR = "/tmp/supervisely/export/export-to-supervisely-format/"
 
@@ -37,7 +37,9 @@ CITATION_TEMPLATE = (
 )
 
 LICENSE_TEMPLATE = "{project_name_full} is under [{license_name}]({license_url}) license.\n\n[Source]({source_url})"
-UNKNOWN_LICENSE_TEMPLATE = "License is unknown for the {project_name_full} dataset.\n\n[Source]({source_url})"
+UNKNOWN_LICENSE_TEMPLATE = (
+    "License is unknown for the {project_name_full} dataset.\n\n[Source]({source_url})"
+)
 
 README_TEMPLATE = "# {project_name_full}\n\n{project_name} is a dataset for {cv_tasks}."
 
@@ -216,15 +218,22 @@ class ProjectRepo:
             },
         )
 
-        files = self.api.file.list(self.team_id, DOWNLOAD_ARCHIVE_TEAMFILES_DIR, return_type='fileinfo')
+        files = self.api.file.list(
+            self.team_id, DOWNLOAD_ARCHIVE_TEAMFILES_DIR, return_type="fileinfo"
+        )
         filenames = [file.name for file in files if self.project_name in file.name]
+        if len(filenames) == 0:
+            sly.logger.error(
+                "There is no download archive generated. Please force the creation of the download url."
+            )
 
         def sorting_key(filename):
-            match = re.search(r'(\d+)_', filename)
+            match = re.search(r"(\d+)_", filename)
             if match:
                 return int(match.group(1))
             else:
                 return 0
+
         sorted_filenames = sorted(filenames, key=sorting_key, reverse=True)
 
         teamfiles_archive_path = os.path.join(DOWNLOAD_ARCHIVE_TEAMFILES_DIR, sorted_filenames[0])
@@ -348,21 +357,23 @@ class ProjectRepo:
         stats = [
             dtools.ClassBalance(self.project_meta, self.project_stats, stat_cache=stat_cache),
             dtools.ClassCooccurrence(self.project_meta),
-            dtools.ClassesPerImage(self.project_meta, self.project_stats, self.datasets, stat_cache=stat_cache),
+            dtools.ClassesPerImage(
+                self.project_meta, self.project_stats, self.datasets, stat_cache=stat_cache
+            ),
             dtools.ObjectsDistribution(self.project_meta),
             dtools.ObjectSizes(self.project_meta, self.project_stats),
             dtools.ClassSizes(self.project_meta),
             dtools.ClassesTreemap(self.project_meta),
         ]
         heatmaps = dtools.ClassesHeatmaps(self.project_meta, self.project_stats)
-        
-        if cls_prevs_settings.get('tags') is not None:
-            self.classification_task_classes = cls_prevs_settings.pop('tags')
+
+        if cls_prevs_settings.get("tags") is not None:
+            self.classification_task_classes = cls_prevs_settings.pop("tags")
 
         classes_previews = dtools.ClassesPreview(
             self.project_meta, self.project_info, **cls_prevs_settings
         )
-        cls_prevs_settings['tags'] = self.classification_task_classes
+        cls_prevs_settings["tags"] = self.classification_task_classes
         classes_previews_tags = dtools.ClassesPreviewTags(
             self.project_meta, self.project_info, **cls_prevs_settings
         )
@@ -380,7 +391,7 @@ class ProjectRepo:
                 stat.force = False
         stats = [stat for stat in stats if stat.force]
 
-        vstats = [heatmaps, classes_previews, classes_previews_tags] 
+        vstats = [heatmaps, classes_previews, classes_previews_tags]
 
         for vstat in vstats:
             if vstat.__class__.__name__ in force:
@@ -399,7 +410,7 @@ class ProjectRepo:
                 classes_previews.force = True
             else:
                 classes_previews_tags.force = True
-          
+
         vstats = [stat for stat in vstats if stat.force]
 
         srate = 1
@@ -416,7 +427,9 @@ class ProjectRepo:
             vstats = [vstat for vstat in vstats if isinstance(vstat, dtools.ClassesPreviewTags)]
             heatmaps.force, classes_previews.force, classes_previews_tags.force = False, False, True
 
-        dtools.count_stats(self.project_id, self.project_stats, stats=stats + vstats, sample_rate=srate)
+        dtools.count_stats(
+            self.project_id, self.project_stats, stats=stats + vstats, sample_rate=srate
+        )
 
         sly.logger.info("Saving stats...")
         for stat in stats:
@@ -434,8 +447,10 @@ class ProjectRepo:
                 heatmaps.to_image(f"./stats/{heatmaps.basename_stem}.png", **heatmaps_settings)
             if classes_previews.force:
                 classes_previews.animate(f"./visualizations/{classes_previews.basename_stem}.webm")
-            elif classes_previews_tags.force: # classification-only dataset
-                classes_previews_tags.animate(f"./visualizations/{classes_previews.basename_stem}.webm")      
+            elif classes_previews_tags.force:  # classification-only dataset
+                classes_previews_tags.animate(
+                    f"./visualizations/{classes_previews.basename_stem}.webm"
+                )
 
         sly.logger.info("Successfully built and saved stats.")
 
@@ -575,11 +590,15 @@ class ProjectRepo:
             with open("./stats/class_balance.json", "r") as f:
                 class_balance_json = json.load(f)
 
-        is_classification_cvtask=True
+        is_classification_cvtask = True
 
         is_classification_cvtask = True if self.classification_task_classes is not None else False
         img_infos_sample = get_sample_image_infos(
-            self.api, self.project_info, self.project_stats, class_balance_json, is_classification_cvtask
+            self.api,
+            self.project_info,
+            self.project_stats,
+            class_balance_json,
+            is_classification_cvtask,
         )
 
         if img_infos_sample is None:
@@ -742,7 +761,7 @@ class ProjectRepo:
 
         sly.logger.info("Successfully built and saved citation.")
 
-    def _build_license(self, license_path:str, original_license_path:str="") -> str:
+    def _build_license(self, license_path: str, original_license_path: str = "") -> str:
         sly.logger.info("Starting to build license...")
 
         if isinstance(self.license, License.Custom):
@@ -750,7 +769,9 @@ class ProjectRepo:
                 with open(original_license_path, "r") as license_file:
                     license_content = license_file.read()
             else:
-                license_content = f"ADD CUSTOM LICENSE MANUALLY\n\n[Source]({self.license.source_url})"
+                license_content = (
+                    f"ADD CUSTOM LICENSE MANUALLY\n\n[Source]({self.license.source_url})"
+                )
                 sly.logger.warning("Custom license must be added manually.")
         elif isinstance(self.license, License.Unknown):
             license_content = UNKNOWN_LICENSE_TEMPLATE.format(
