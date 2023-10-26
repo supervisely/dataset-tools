@@ -552,7 +552,7 @@ class ProjectRepo:
         archive_name = self.project_info.name.lower().replace(" ", "-") + ".tar"
         buffer_project_dir_archive = os.path.join(storage_dir, archive_name)
         teamfiles_archive_path = f"/sample-projects/{archive_name}"
-        force=True
+
         if not force:
             if sample_project_exists or self.hide_dataset:
                 hide_msg = " is hidden with 'HIDE_DATASET=True'" if self.hide_dataset else None
