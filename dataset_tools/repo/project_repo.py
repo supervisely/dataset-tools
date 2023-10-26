@@ -395,7 +395,7 @@ class ProjectRepo:
             not sly.fs.file_exists(f"./visualizations/{classes_previews.basename_stem}.webm")
             or classes_previews.__class__.__name__ in force
         ):
-            if cls_prevs_tags is None:
+            if self.classification_task_classes is None:
                 classes_previews.force = True
             else:
                 classes_previews_tags.force = True
