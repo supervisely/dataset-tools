@@ -84,6 +84,7 @@ class ProjectRepo:
         self.blog = self.__dict__.get("blog", None)
         self.repository = self.__dict__.get("repository", None)
         self.authors_contacts = self.__dict__.get("authors_contacts", None)
+        self.classification_task_classes = None
 
         if self.class2color:
             self._update_colors()
@@ -287,6 +288,7 @@ class ProjectRepo:
             "organization_name": self.organization_name,
             "organization_url": self.organization_url,
             "slytagsplit": self.slytagsplit,
+            "classification_task_classes": self.classification_task_classes,
             "tags": self.tags,
             "explore_datasets": self.explore_datasets,
         }
@@ -353,14 +355,14 @@ class ProjectRepo:
             dtools.ClassesTreemap(self.project_meta),
         ]
         heatmaps = dtools.ClassesHeatmaps(self.project_meta, self.project_stats)
-        cls_prevs_tags = None
+        
         if cls_prevs_settings.get('tags') is not None:
-            cls_prevs_tags = cls_prevs_settings.pop('tags')
+            self.classification_task_classes = cls_prevs_settings.pop('tags')
 
         classes_previews = dtools.ClassesPreview(
             self.project_meta, self.project_info, **cls_prevs_settings
         )
-        cls_prevs_settings['tags'] = cls_prevs_tags
+        cls_prevs_settings['tags'] = self.classification_task_classes
         classes_previews_tags = dtools.ClassesPreviewTags(
             self.project_meta, self.project_info, **cls_prevs_settings
         )
@@ -550,7 +552,7 @@ class ProjectRepo:
         archive_name = self.project_info.name.lower().replace(" ", "-") + ".tar"
         buffer_project_dir_archive = os.path.join(storage_dir, archive_name)
         teamfiles_archive_path = f"/sample-projects/{archive_name}"
-
+        force=True
         if not force:
             if sample_project_exists or self.hide_dataset:
                 hide_msg = " is hidden with 'HIDE_DATASET=True'" if self.hide_dataset else None
@@ -573,8 +575,11 @@ class ProjectRepo:
             with open("./stats/class_balance.json", "r") as f:
                 class_balance_json = json.load(f)
 
+        is_classification_cvtask=True
+
+        is_classification_cvtask = True if self.classification_task_classes is not None else False
         img_infos_sample = get_sample_image_infos(
-            self.api, self.project_info, self.project_stats, class_balance_json
+            self.api, self.project_info, self.project_stats, class_balance_json, is_classification_cvtask
         )
 
         if img_infos_sample is None:

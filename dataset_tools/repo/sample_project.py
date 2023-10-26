@@ -12,7 +12,7 @@ from supervisely.task.progress import Progress
 
 
 def get_sample_image_infos(
-    api, project_info:sly.ProjectInfo, project_stats:dict, class_balance_json:dict=None
+    api, project_info:sly.ProjectInfo, project_stats:dict, class_balance_json:dict=None, is_classification_cvtask=False
 ) -> List[sly.ImageInfo]:
     MAX_WEIGHT_BYTES = 5e8
     MAX_ITEMS_COUNT = 1e3
@@ -36,7 +36,7 @@ def get_sample_image_infos(
     optimal_items_count = int(optimal_size / mean_size)
     
     
-    if class_balance_json is None or total_num_classes>1000:
+    if class_balance_json is None or total_num_classes > 1000 or is_classification_cvtask:
         full_list = []
         for dataset in datasets:
             full_list += api.image.get_list(dataset.id)
