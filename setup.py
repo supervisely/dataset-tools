@@ -33,6 +33,7 @@ INSTALL_REQUIRES = [
     "pycocotools>=2.0.0",
     "memory-profiler==0.61.0",
     "Pympler==1.0.1",
+    "xmltodict==0.13.0",
 ]
 
 ALT_INSTALL_REQUIRES = {
