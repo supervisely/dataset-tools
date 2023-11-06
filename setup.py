@@ -34,6 +34,7 @@ INSTALL_REQUIRES = [
     "memory-profiler==0.61.0",
     "Pympler==1.0.1",
     "xmltodict==0.13.0",
+    "imagesize==1.4.1",
 ]
 
 ALT_INSTALL_REQUIRES = {
