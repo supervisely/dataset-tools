@@ -123,14 +123,15 @@ def get_summary_data(
     }
 
     unlabeled_num = stats["images"]["total"]["imagesNotMarked"]
-    unlabeled_percent = (
-        round(unlabeled_num / totals_dct["total_assets"] * 100) if unlabeled_num != 0 else 100
-    )  # "Cast off the crutch that kills the pain!"
+    unlabeled_percent = round(unlabeled_num / totals_dct["total_assets"] * 100)
+    if stats["images"]["total"]["imagesNotMarked"] == stats["images"]["total"]["imagesMarked"] == 0:
+        unlabeled_percent = 100  # classification-only datasets
 
-    sorted_datasets_items = sorted(stats["datasets"]["items"], key=lambda x: x['imagesCount'], reverse=True)
+    sorted_datasets_items = sorted(
+        stats["datasets"]["items"], key=lambda x: x["imagesCount"], reverse=True
+    )
     slydssplits_list = [
-        {"name": item["name"], "split_size": item["imagesCount"]}
-        for item in sorted_datasets_items
+        {"name": item["name"], "split_size": item["imagesCount"]} for item in sorted_datasets_items
     ]
 
     slytagsplits_dict = {}
@@ -142,16 +143,17 @@ def get_summary_data(
             if isinstance(slytag_names, list):
                 data = []
                 for image, object in zip(stats["imageTags"]["items"], stats["objectTags"]["items"]):
-                    data.append(('objects', object)) if image['total']==0 else data.append(('images', image))
-                        
+                    data.append(("objects", object)) if image["total"] == 0 else data.append(
+                        ("images", image)
+                    )
 
-                sorted_data = sorted((data), key=lambda x: x[1]['total'], reverse=True)
+                sorted_data = sorted((data), key=lambda x: x[1]["total"], reverse=True)
                 slytagsplits_dict[group_name] = [
                     {
                         "name": item[1]["tagMeta"]["name"],
                         "split_size": item[1]["total"],
                         "datasets": item[1]["datasets"],
-                        'type': item[0]
+                        "type": item[0],
                     }
                     for item in sorted_data
                     if item[1]["tagMeta"]["name"] in slytag_names
