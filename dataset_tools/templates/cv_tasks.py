@@ -35,7 +35,7 @@ class CVTask:
         def __new__(cls):
             return "unsupervised learning"
         
-    class SelfSupervisedLearning:
+    class WeaklySupervisedLearning:
         def __new__(cls):
             return "weakly-supervised learning"
             
