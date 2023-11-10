@@ -23,6 +23,19 @@ class CVTask:
         def __new__(cls):
             return "monocular depth estimation"
 
-    class CellWiseSegmentation:
+    class SemiSupervisedLearning:
         def __new__(cls):
-            return "cell-wise segmentation"
+            return "semi-supervised learning"
+
+    class SelfSupervisedLearning:
+        def __new__(cls):
+            return "self-supervised learning"
+
+    class UnsupervisedLearning:
+        def __new__(cls):
+            return "unsupervised learning"
+        
+    class SelfSupervisedLearning:
+        def __new__(cls):
+            return "weakly-supervised learning"
+            
