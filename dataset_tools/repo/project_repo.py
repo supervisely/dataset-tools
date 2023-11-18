@@ -205,27 +205,34 @@ class ProjectRepo:
         else:
             sly.logger.info("Download sly url is passed with force: 'force_download_sly_url==True'")
 
-        self.download_sly_url = download.prepare_link(
+        _markdown = {
+            "LICENSE": self._build_license(license_path)
+            if "license" in force_texts or not sly.fs.file_exists(license_path)
+            else curr_license_content,
+            "README": self._build_readme(readme_path),
+        }
+        
+        download.update_sly_url_dict(
             self.api,
-            self.api.project.get_info_by_id(self.project_id),
-            force,
-            tf_urls_path,
             {
-                "LICENSE": self._build_license(license_path)
-                if "license" in force_texts or not sly.fs.file_exists(license_path)
-                else curr_license_content,
-                "README": self._build_readme(readme_path),
+                self.project_name: {
+                    "markdown": _markdown,
+                }
             },
+            tf_urls_path,                        
         )
 
         files = self.api.file.list(
             self.team_id, DOWNLOAD_ARCHIVE_TEAMFILES_DIR, return_type="fileinfo"
+        )        
+
+        self.download_sly_url = download.prepare_link(
+            self.api,
+            self.api.project.get_info_by_id(self.project_id),
+            force,            
+            tf_urls_path,
+            files
         )
-        filenames = [file.name for file in files if self.project_name in file.name]
-        if len(filenames) == 0:
-            sly.logger.error(
-                "There is no download archive generated. Please force the creation of the download url."
-            )
 
         def sorting_key(filename):
             match = re.search(r"(\d+)_", filename)
@@ -233,10 +240,16 @@ class ProjectRepo:
                 return int(match.group(1))
             else:
                 return 0
+            
+        filenames = [file.name for file in files if self.project_name in file.name]
+        if len(filenames) == 0:
+            sly.logger.error(
+                "There is no download archive generated. Please force the creation of the download url."
+            )            
 
-        sorted_filenames = sorted(filenames, key=sorting_key, reverse=True)
+        sorted_filenames_desc = sorted(filenames, key=sorting_key, reverse=True)
 
-        teamfiles_archive_path = os.path.join(DOWNLOAD_ARCHIVE_TEAMFILES_DIR, sorted_filenames[0])
+        teamfiles_archive_path = os.path.join(DOWNLOAD_ARCHIVE_TEAMFILES_DIR, sorted_filenames_desc[0])
         file_info = self.api.file.get_info_by_path(self.team_id, teamfiles_archive_path)
 
         # self.download_sly_url = file_info.full_storage_url if file_info is not None else None
@@ -249,9 +262,10 @@ class ProjectRepo:
                     "id": self.project_id,
                     "download_sly_url": self.download_sly_url,
                     "download_original_url": self.download_original_url,
+                    "markdown": _markdown,
                 }
             },
-            tf_urls_path,
+            tf_urls_path,                        
         )
 
     def _update_custom_data(self):

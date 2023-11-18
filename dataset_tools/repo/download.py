@@ -2,10 +2,13 @@ import json
 import os
 from urllib.parse import urljoin
 
+from typing import List
+
 import requests
 import supervisely as sly
 import tqdm
-from supervisely._utils import camel_to_snake
+from supervisely.api.file_api import FileInfo
+
 
 from dataset_tools.convert import unpack_if_archive
 
@@ -17,10 +20,11 @@ PATH_DOWNLOAD_URLS = os.path.join(PARENT_DIR, "data/download_urls/released_datas
 
 def prepare_link(
     api: sly.Api,
-    project_info: sly.ProjectInfo,
+    project: sly.ProjectInfo,
     force: bool,
     tf_urls_path: str,
-    params_dtools: dict = None,
+    files: List[FileInfo],
+    clean_duplicates: bool = True,
 ):
     team_id = sly.env.team_id()
     workspace_id = sly.env.workspace_id()
@@ -32,8 +36,8 @@ def prepare_link(
     #     with open(urls_path, "r") as f:
     #         urls = json.load(f)
 
-    api.project.update_custom_data(project_info.id, params_dtools)
-    sly.logger.info("Custom data updated with LICENSE.md and README.md contents.")
+    # api.project.update_custom_data(project_info.id, params_dtools)
+    # sly.logger.info("Custom data updated with LICENSE.md and README.md contents.")
 
     if api.file.exists(team_id, tf_urls_path):
         api.file.download(team_id, tf_urls_path, local_save_path)
@@ -43,21 +47,45 @@ def prepare_link(
         keys = [project.name for project in api.project.get_list(workspace_id)]
         urls = {key: {} for key in keys}
 
-    # try:
-    #     urls[project_info.name]
-    # except KeyError:
-    #     raise KeyError(
-    #         f"Download URL for dataset '{project_info.name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
-    #     )
+    try:
+        urls[project.name]
+    except KeyError:
+        raise KeyError(
+            f"Download URL for dataset '{project.name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
+        )
+    
+
+    def _get_duplicates(files):
+        split_dict = {}
+        for file in files:
+            project_id = int(file.name.split("_")[1])
+            if project_id not in split_dict:
+                split_dict[project_id] = [file]
+            else:
+                split_dict[project_id].append(file)
+
+        _to_delete_infos, _actual_links_infos = {}, {}
+        for project_id, split_list in split_dict.items():
+            sorted_ = sorted(split_list, key=lambda x: int(x.name.split("_")[1]))        
+            _actual_links_infos[project_id] = sorted_[-1]
+            if len(split_list) >= 2:
+                _to_delete_infos[project_id] = sorted_[:-1]
+        return _to_delete_infos, _actual_links_infos
+
+    to_delete_infos, actual_links_infos = _get_duplicates(files)
+    if clean_duplicates is True:
+        to_delete_paths = [item.path for sublist in to_delete_infos.values() for item in sublist]
+        if len(to_delete_paths) > 0:
+            pbar = tqdm.tqdm(desc="Deleting duplicate links", total=len(to_delete_paths))
+            api.file.remove_batch(team_id, to_delete_paths, pbar)
 
     if not force:
         if (
-            urls.get(project_info.name) is not None
-            and urls[project_info.name].get("id") == project_info.id
-            and urls[project_info.name].get("download_sly_url") is not None
+            actual_links_infos.get(project.id) is not None,
+            int(actual_links_infos[project.id].name.split("_")[1]) == project.id,                        
         ):
             sly.logger.info("URL already exists. Skipping creation of download link...")
-            return urls[project_info.name]["download_sly_url"]
+            return actual_links_infos[project.id].full_storage_url
 
         sly.logger.info("URL not exists. Creating a download link...")
     else:
@@ -69,7 +97,7 @@ def prepare_link(
 
     sly.logger.info(f"Start app: {module_info.name}")
 
-    params = module_info.get_arguments(images_project=project_info.id)
+    params = module_info.get_arguments(images_project=project.id)
 
     session = api.app.start(
         agent_id=agent_id,
