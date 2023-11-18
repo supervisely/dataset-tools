@@ -77,6 +77,22 @@ class ProjectRepo:
         self.team_id = sly.env.team_id()
         self.workspace_id = sly.env.workspace_id()
 
+    
+        def _check_ascii_chars(value):
+            try:
+                value.encode('ascii')
+                return True
+            except UnicodeEncodeError:
+                return False
+
+        for key, value in settings.items():
+            str_val = str(value)
+            if not _check_ascii_chars(str_val):
+                raise TypeError(f"Error: Non-ASCII characters found in the value of key '{key}'.")
+            if "<class" in str_val:
+                raise TypeError(f"The settings.py file contains non-instances objects.")
+
+
         self.__dict__.update(settings)
 
         self.hide_dataset = self.__dict__.get("hide_dataset", True)
@@ -140,7 +156,6 @@ class ProjectRepo:
                 publications[idx] = [*pub.values()]
         self.paper, self.blog, self.repository = publications
 
-        # TODO Capitalize
 
         self.images_size = {}  # need to generate images first, then update
         self.download_sly_sample_url = None
