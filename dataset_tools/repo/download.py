@@ -1,14 +1,12 @@
 import json
 import os
-from urllib.parse import urljoin
-
 from typing import List
+from urllib.parse import urljoin
 
 import requests
 import supervisely as sly
 import tqdm
 from supervisely.api.file_api import FileInfo
-
 
 from dataset_tools.convert import unpack_if_archive
 
@@ -53,7 +51,6 @@ def prepare_link(
         raise KeyError(
             f"Download URL for dataset '{project.name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
         )
-    
 
     def _get_duplicates(files):
         split_dict = {}
@@ -66,7 +63,7 @@ def prepare_link(
 
         _to_delete_infos, _actual_links_infos = {}, {}
         for project_id, split_list in split_dict.items():
-            sorted_ = sorted(split_list, key=lambda x: int(x.name.split("_")[1]))        
+            sorted_ = sorted(split_list, key=lambda x: int(x.name.split("_")[1]))
             _actual_links_infos[project_id] = sorted_[-1]
             if len(split_list) >= 2:
                 _to_delete_infos[project_id] = sorted_[:-1]
@@ -80,12 +77,10 @@ def prepare_link(
             api.file.remove_batch(team_id, to_delete_paths, pbar)
 
     if not force:
-        if (
-            actual_links_infos.get(project.id) is not None,
-            int(actual_links_infos[project.id].name.split("_")[1]) == project.id,                        
-        ):
-            sly.logger.info("URL already exists. Skipping creation of download link...")
-            return actual_links_infos[project.id].full_storage_url
+        if actual_links_infos.get(project.id) is not None:
+            if int(actual_links_infos[project.id].name.split("_")[1]) == project.id:
+                sly.logger.info("URL already exists. Skipping creation of download link...")
+                return actual_links_infos[project.id].full_storage_url
 
         sly.logger.info("URL not exists. Creating a download link...")
     else:

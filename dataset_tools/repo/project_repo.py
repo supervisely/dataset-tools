@@ -3,6 +3,7 @@ import os
 import random
 import re
 import shutil
+import time
 from typing import List, Literal, Optional
 
 import cv2
@@ -77,21 +78,35 @@ class ProjectRepo:
         self.team_id = sly.env.team_id()
         self.workspace_id = sly.env.workspace_id()
 
-    
         def _check_ascii_chars(value):
             try:
-                value.encode('ascii')
+                value.encode("ascii")
                 return True
             except UnicodeEncodeError:
                 return False
 
+        def _has_cyrillic(text: str):
+            cyrillic_ranges = [
+                (0x0400, 0x04FF),  # Cyrillic
+                (0x0500, 0x052F),  # Cyrillic Supplement
+                (0x2DE0, 0x2DFF),  # Cyrillic Extended-A
+                (0xA640, 0xA69F),  # Cyrillic Extended-B
+                (0x1C80, 0x1C8F),  # Cyrillic Extended-C
+                # Add more ranges if needed
+            ]
+
+            for char in str(text):
+                if any(start <= ord(char) <= end for start, end in cyrillic_ranges):
+                    return True
+
+            return False
+
         for key, value in settings.items():
             str_val = str(value)
-            if not _check_ascii_chars(str_val):
-                raise TypeError(f"Error: Non-ASCII characters found in the value of key '{key}'.")
+            if _has_cyrillic(value):
+                raise TypeError(f"Cyrillic characters contained in the value of key '{key}'.")
             if "<class" in str_val:
                 raise TypeError(f"The settings.py file contains non-instances objects.")
-
 
         self.__dict__.update(settings)
 
@@ -155,7 +170,6 @@ class ProjectRepo:
                     self.buttons.append({"text": k, "icon": ico, "href": v})
                 publications[idx] = [*pub.values()]
         self.paper, self.blog, self.repository = publications
-
 
         self.images_size = {}  # need to generate images first, then update
         self.download_sly_sample_url = None
@@ -226,7 +240,7 @@ class ProjectRepo:
             else curr_license_content,
             "README": self._build_readme(readme_path),
         }
-        
+
         download.update_sly_url_dict(
             self.api,
             {
@@ -234,19 +248,17 @@ class ProjectRepo:
                     "markdown": _markdown,
                 }
             },
-            tf_urls_path,                        
+            tf_urls_path,
         )
+
+        time.sleep(3)
 
         files = self.api.file.list(
             self.team_id, DOWNLOAD_ARCHIVE_TEAMFILES_DIR, return_type="fileinfo"
-        )        
+        )
 
         self.download_sly_url = download.prepare_link(
-            self.api,
-            self.api.project.get_info_by_id(self.project_id),
-            force,            
-            tf_urls_path,
-            files
+            self.api, self.api.project.get_info_by_id(self.project_id), force, tf_urls_path, files
         )
 
         def sorting_key(filename):
@@ -255,16 +267,18 @@ class ProjectRepo:
                 return int(match.group(1))
             else:
                 return 0
-            
+
         filenames = [file.name for file in files if self.project_name in file.name]
         if len(filenames) == 0:
-            sly.logger.error(
+            raise FileNotFoundError(
                 "There is no download archive generated. Please force the creation of the download url."
-            )            
+            )
 
         sorted_filenames_desc = sorted(filenames, key=sorting_key, reverse=True)
 
-        teamfiles_archive_path = os.path.join(DOWNLOAD_ARCHIVE_TEAMFILES_DIR, sorted_filenames_desc[0])
+        teamfiles_archive_path = os.path.join(
+            DOWNLOAD_ARCHIVE_TEAMFILES_DIR, sorted_filenames_desc[0]
+        )
         file_info = self.api.file.get_info_by_path(self.team_id, teamfiles_archive_path)
 
         # self.download_sly_url = file_info.full_storage_url if file_info is not None else None
@@ -280,7 +294,7 @@ class ProjectRepo:
                     "markdown": _markdown,
                 }
             },
-            tf_urls_path,                        
+            tf_urls_path,
         )
 
     def _update_custom_data(self):
