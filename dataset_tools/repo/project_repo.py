@@ -251,8 +251,6 @@ class ProjectRepo:
             tf_urls_path,
         )
 
-        time.sleep(3)
-
         files = self.api.file.list(
             self.team_id, DOWNLOAD_ARCHIVE_TEAMFILES_DIR, return_type="fileinfo"
         )
@@ -267,6 +265,10 @@ class ProjectRepo:
                 return int(match.group(1))
             else:
                 return 0
+
+        files = self.api.file.list(
+            self.team_id, DOWNLOAD_ARCHIVE_TEAMFILES_DIR, return_type="fileinfo"
+        )
 
         filenames = [file.name for file in files if self.project_name in file.name]
         if len(filenames) == 0:
