@@ -100,7 +100,8 @@ def prepare_link(
         workspace_id=workspace_id,
         task_name="Prepare download link",
         params=params,
-        app_version="dninja",
+        users_id=[1],
+        app_version="dninja-dbx",
         is_branch=True,
     )
     sly.logger.info(f"Task started, task_id: {session.task_id}")
