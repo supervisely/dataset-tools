@@ -86,7 +86,7 @@ def prepare_link(
     else:
         sly.logger.info("Creating a download link...")
 
-    app_slug = "supervisely-ecosystem/export-to-supervisely-format"
+    app_slug = "69a9887412f4381f5d557780af6ad08c/export-ninja-dataset-to-dropbox"
     module_id = api.app.get_ecosystem_module_id(app_slug)
     module_info = api.app.get_ecosystem_module_info(module_id)
 
@@ -101,7 +101,6 @@ def prepare_link(
         task_name="Prepare download link",
         params=params,
         users_id=[1],
-        app_version="dninja-dbx",
         is_branch=True,
     )
     sly.logger.info(f"Task started, task_id: {session.task_id}")
