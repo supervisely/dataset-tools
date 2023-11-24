@@ -100,8 +100,7 @@ def prepare_link(
         workspace_id=workspace_id,
         task_name="Prepare download link",
         params=params,
-        users_id=[1],
-        is_branch=True,
+        users_id=1,
     )
     sly.logger.info(f"Task started, task_id: {session.task_id}")
     sly.logger.info(session)
@@ -122,10 +121,7 @@ def prepare_link(
     sessions = api.app.get_sessions(
         team_id=team_id, module_id=module_id, statuses=[api.task.Status.FINISHED]
     )
-    return urljoin(
-        os.environ["SERVER_ADDRESS"],
-        sessions[0].details["meta"]["output"]["general"]["titleUrl"],
-    )
+    return sessions[0].details["meta"]["output"]["general"]["titleUrl"]
 
 
 def update_sly_url_dict(api: sly.Api, new_dict: dict, tf_urls_path: str) -> None:
