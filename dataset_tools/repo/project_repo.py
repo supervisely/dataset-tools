@@ -233,16 +233,6 @@ class ProjectRepo:
                 "This is a release version of a dataset. Don't forget to double-check annotations shapes, colors, tags, etc."
             )
 
-            if "https://www.dropbox.com" in self.project_info.custom_data.get("download_sly_url"):
-                sly.logger.warn(
-                    f"Be careful: the '{self.project_info.name}' .tar archive is stored on dropbox repository"
-                )
-                with requests.get(self.download_sly_url, stream=True) as r:
-                    if r.status_code == 200:
-                        self.download_archive_size = int(r.headers.get("Content-Length"))
-
-                return
-
         else:
             sly.logger.info("Download sly url is passed with force: 'force_download_sly_url==True'")
 
@@ -257,6 +247,11 @@ class ProjectRepo:
             self.api,
             {
                 self.project_name: {
+                    "id": self.project_info.id,
+                    "download_sly_url": self.project_info.custom_data.get("download_sly_url"),
+                    "download_original_url": self.project_info.custom_data.get(
+                        "download_original_url"
+                    ),
                     "markdown": _markdown,
                 }
             },
@@ -270,6 +265,16 @@ class ProjectRepo:
         self.download_sly_url = download.prepare_link(
             self.api, self.api.project.get_info_by_id(self.project_id), force, tf_urls_path, files
         )
+
+        if not force and "https://www.dropbox.com" in self.download_sly_url:
+            sly.logger.warn(
+                f"Be careful: the '{self.project_info.name}' .tar archive is stored on dropbox repository"
+            )
+            with requests.get(self.download_sly_url, stream=True) as r:
+                if r.status_code == 200:
+                    self.download_archive_size = int(r.headers.get("Content-Length"))
+
+            return
 
         def sorting_key(filename):
             match = re.search(r"(\d+)_", filename)
