@@ -241,6 +241,8 @@ class ProjectRepo:
                     if r.status_code == 200:
                         self.download_archive_size = int(r.headers.get("Content-Length"))
 
+                return
+
         else:
             sly.logger.info("Download sly url is passed with force: 'force_download_sly_url==True'")
 
