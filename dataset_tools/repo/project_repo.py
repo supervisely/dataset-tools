@@ -1,3 +1,4 @@
+import requests
 import json
 import os
 import random
@@ -231,6 +232,15 @@ class ProjectRepo:
             sly.logger.warn(
                 "This is a release version of a dataset. Don't forget to double-check annotations shapes, colors, tags, etc."
             )
+
+            if "https://www.dropbox.com" in self.download_sly_url:
+                sly.logger.warn(
+                    f"Be careful: the '{self.project_info.name}' .tar archive is stored on dropbox repository"
+                )
+                with requests.get(self.download_sly_url, stream=True) as r:
+                    if r.status_code == 200:
+                        self.download_archive_size = int(r.headers.get("Content-Length"))
+
         else:
             sly.logger.info("Download sly url is passed with force: 'force_download_sly_url==True'")
 
