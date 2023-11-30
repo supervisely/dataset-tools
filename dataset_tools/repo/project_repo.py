@@ -233,7 +233,7 @@ class ProjectRepo:
                 "This is a release version of a dataset. Don't forget to double-check annotations shapes, colors, tags, etc."
             )
 
-            if "https://www.dropbox.com" in self.download_sly_url:
+            if "https://www.dropbox.com" in self.project_info.custom_data.get("download_sly_url"):
                 sly.logger.warn(
                     f"Be careful: the '{self.project_info.name}' .tar archive is stored on dropbox repository"
                 )
