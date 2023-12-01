@@ -29,10 +29,11 @@ class ClassBalance(BaseStats):
         stat_cache: dict = None,
     ) -> None:
         self._meta = project_meta
-        self._stats = {}
+        self._project_stats = project_stats
         self.force = force
         self._stat_cache = stat_cache
 
+        self._stats = {}
         self.references_probabilities = {}
         for cls in project_stats["images"]["objectClasses"]:
             self.references_probabilities[cls["objectClass"]["name"]] = (
@@ -65,6 +66,14 @@ class ClassBalance(BaseStats):
         self.avg_nonzero_area = [None] * len(self.class_names)
         self.avg_nonzero_count = [None] * len(self.class_names)
 
+    def clean(self) -> None:
+        self.__init__(
+            self._meta,
+            self._project_stats,
+            self.force,
+            self._stat_cache,
+        )
+
     def update(self, image: sly.ImageInfo, ann: sly.Annotation):
         cur_class_names = ["unlabeled"]
         cur_class_colors = [UNLABELED_COLOR]
@@ -84,7 +93,9 @@ class ClassBalance(BaseStats):
             for cls in cur_class_names[1:]:
                 render_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
 
-                class_labels = [label for label in ann.labels if label.obj_class.name == cls]
+                class_labels = [
+                    label for label in ann.labels if label.obj_class.name == cls
+                ]
                 clann = ann.clone(labels=class_labels)
 
                 clann.draw(render_rgb, [1, 1, 1])
@@ -99,8 +110,12 @@ class ClassBalance(BaseStats):
                 total_area = stacked_masks.shape[0] * stacked_masks.shape[1]
                 mask_areas = (np.sum(stacked_masks, axis=(0, 1)) / total_area) * 100
 
-                mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
-                stat_area = {cls: area for cls, area in zip(cur_class_names, mask_areas.tolist())}
+                mask_areas = np.insert(
+                    mask_areas, 0, self.calc_unlabeled_area_in(masks)
+                )
+                stat_area = {
+                    cls: area for cls, area in zip(cur_class_names, mask_areas.tolist())
+                }
 
                 if self._stat_cache is not None:
                     if image.id in self._stat_cache:
@@ -119,8 +134,12 @@ class ClassBalance(BaseStats):
                 cur_count = 0
                 self.images_count[idx] += 0
             else:
-                cur_area = stat_area.get(class_name, 0)# if not np.isnan(stat_area[class_name]) else 0
-                cur_count = stat_count.get(class_name, 0) #] if not np.isnan(stat_count[class_name]) else 0
+                cur_area = stat_area.get(
+                    class_name, 0
+                )  # if not np.isnan(stat_area[class_name]) else 0
+                cur_count = stat_count.get(
+                    class_name, 0
+                )  # ] if not np.isnan(stat_count[class_name]) else 0
                 self.images_count[idx] += 1 if cur_count > 0 else 0
 
             self.sum_class_area_per_image[idx] += cur_area
@@ -130,7 +149,9 @@ class ClassBalance(BaseStats):
                 self.avg_nonzero_area[idx] = (
                     self.sum_class_area_per_image[idx] / self.images_count[idx]
                 )
-                self.avg_nonzero_count[idx] = self.objects_count[idx] / self.images_count[idx]
+                self.avg_nonzero_count[idx] = (
+                    self.objects_count[idx] / self.images_count[idx]
+                )
 
             if class_name in cur_class_names[1:]:
                 if (
@@ -205,12 +226,70 @@ class ClassBalance(BaseStats):
         }
         return res
 
-    def parallel_update(self, images, annotations, num_processes):
-        pool = multiprocessing.Pool(processes=num_processes)
-        pool.map(self.process_image, [(img, ann) for img, ann in zip(images, annotations)])
-        pool.close()
-        pool.join()
+    def to_numpy_raw(self):
+        images_count = np.array(self.images_count, dtype="int32")
+        objects_count = np.array(self.objects_count, dtype="int32")
+        avg_cnt_on_img = np.array(
+            [elem or 0 for elem in self.avg_nonzero_count], dtype="int32"
+        )
+        sum_area_on_img = np.array(
+            [elem or 0 for elem in self.avg_nonzero_area], dtype="float32"
+        )
+        references = np.array(self.image_counts_filter_by_id, dtype=object)
 
-    def process_image(self, args):
-        image, annotation = args
-        self.update(image, annotation)
+        return np.stack(
+            [
+                images_count,
+                objects_count,
+                avg_cnt_on_img,
+                sum_area_on_img,
+                references,
+            ],
+            axis=0,
+        )
+
+    def sew_chunks(self, chunks_dir: str) -> np.ndarray:
+        files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
+
+        res = None
+        is_zero_area = None
+        references = None
+
+        for file in files:
+            loaded_data = np.load(file, allow_pickle=True)
+            stat_data, ref_data = loaded_data[:4, :], loaded_data[4, :]
+
+            if res is None:
+                res = np.zeros(stat_data.shape)
+            res = np.add(stat_data, res)
+
+            if is_zero_area is None:
+                is_zero_area = np.zeros(stat_data.shape)[3]
+            is_zero_area = np.add((stat_data[3] == 0).astype(int), is_zero_area)
+
+            if references is None:
+                references = np.empty_like(ref_data)
+
+            def concatenate_lists(a, b):
+                return a + b if a and b else a if a else b
+
+            references = np.array(
+                [concatenate_lists(a, b) for a, b in zip(ref_data, references)],
+                dtype=object,
+            )
+
+        # count on image
+        res[2] = res[1] / res[0]
+
+        # area on image
+        area_denominators = np.array([len(files)] * stat_data.shape[1])
+        area_denominators = area_denominators - is_zero_area
+        res[3] /= area_denominators
+
+        self.images_count = res[0].tolist()
+        self.objects_count = res[1].tolist()
+        self.avg_nonzero_count = res[2].tolist()
+        self.avg_nonzero_area = res[3].tolist()
+        self.image_counts_filter_by_id = references.tolist()
+
+        return res
