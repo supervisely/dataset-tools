@@ -1,4 +1,3 @@
-import requests
 import json
 import os
 import random
@@ -9,14 +8,12 @@ from typing import List, Literal, Optional
 
 import cv2
 import requests
-import supervisely as sly
 import tqdm
 from dotenv import load_dotenv
 from PIL import Image
-from supervisely._utils import camel_to_snake
-from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
@@ -24,6 +21,8 @@ from dataset_tools.repo.sample_project import (
 )
 from dataset_tools.templates import DatasetCategory, License
 from dataset_tools.text.generate_summary import list2sentence
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 DOWNLOAD_ARCHIVE_TEAMFILES_DIR = "/tmp/supervisely/export/export-to-supervisely-format/"
 
@@ -228,6 +227,12 @@ class ProjectRepo:
                     "Dataset is hidden. To generate download link, unhide dataset with 'HIDE_DATASET=False'"
                 )
                 self.download_sly_url = "Set 'HIDE_DATASET=False' to generate download link"
+                return
+            if "https://www.dropbox.com/" in self.project_info.custom_data.get("download_sly_url"):
+                sly.logger.warn(
+                    "Download archive is already stored in the dropbox repositiry. Skipping the creation of download link."
+                )
+                self.download_sly_url = self.project_info.custom_data["download_sly_url"]
                 return
             sly.logger.warn(
                 "This is a release version of a dataset. Don't forget to double-check annotations shapes, colors, tags, etc."
