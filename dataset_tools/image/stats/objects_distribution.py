@@ -2,6 +2,7 @@ from collections import defaultdict, namedtuple
 from typing import Dict, List
 
 import supervisely as sly
+import numpy as np
 from supervisely.app.widgets import HeatmapChart
 
 from dataset_tools.image.stats.basestats import BaseStats
@@ -9,6 +10,10 @@ from dataset_tools.image.stats.basestats import BaseStats
 MAX_NUMBER_OF_COLUMNS = 100
 LiteLabel = namedtuple("LiteLabel", ["obj_class_name"])
 LiteAnnotation = namedtuple("LiteAnnotation", ["labels"])
+
+
+def rgb_to_hex(rgb: List[int]) -> str:
+    return "#{:02x}{:02x}{:02x}".format(*rgb)
 
 
 class ObjectsDistribution(BaseStats):
@@ -26,34 +31,45 @@ class ObjectsDistribution(BaseStats):
         project_meta: sly.ProjectMeta,
         force: bool = False,
     ):
+        self.project_meta = project_meta
         self.force = force
 
-        self.project_meta = project_meta
-        self._counters = defaultdict(lambda: {"count": 0, "image_ids": []})
         self._obj_classes = project_meta.obj_classes
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 
         self._images = []
         self._anns = []
 
-    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        self._images.append(image)
+    def clean(self) -> None:
+        self.__init__(
+            self.project_meta,
+            self.force,
+        )
 
-        lite_labels = [LiteLabel(obj_class_name=label.obj_class.name) for label in ann.labels]
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
+        self._images.append(image.id)
+
+        lite_labels = [
+            LiteLabel(obj_class_name=label.obj_class.name) for label in ann.labels
+        ]
         lite_ann = LiteAnnotation(labels=lite_labels)
 
         self._anns.append(lite_ann)
 
     def to_json(self) -> Dict:
-        if not self._images:
-            sly.logger.warning("No stats were added in update() method, the result will be None.")
+        if len(self._images) == 0:
+            sly.logger.warning(
+                "No stats were added in update() method, the result will be None."
+            )
             return
 
-        self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
+        self._stats = defaultdict(
+            lambda: defaultdict(lambda: {"count": 0, "image_ids": []})
+        )
         counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
-        for image, ann in zip(self._images, self._anns):
-            image_id = image.id
+        for image_id, ann in zip(self._images, self._anns):
+            # image_id = image.id
             counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
             for class_title in self._class_titles:
@@ -68,10 +84,14 @@ class ObjectsDistribution(BaseStats):
             for class_title in self._class_titles:
                 count = counters[class_title]["count"]
                 image_ids = counters[class_title]["image_ids"]
-                self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
+                self._stats[class_title][count]["image_ids"].extend(
+                    list(set(image_ids))
+                )
                 self._stats[class_title][count]["count"] += 1
 
-        max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
+        max_column = max(
+            [max(class_data.keys()) for class_data in self._stats.values()]
+        )
         columns = [i for i in range(max_column + 1)]
 
         series = list()
@@ -138,6 +158,30 @@ class ObjectsDistribution(BaseStats):
 
         return res
 
+    def to_numpy_raw(self):
+        images = [
+            [im_id] + [lbl.obj_class_name for lbl in ann.labels]
+            for im_id, ann in zip(self._images, self._anns)
+        ]
 
-def rgb_to_hex(rgb: List[int]) -> str:
-    return "#{:02x}{:02x}{:02x}".format(*rgb)
+        return np.array(images, dtype=object)
+
+    def sew_chunks(self, chunks_dir: str) -> np.ndarray:
+        files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
+
+        res = []
+
+        for file in files:
+            stat_data = np.load(file, allow_pickle=True)
+            res.extend(stat_data.tolist())
+
+        self._images = [elem[0] for elem in res]
+        self._anns = []
+        for label in [elem[1:] for elem in res]:
+            self._anns.append(
+                LiteAnnotation(
+                    labels=[LiteLabel(obj_class_name=name) for name in label]
+                )
+            )
+
+        res

@@ -279,12 +279,12 @@ class ClassBalance(BaseStats):
             )
 
         # count on image
-        res[2] = res[1] / res[0]
+        res[2] = res[1] / np.where(res[0] == 0, 1, res[0])
 
         # area on image
         area_denominators = np.array([len(files)] * stat_data.shape[1])
         area_denominators = area_denominators - is_zero_area
-        res[3] /= area_denominators
+        res[3] /= np.where(area_denominators == 0, 1, area_denominators)
 
         self.images_count = res[0].tolist()
         self.objects_count = res[1].tolist()

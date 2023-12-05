@@ -98,7 +98,7 @@ class ClassCooccurrence(BaseStats):
         matrix = np.array(self.co_occurrence_matrix, dtype="int32")
 
         n = self._num_classes
-        ref_list = [[[] for _ in range(3)] for _ in range(3)]
+        ref_list = [[[] for _ in range(n)] for _ in range(n)]
         for i in range(n):
             for j in range(n):
                 ref_list[i][j] = self._references[i][j]
