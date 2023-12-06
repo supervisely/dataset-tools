@@ -95,6 +95,9 @@ class ClassCooccurrence(BaseStats):
         return res
 
     def to_numpy_raw(self):
+        #  if unlabeled
+        if np.sum(self.co_occurrence_matrix) == 0:
+            return
         matrix = np.array(self.co_occurrence_matrix, dtype="int32")
 
         n = self._num_classes
@@ -135,6 +138,8 @@ class ClassCooccurrence(BaseStats):
 
         for file in files:
             loaded_data = np.load(file, allow_pickle=True)
+            if np.any(loaded_data == None):
+                continue
             stat_data, ref_data = loaded_data[0], loaded_data[1]
 
             if res is None:

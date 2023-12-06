@@ -227,6 +227,9 @@ class ClassBalance(BaseStats):
         return res
 
     def to_numpy_raw(self):
+        # if unlabeled
+        if self.avg_nonzero_area[0] >= 100:
+            return
         images_count = np.array(self.images_count, dtype="int32")
         objects_count = np.array(self.objects_count, dtype="int32")
         avg_cnt_on_img = np.array(
@@ -257,6 +260,8 @@ class ClassBalance(BaseStats):
 
         for file in files:
             loaded_data = np.load(file, allow_pickle=True)
+            if np.any(loaded_data == None):
+                continue
             stat_data, ref_data = loaded_data[:4, :], loaded_data[4, :]
 
             if res is None:
