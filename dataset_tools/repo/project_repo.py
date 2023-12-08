@@ -39,7 +39,7 @@ CITATION_TEMPLATE = (
 
 LICENSE_TEMPLATE = "{project_name_full} is under [{license_name}]({license_url}) license.\n\n[Source]({source_url})"
 PUBLICLY_AVAILABLE_LICENSE_TEMPLATE = (
-    "The {project_name_full} dataset is publicly available.\n\n[Source]({source_url})"
+    "The {project_name_full} is publicly available.\n\n[Source]({source_url})"
 )
 UNKNOWN_LICENSE_TEMPLATE = (
     "License is unknown for the {project_name_full} dataset.\n\n[Source]({source_url})"

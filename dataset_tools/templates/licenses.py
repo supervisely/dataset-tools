@@ -21,6 +21,7 @@ class License:
         def __new__(cls, source_url: str = None):
             self = super().__new__(cls)
             self.name = "publicly available"
+            self.url = None
             self.source_url = source_url
             self.redistributable = True
             return self
