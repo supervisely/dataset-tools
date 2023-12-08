@@ -39,6 +39,9 @@ CITATION_TEMPLATE = (
 )
 
 LICENSE_TEMPLATE = "{project_name_full} is under [{license_name}]({license_url}) license.\n\n[Source]({source_url})"
+PUBLICLY_AVAILABLE_LICENSE_TEMPLATE = (
+    "The {project_name_full} dataset is publicly available.\n\n[Source]({source_url})"
+)
 UNKNOWN_LICENSE_TEMPLATE = (
     "License is unknown for the {project_name_full} dataset.\n\n[Source]({source_url})"
 )
@@ -837,6 +840,11 @@ class ProjectRepo:
                 sly.logger.warning("Custom license must be added manually.")
         elif isinstance(self.license, License.Unknown):
             license_content = UNKNOWN_LICENSE_TEMPLATE.format(
+                project_name_full=self.project_name_full,
+                source_url=self.license.source_url,
+            )
+        elif isinstance(self.license, License.PubliclyAvailable):
+            license_content = PUBLICLY_AVAILABLE_LICENSE_TEMPLATE.format(
                 project_name_full=self.project_name_full,
                 source_url=self.license.source_url,
             )
