@@ -91,7 +91,7 @@ class ClassBalance(BaseStats):
         else:
             masks = []
             for cls in cur_class_names[1:]:
-                render_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
+                render_rgb = np.zeros(ann.img_size + (3,), dtype="int32")
 
                 class_labels = [
                     label for label in ann.labels if label.obj_class.name == cls
@@ -257,10 +257,15 @@ class ClassBalance(BaseStats):
         res = None
         is_zero_area = None
         references = None
+        none_chunks_cnt = 0
+
+        def concatenate_lists(a, b):
+            return a + b if a and b else a if a else b
 
         for file in files:
             loaded_data = np.load(file, allow_pickle=True)
             if np.any(loaded_data == None):
+                none_chunks_cnt += 1
                 continue
             stat_data, ref_data = loaded_data[:4, :], loaded_data[4, :]
 
@@ -275,9 +280,6 @@ class ClassBalance(BaseStats):
             if references is None:
                 references = np.empty_like(ref_data)
 
-            def concatenate_lists(a, b):
-                return a + b if a and b else a if a else b
-
             references = np.array(
                 [concatenate_lists(a, b) for a, b in zip(ref_data, references)],
                 dtype=object,
@@ -287,7 +289,9 @@ class ClassBalance(BaseStats):
         res[2] = res[1] / np.where(res[0] == 0, 1, res[0])
 
         # area on image
-        area_denominators = np.array([len(files)] * stat_data.shape[1])
+        area_denominators = np.array(
+            [len(files) - none_chunks_cnt] * stat_data.shape[1]
+        )
         area_denominators = area_denominators - is_zero_area
         res[3] /= np.where(area_denominators == 0, 1, area_denominators)
 

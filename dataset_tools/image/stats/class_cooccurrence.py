@@ -38,6 +38,8 @@ class ClassCooccurrence(BaseStats):
         )
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
+        if self._num_classes == 1:
+            return
         classes = set()
         for label in ann.labels:
             classes.add(label.obj_class.name)
@@ -95,13 +97,15 @@ class ClassCooccurrence(BaseStats):
         return res
 
     def to_numpy_raw(self):
+        if self._num_classes == 1:
+            return
         #  if unlabeled
         if np.sum(self.co_occurrence_matrix) == 0:
             return
         matrix = np.array(self.co_occurrence_matrix, dtype="int32")
 
         n = self._num_classes
-        ref_list = [[[] for _ in range(n)] for _ in range(n)]
+        ref_list = [[None for _ in range(n)] for _ in range(n)]
         for i in range(n):
             for j in range(n):
                 ref_list[i][j] = self._references[i][j]
@@ -117,6 +121,8 @@ class ClassCooccurrence(BaseStats):
         )
 
     def sew_chunks(self, chunks_dir: str) -> np.ndarray:
+        if self._num_classes == 1:
+            return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = None
