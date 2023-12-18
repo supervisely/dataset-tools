@@ -113,6 +113,10 @@ class Research:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class Geological(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
     class Geospatial(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)

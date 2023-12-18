@@ -251,6 +251,15 @@ class License:
             self.source_url = source_url
             return self
 
+    class CDLA_Permissive_2_0:
+        def __new__(cls, source_url: str = None):
+            self = super().__new__(cls)
+            self.name = "CDLA Permissive 2.0"
+            self.url = "https://cdla.dev/permissive-2-0/"
+            self.redistributable = True
+            self.source_url = source_url
+            return self
+
     class OpenAccess:
         def __new__(cls, source_url: str = None):
             self = super().__new__(cls)
