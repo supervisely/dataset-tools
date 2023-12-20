@@ -444,9 +444,6 @@
 		}
 	},
 	"Full Body TikTok Dancing": {
-		"id": 902,
-		"download_sly_url": "https://www.dropbox.com/scl/fi/xme3wrazu28f6srz0bia6/full-body-tiktok-dancing-DatasetNinja.tar?rlkey=hx9j6xqf4i62l4c6tgq4lt69x&dl=1",
-		"download_original_url": "https://www.kaggle.com/datasets/tapakah68/segmentation-full-body-tiktok-dancing-dataset/download?datasetVersionNumber=2",
 		"markdown": {
 			"LICENSE": "Segmentation Full Body TikTok Dancing Dataset is under [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode) license.\n\n[Source](https://www.kaggle.com/datasets/tapakah68/segmentation-full-body-tiktok-dancing-dataset)",
 			"README": "# Segmentation Full Body TikTok Dancing Dataset\n\nFull Body TikTok Dancing is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
@@ -1954,6 +1951,101 @@
 		"markdown": {
 			"LICENSE": "The CottonWeedDet3: A 3-Class Weed Detection Dataset for Cotton Cropping Systems is publicly available.\n\n[Source](https://www.kaggle.com/datasets/yuzhenlu/cottonweeddet3/)",
 			"README": "# CottonWeedDet3: A 3-Class Weed Detection Dataset for Cotton Cropping Systems\n\nCottonWeedDet3 is a dataset for object detection task."
+		}
+	},
+	"Road Detection and Centerline Extraction": {
+		"id": 3131,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/2eb1r5ogrp4fijq0d06fd/road-detection-and-centerline-extraction-DatasetNinja.tar?rlkey=x1fed8k8456ldrct22ty0o17a&dl=1",
+		"download_original_url": "https://www.kaggle.com/datasets/ipythonx/tgrs-road/download?datasetVersionNumber=1",
+		"markdown": {
+			"LICENSE": "The Road Detection and Centerline Extraction Dataset is publicly available.\n\n[Source](https://www.kaggle.com/datasets/ipythonx/tgrs-road)",
+			"README": "# Road Detection and Centerline Extraction Dataset\n\nRoad Detection and Centerline Extraction is a dataset for semantic segmentation task."
+		}
+	},
+	"SKU110K": {
+		"id": 3137,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/v0sst6h1xfxwoh9wtpcah/sku110k-DatasetNinja.tar?rlkey=l14bi3e3blzfr13eqeftjdaun&dl=1",
+		"download_original_url": "https://drive.google.com/file/d/1iq93lCdhaPUN0fWbLieMtzfB1850pKwd",
+		"markdown": {
+			"LICENSE": "The SKU110K: Densely Packed Scenes for 110K Categories of Retail Items is publicly available.\n\n[Source](https://github.com/eg4000/SKU110K_CVPR19/tree/master)",
+			"README": "# SKU110K: Densely Packed Scenes for 110K Categories of Retail Items\n\nSKU110K is a dataset for object detection task."
+		}
+	},
+	"Microscopy Malaria Dataset": {
+		"id": 3143,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/nar9x2bb0esqpu3tpdc8f/microscopy-malaria-dataset-DatasetNinja.tar?rlkey=qmu64vsh49u60hqcy718e4jyg&dl=1",
+		"download_original_url": {
+			"tuberculosis-phonecamera.zip": "https://air.ug/static/images/downloads/tuberculosis-phonecamera.zip",
+			"plasmodium-phonecamera.zip": "https://air.ug/static/images/downloads/plasmodium-phonecamera.zip",
+			"plasmodium-images.zip": "https://air.ug/static/images/downloads/plasmodium-images.zip",
+			"intestinalparasites-phonecamera.zip": "https://air.ug/static/images/downloads/intestinalparasites-phonecamera.zip"
+		},
+		"markdown": {
+			"LICENSE": "Microscopy Malaria Dataset is under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) license.\n\n[Source](https://air.ug/microscopy_dataset/#)",
+			"README": "# Microscopy Malaria Dataset\n\nMicroscopy Malaria Dataset is a dataset for object detection task."
+		}
+	},
+	"MineralImage5k": {
+		"id": 3156,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/59phtuhymi0hotlgin3cc/mineralimage5k-DatasetNinja.tar?rlkey=2kopft7guxvwav186u0x2frej&dl=1",
+		"download_original_url": "https://disk.yandex.ru/d/KapicF_MEysifg",
+		"markdown": {
+			"LICENSE": "MineralImage5k: A Benchmark for Zero-Shot Raw Mineral Visual Recognition and Description is under [MIT](https://spdx.org/licenses/MIT.html) license.\n\n[Source](https://github.com/ai-forever/mineral-recognition/blob/main/LICENSE)",
+			"README": "# MineralImage5k: A Benchmark for Zero-Shot Raw Mineral Visual Recognition and Description\n\nMineralImage5k is a dataset for object detection, semantic segmentation, and classification tasks."
+		}
+	},
+	"PubTables-1M: Detection": {
+		"id": 3172,
+		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/i/y/PK/dKiwLWKHYH79mC9TMLmm1wKzXRcJMtXYgHiPnRN4ggsyvzluEFzq06L4lQQafLgjuoRTaQ5Y2VmuPGdnxPD33SSlebRa1MaKDBxt3SJlOK9F740G1vCMZlztNi2F.tar",
+		"download_original_url": {
+			"PubTables-1M-Detection_Annotations_Test.tar.gz": "https://huggingface.co/datasets/bsmock/pubtables-1m/resolve/main/PubTables-1M-Detection_Annotations_Test.tar.gz?download=true",
+			"PubTables-1M-Detection_Annotations_Train.tar.gz": "https://huggingface.co/datasets/bsmock/pubtables-1m/resolve/main/PubTables-1M-Detection_Annotations_Train.tar.gz?download=true",
+			"PubTables-1M-Detection_Annotations_Val.tar.gz": "https://huggingface.co/datasets/bsmock/pubtables-1m/resolve/main/PubTables-1M-Detection_Annotations_Val.tar.gz?download=true",
+			"PubTables-1M-Detection_Filelists.tar.gz": "https://huggingface.co/datasets/bsmock/pubtables-1m/resolve/main/PubTables-1M-Detection_Filelists.tar.gz?download=true",
+			"PubTables-1M-Detection_Images_Test.tar.gz": "https://huggingface.co/datasets/bsmock/pubtables-1m/resolve/main/PubTables-1M-Detection_Images_Test.tar.gz?download=true",
+			"PubTables-1M-Detection_Images_Train_Part1.tar.gz": "https://huggingface.co/datasets/bsmock/pubtables-1m/resolve/main/PubTables-1M-Detection_Images_Train_Part1.tar.gz?download=true",
+			"PubTables-1M-Detection_Images_Train_Part2.tar.gz": "https://huggingface.co/datasets/bsmock/pubtables-1m/resolve/main/PubTables-1M-Detection_Images_Train_Part2.tar.gz?download=true",
+			"PubTables-1M-Detection_Images_Val.tar.gz": "https://huggingface.co/datasets/bsmock/pubtables-1m/resolve/main/PubTables-1M-Detection_Images_Val.tar.gz?download=true",
+			"PubTables-1M-Detection_Page_Words.tar.gz": "https://huggingface.co/datasets/bsmock/pubtables-1m/resolve/main/PubTables-1M-Detection_Page_Words.tar.gz?download=true"
+		},
+		"markdown": {
+			"LICENSE": "PubTables-1M: Towards Comprehensive Table Extraction from Unstructured Documents (Detection) is under [CDLA Permissive 2.0](https://cdla.dev/permissive-2-0/) license.\n\n[Source](https://huggingface.co/datasets/bsmock/pubtables-1m/blob/main/README.md)",
+			"README": "# PubTables-1M: Towards Comprehensive Table Extraction from Unstructured Documents (Detection)\n\nPubTables-1M: Detection is a dataset for object detection task."
+		}
+	},
+	"KFuji RGB-DS": {
+		"id": 3173,
+		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/k/G/HP/ns3PRDIssQTlkJKxl82hhvWTYEoofDpYJajWUFgNIJKTox605Y4J06fQMSm8s1C7FL74YR9ZkHJVUpepVGpTtMtY26prcUU7YQwGqDWG0BtFFJIko9bbPlJhXXoU.tar",
+		"download_original_url": {
+			"KFuji_RGB-DS_dataset.zip": "https://zenodo.org/record/3715991/files/KFuji_RGB-DS_dataset.zip?download=1",
+			"LICENSE.txt": "https://zenodo.org/record/3715991/files/LICENSE.txt?download=1",
+			"README.txt": "https://zenodo.org/record/3715991/files/README.txt?download=1"
+		},
+		"markdown": {
+			"LICENSE": "KFuji RGB-DS Database: Fuji Apple Multi-Modal Images for Fruit Detection with Color, Depth and Range-Corrected IR Data is under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.\n\n[Source](https://zenodo.org/records/3715991#.YguSZnVBzmg)\n\nThis database is available only for research and educational purpose and not for any commercial use. If you use the database in any publications or reports, you must refer to the following papers:\n\n1. Gené-Mola J, Vilaplana V, Rosell-Polo JR, Morros JR, Ruiz-Hidalgo J, Gregorio E. 2019. Multi-modal Deep Learning for Fruit Detection Using RGB-D Cameras and their Radiometric Capabilities. Computers and Electronics in Agriculture, 162, 689-698. DOI: 10.1016/j.compag.2019.05.016\n\n2. Gené-Mola J, Vilaplana V, Rosell-Polo JR, Morros JR, Ruiz-Hidalgo J, Gregorio E. 2019. KFuji RGB-DS database: Fuji apple multi-modal images for fruit detection with color, depth and range-corrected IR data. Data in brief, 25 (2019), 104289. DOI: 10.1016/j.dib.2019.104289\n\n[Source](https://zenodo.org/records/3715991/files/README.txt?download=1)",
+			"README": "# KFuji RGB-DS Database: Fuji Apple Multi-Modal Images for Fruit Detection with Color, Depth and Range-Corrected IR Data\n\nKFuji RGB-DS is a dataset for object detection and monocular depth estimation tasks."
+		}
+	},
+	"KOMATSUNA": {
+		"id": 3198,
+		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/3/V/Dg/gZblrHxrAoAjF1rsjiuIsj0PSMCGPgIJRKQMp2C0njl9XWKSXiERKAOXDxCOzZjZwRtTN3FpR4kCtgjHpIV4YtalybytAACR8y0yIwlNJGiQxZRxIhu5rTlsRvjS.tar",
+		"download_original_url": "https://limu.ait.kyushu-u.ac.jp/~agri/komatsuna/",
+		"markdown": {
+			"LICENSE": "The KOMATSUNA Dataset for Instance Segmentation, Tracking and Reconstruction is publicly available.\n\n[Source](https://openaccess.thecvf.com/content_ICCV_2017_workshops/papers/w29/Uchiyama_An_Easy-To-Setup_3D_ICCV_2017_paper.pdf)",
+			"README": "# KOMATSUNA Dataset for Instance Segmentation, Tracking and Reconstruction\n\nKOMATSUNA is a dataset for instance segmentation, semantic segmentation, object detection, and monocular depth estimation tasks."
+		}
+	},
+	"Power Plant Satellite Imagery Dataset": {
+		"id": 3202,
+		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/J/3/b0/oydVljDZNOgiYwvbs8ow75L8LzS3IB82IVWEMH8czSpvU7OjVIwpaZzDrA1P3iKLRRQ9uqDbza4xdKG0w4Hfc8tICSm56vttfMODSh0LWPJPDtWVirae7Nv8ZWmJ.tar",
+		"download_original_url": {
+			"Download All": "https://figshare.com/ndownloader/articles/5307364/versions/1",
+			"eGRID2014_Data_v2_US_EPA_with_imagery_list_for_power_plants.xlsx": "https://figshare.com/ndownloader/files/9097597",
+			"Power Plant Satellite Imagery Dataset Overview.pdf": "https://figshare.com/ndownloader/files/9104302"
+		},
+		"markdown": {
+			"LICENSE": "Power Plant Satellite Imagery Dataset (US Power Plants NAIP/LANDSAT8) is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://figshare.com/articles/dataset/Power_Plant_Satellite_Imagery_Dataset/5307364)",
+			"README": "# Power Plant Satellite Imagery Dataset (US Power Plants NAIP/LANDSAT8)\n\nPower Plant Satellite Imagery Dataset is a dataset for instance segmentation, semantic segmentation, object detection, and classification tasks."
 		}
 	}
 }
