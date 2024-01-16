@@ -5,6 +5,11 @@ on: workflow_dispatch
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/dataset-tools
+    permissions:
+      id-token: write
 
     steps:
       - uses: actions/checkout@v3
@@ -23,8 +28,6 @@ jobs:
 
       - name: Build package
         run: python -m build
+
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: ${{ secrets.PYPI_USERNAME }}
-          password: ${{ secrets.PYPI_PASSWORD }}
