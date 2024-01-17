@@ -284,6 +284,12 @@ class ProjectRepo:
 
             return
 
+        if force and "https://www.dropbox.com" in self.download_sly_url:
+            sly.logger.info(
+                f"Creating forced download link. Dropbox link will be rewritten automatically."
+            ) 
+            return 
+
         def sorting_key(filename):
             match = re.search(r"(\d+)_", filename)
             if match:
