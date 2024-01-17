@@ -251,13 +251,27 @@ class ClassBalance(BaseStats):
             axis=0,
         )
 
-    def sew_chunks(self, chunks_dir: str) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str, updated_classes: list) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = None
         is_zero_area = None
         references = None
         none_chunks_cnt = 0
+
+        def update_shape(
+            array: np.ndarray, updated_classes, insert_val=0
+        ) -> np.ndarray:
+            if len(updated_classes) > 0:
+                indicies = [self.class_names.index(cls) for cls in updated_classes]
+                return np.apply_along_axis(
+                    lambda line: np.insert(
+                        line, indicies, [insert_val] * len(indicies)
+                    ),
+                    axis=1,
+                    arr=array,
+                )
+            return array
 
         def concatenate_lists(a, b):
             return a + b if a and b else a if a else b
@@ -267,31 +281,38 @@ class ClassBalance(BaseStats):
             if np.any(loaded_data == None):
                 none_chunks_cnt += 1
                 continue
+
+            if loaded_data.shape[1] != len(self.class_names):  # TODO with set()
+                loaded_data = update_shape(loaded_data, updated_classes)
             stat_data, ref_data = loaded_data[:4, :], loaded_data[4, :]
+            new_shape = (stat_data.shape[0], len(self.class_names))
 
-            if res is None:
-                res = np.zeros(stat_data.shape)
-            res = np.add(stat_data, res)
-
-            if is_zero_area is None:
-                is_zero_area = np.zeros(stat_data.shape)[3]
-            is_zero_area = np.add((stat_data[3] == 0).astype(int), is_zero_area)
-
+            ref_data = np.array(
+                [[] if el == 0 else el for el in ref_data.tolist()], dtype=object
+            )
             if references is None:
-                references = np.empty_like(ref_data)
+                references = [[] for _ in range(len(ref_data))]
 
             references = np.array(
                 [concatenate_lists(a, b) for a, b in zip(ref_data, references)],
                 dtype=object,
             )
 
+            if res is None:
+                res = np.zeros(new_shape)
+            res = np.add(stat_data, res)
+
+            if is_zero_area is None:
+                is_zero_area = np.zeros(new_shape)[3]
+            is_zero_area = np.add((stat_data[3] == 0).astype(int), is_zero_area)
+
+            np.save(file, np.vstack([stat_data, ref_data]))
+
         # count on image
         res[2] = res[1] / np.where(res[0] == 0, 1, res[0])
 
         # area on image
-        area_denominators = np.array(
-            [len(files) - none_chunks_cnt] * stat_data.shape[1]
-        )
+        area_denominators = np.array([len(files) - none_chunks_cnt] * new_shape[1])
         area_denominators = area_denominators - is_zero_area
         res[3] /= np.where(area_denominators == 0, 1, area_denominators)
 
