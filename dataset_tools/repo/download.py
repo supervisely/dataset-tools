@@ -52,8 +52,9 @@ def prepare_link(
             f"Download URL for dataset '{project.name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
         )
 
-    if "https://www.dropbox.com" in urls[project.name]["download_sly_url"]:
-        return urls[project.name]["download_sly_url"]
+    if not force:       
+        if "https://www.dropbox.com" in urls[project.name]["download_sly_url"]:
+            return urls[project.name]["download_sly_url"]
 
     def _get_duplicates(files):
         split_dict = {}
