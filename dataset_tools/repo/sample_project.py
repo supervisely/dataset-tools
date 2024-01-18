@@ -12,7 +12,11 @@ from supervisely.task.progress import Progress
 
 
 def get_sample_image_infos(
-    api, project_info:sly.ProjectInfo, project_stats:dict, class_balance_json:dict=None, is_classification_cvtask=False
+    api,
+    project_info: sly.ProjectInfo,
+    project_stats: dict,
+    class_balance_json: dict = None,
+    is_classification_cvtask=False,
 ) -> List[sly.ImageInfo]:
     MAX_WEIGHT_BYTES = 5e8
     MAX_ITEMS_COUNT = 1e3
@@ -34,8 +38,7 @@ def get_sample_image_infos(
 
     optimal_size = min(MAX_ITEMS_COUNT * mean_size, MAX_WEIGHT_BYTES)
     optimal_items_count = int(optimal_size / mean_size)
-    
-    
+
     if class_balance_json is None or total_num_classes > 1000 or is_classification_cvtask:
         full_list = []
         for dataset in datasets:
@@ -119,7 +122,7 @@ def download_sample_image_project(
 ):
     dataset_ids = set(dataset_ids) if (dataset_ids is not None) else None
     project_fs = Project(dest_dir, OpenMode.CREATE)
-    meta = ProjectMeta.from_json(api.project.get_meta(project_id))
+    meta = ProjectMeta.from_json(api.project.get_meta(project_id, with_settings=True))
     project_fs.set_meta(meta)
 
     if only_image_tags is True:

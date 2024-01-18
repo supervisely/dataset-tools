@@ -73,7 +73,9 @@ class ProjectRepo:
     def __init__(self, api: sly.Api, project_id: int, settings: dict):
         self.project_id = project_id
         self.project_info = api.project.get_info_by_id(project_id)
-        self.project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
+        self.project_meta = sly.ProjectMeta.from_json(
+            api.project.get_meta(project_id, with_settings=True)
+        )
         self.project_stats = api.project.get_stats(self.project_id)
         self.datasets = api.dataset.get_list(project_id)
 
@@ -287,8 +289,8 @@ class ProjectRepo:
         if force and "https://www.dropbox.com" in self.download_sly_url:
             sly.logger.info(
                 f"Creating forced download link. Dropbox link will be rewritten automatically."
-            ) 
-            return 
+            )
+            return
 
         def sorting_key(filename):
             match = re.search(r"(\d+)_", filename)

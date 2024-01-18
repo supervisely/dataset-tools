@@ -31,14 +31,24 @@ def sample_images(
 ):
     total = 0
     samples = []
-    image_stats, imageTag_stats, objectTag_stats = project_stats['images']['datasets'], project_stats['imageTags']['datasets'], project_stats['objectTags']['datasets']
-    
-    image_stats = sorted(image_stats, key=lambda x: x['id'])
-    imageTag_stats = sorted(imageTag_stats, key=lambda x: x['id'])
-    objectTag_stats = sorted(objectTag_stats, key=lambda x: x['id'])
+    image_stats, imageTag_stats, objectTag_stats = (
+        project_stats["images"]["datasets"],
+        project_stats["imageTags"]["datasets"],
+        project_stats["objectTags"]["datasets"],
+    )
 
-    for dataset, image_stat, imageTag_stat, objectTag_stat  in zip(datasets, image_stats, imageTag_stats, objectTag_stats):
-        is_unlabeled = image_stat['imagesMarked'] == 0 and imageTag_stat['imagesTagged'] == 0 and objectTag_stat['objectsTagged'] == 0
+    image_stats = sorted(image_stats, key=lambda x: x["id"])
+    imageTag_stats = sorted(imageTag_stats, key=lambda x: x["id"])
+    objectTag_stats = sorted(objectTag_stats, key=lambda x: x["id"])
+
+    for dataset, image_stat, imageTag_stat, objectTag_stat in zip(
+        datasets, image_stats, imageTag_stats, objectTag_stats
+    ):
+        is_unlabeled = (
+            image_stat["imagesMarked"] == 0
+            and imageTag_stat["imagesTagged"] == 0
+            and objectTag_stat["objectsTagged"] == 0
+        )
         if dataset.items_count == 0 or is_unlabeled:
             continue
         k = int(
@@ -69,7 +79,11 @@ def sample_images(
 
 
 def count_stats(
-    project: Union[int, str], project_stats: dict, stats: list, sample_rate: float = 1, api: sly.Api = None
+    project: Union[int, str],
+    project_stats: dict,
+    stats: list,
+    sample_rate: float = 1,
+    api: sly.Api = None,
 ) -> None:
     """
     Count dtools statistics instances passed as a list.
@@ -135,7 +149,7 @@ def count_stats(
         api = sly.Api.from_env()
 
     if isinstance(project, int):
-        project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project))
+        project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project, with_settings=True))
         datasets = api.dataset.get_list(project)
     elif isinstance(project, str):
         project_fs = sly.Project(project, sly.OpenMode.READ)
@@ -148,7 +162,6 @@ def count_stats(
     desc = "Calculating stats" + (f" [sample={sample_rate}]" if sample_rate != 1 else "")
     # sly.logger.info(f"CPU count: {NUM_PROCESSING}")
     with tqdm.tqdm(desc=desc, total=total) as pbar:
-        
         for dataset, images in samples:
             for batch in sly.batched(images, 100):
                 image_ids = [image.id for image in batch]
@@ -176,7 +189,6 @@ def count_stats(
                         # else:
                         stat.update(img, ann)
                     pbar.update(1)
-
 
 
 def resize_ann_with_aspect_ratio(ann: sly.Annotation):
