@@ -211,8 +211,12 @@
 	},
 	"Danish Golf Courses Orthophotos": {
 		"id": 2482,
-		"download_sly_url": "https://www.dropbox.com/scl/fi/2w1wsi84oe8gabmvvfk5e/danish-golf-courses-orthophotos-DatasetNinja.tar?rlkey=8hhd0pa6hvf9dh09ovguri308&dl=1",
-		"download_original_url": "https://www.kaggle.com/datasets/jacotaco/danish-golf-courses-orthophotos/download?datasetVersionNumber=1"
+		"download_sly_url": "https://www.dropbox.com/scl/fi/exk4wabqtflii4zxhcqu2/danish-golf-courses-orthophotos-DatasetNinja.tar?rlkey=phz8dl4o1ix3xbiit7yt9hmuy&dl=1",
+		"download_original_url": "https://www.kaggle.com/datasets/jacotaco/danish-golf-courses-orthophotos/download?datasetVersionNumber=1",
+		"markdown": {
+			"LICENSE": "Danish Golf Courses Orthophotos is under [ODbL v1.0](https://opendatacommons.org/licenses/odbl/1-0/) license.\n\n[Source](https://www.kaggle.com/datasets/jacotaco/danish-golf-courses-orthophotos)",
+			"README": "# Danish Golf Courses Orthophotos\n\nDanish Golf Courses Orthophotos is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
+		}
 	},
 	"Makassar Road": {
 		"id": 2488,
@@ -276,8 +280,12 @@
 	},
 	"CitySegmentation": {
 		"id": 2579,
-		"download_sly_url": "https://www.dropbox.com/scl/fi/6tov0ae5b7f2l9co8wuk4/citysegmentation-DatasetNinja.tar?rlkey=4j9ip0yl6ouskcgt67y7ci5ls&dl=1",
-		"download_original_url": "https://www.kaggle.com/datasets/cceekkigg/berlin-aoi-dataset/download?datasetVersionNumber=2"
+		"download_sly_url": "https://www.dropbox.com/scl/fi/0vddkgxjy0811xhgktw0t/citysegmentation-DatasetNinja.tar?rlkey=is9plg0azcc40rxh7gmxuqawp&dl=1",
+		"download_original_url": "https://www.kaggle.com/datasets/cceekkigg/berlin-aoi-dataset/download?datasetVersionNumber=2",
+		"markdown": {
+			"LICENSE": "CitySegmentation is under [ODbL v1.0](https://opendatacommons.org/licenses/odbl/1-0/) license.\n\n[Source](https://www.kaggle.com/datasets/cceekkigg/berlin-aoi-dataset)",
+			"README": "# CitySegmentation\n\nCitySegmentation is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
+		}
 	},
 	"Pothole Detection": {
 		"id": 2570,
@@ -589,7 +597,7 @@
 	},
 	"Damage Detection of Power Plants": {
 		"id": 1469,
-		"download_sly_url": "https://www.dropbox.com/scl/fi/0kf2exub1qk02cybuyb8f/damage-detection-of-power-plants-DatasetNinja.tar?rlkey=6hkyxss67p4v4z5ogx55u5hzi&dl=1",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/kecnn7jb1knetgexxrnpq/damage-detection-of-power-plants-DatasetNinja.tar?rlkey=xsbq114dev7yffuiwq86pmf79&dl=1",
 		"download_original_url": {
 			"Solar_large.rar": "https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/GFYPQW#",
 			"Solar_small.rar": "https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/GFYPQW#",
@@ -1145,8 +1153,12 @@
 	},
 	"CNAM-CD": {
 		"id": 1863,
-		"download_sly_url": "https://www.dropbox.com/scl/fi/6dsgiaxnof3tbdnkgq85s/cnam-cd-DatasetNinja.tar?rlkey=0bipax285sdi1pq6s3sezgqq3&dl=1",
-		"download_original_url": "https://drive.google.com/file/d/1w6tDfE-F4o3Q4KGh1jzzIRpIlIUIXXrx/view?usp=sharing"
+		"download_sly_url": "https://www.dropbox.com/scl/fi/pbddnt3rs2efuuhxwmm2r/cnamcd-DatasetNinja.tar?rlkey=2xhw8ra7z62muo64u8xsba2jz&dl=1",
+		"download_original_url": "https://drive.google.com/file/d/1w6tDfE-F4o3Q4KGh1jzzIRpIlIUIXXrx/view?usp=sharing",
+		"markdown": {
+			"LICENSE": "CNAM-CD: A Multi-Class Change Detection Dataset is under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license.\n\n[Source](https://github.com/Silvestezhou/CNAM-CD/blob/main/LICENSE)",
+			"README": "# CNAM-CD: A Multi-Class Change Detection Dataset\n\nCNAM-CD is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
+		}
 	},
 	"Automatic Monitoring of Pigs": {
 		"id": 1918,
@@ -1155,10 +1167,14 @@
 	},
 	"Photometric Stereo Leafs": {
 		"id": 1849,
-		"download_sly_url": "https://www.dropbox.com/scl/fi/wk29xvt170g25bgi0ni79/photometric-stereo-leafs-DatasetNinja.tar?rlkey=xzj3hqwappnf3uzth2uaceyv8&dl=1",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/hjwuem6amwgsi1o108alw/photometric-stereo-leafs-DatasetNinja.tar?rlkey=ltoe9jk13vktk07qwus950xs5&dl=1",
 		"download_original_url": {
 			"Photometric stereo training data set with annotated leaf masks": "https://datashare.ed.ac.uk/download/DS_10283_3280.zip",
 			"Photometric stereo test data set": "https://datashare.ed.ac.uk/download/DS_10283_3279.zip"
+		},
+		"markdown": {
+			"LICENSE": "Photometric Stereo Training Data Set with Annotated Leaf Masks is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode) license.\n\n[Source](https://datashare.ed.ac.uk/handle/10283/3280)",
+			"README": "# Photometric Stereo Training Data Set with Annotated Leaf Masks\n\nPhotometric Stereo Leafs is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
 		}
 	},
 	"PolypGen": {
@@ -1228,15 +1244,23 @@
 	},
 	"38-Cloud": {
 		"id": 2205,
-		"download_sly_url": "https://www.dropbox.com/scl/fi/yd3yxtdj0uvymsrpadpf0/38-cloud-DatasetNinja.tar?rlkey=59dxipfcxlrako3q4486syy4d&dl=1",
-		"download_original_url": "https://www.kaggle.com/datasets/sorour/38cloud-cloud-segmentation-in-satellite-images/download?datasetVersionNumber=4"
+		"download_sly_url": "https://www.dropbox.com/scl/fi/pdsudtzww72eehckkjof6/38cloud-DatasetNinja.tar?rlkey=2mdiaugo9tbhzv9d66p2l5ft7&dl=1",
+		"download_original_url": "https://www.kaggle.com/datasets/sorour/38cloud-cloud-segmentation-in-satellite-images/download?datasetVersionNumber=4",
+		"markdown": {
+			"LICENSE": "38-Cloud: Cloud Segmentation in Satellite Images is under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license.\n\n[Source](https://github.com/SorourMo/38-Cloud-A-Cloud-Segmentation-Dataset/blob/master/LICENSE)",
+			"README": "# 38-Cloud: Cloud Segmentation in Satellite Images\n\n38-Cloud is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
+		}
 	},
 	"Strawberry Disease Detection": {
 		"id": 2269,
-		"download_sly_url": "https://www.dropbox.com/scl/fi/xpm8aigqhjzixefvc00oq/strawberry-disease-detection-DatasetNinja.tar?rlkey=qnx984k13n1u0h972h1j7umr9&dl=1",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/obs4cf3zm5jac8ggc1vx1/strawberry-disease-detection-DatasetNinja.tar?rlkey=j1ho5xhk3alh3fu3mce5d8bxl&dl=1",
 		"download_original_url": [
 			"https://www.kaggle.com/datasets/usmanafzaal/strawberry-disease-detection-dataset"
-		]
+		],
+		"markdown": {
+			"LICENSE": "Strawberry Disease Detection is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://www.mdpi.com/1424-8220/21/19/6565)",
+			"README": "# Strawberry Disease Detection\n\nStrawberry Disease Detection is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
+		}
 	},
 	"BBBC041Seg": {
 		"id": 2248,
@@ -1339,20 +1363,28 @@
 	},
 	"PLD-UAV": {
 		"id": 2268,
-		"download_sly_url": "https://www.dropbox.com/scl/fi/bc3npozj1lt2rfgdp8g2u/pld-uav-DatasetNinja.tar?rlkey=d5wpbbm6i3btlonfjfmg8pg28&dl=1",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/vnhstofaci3j8xhgdz6b0/plduav-DatasetNinja.tar?rlkey=7x1bahnr0gwndlfvsokuc94qo&dl=1",
 		"download_original_url": {
 			"PLDU": "https://drive.google.com/open?id=1XjoWvHm2I8Y4RV_i9gEd93ZP-KryjJlm",
 			"PLDM": "https://drive.google.com/open?id=1bKFEuXKHRsy0tnOnoEVW6oRi7hS5oekr"
+		},
+		"markdown": {
+			"LICENSE": "PLD-UAV: Power Line Detection in UAV is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://www.mdpi.com/2072-4292/11/11/1342?type=check_update&version=1)",
+			"README": "# PLD-UAV: Power Line Detection in UAV\n\nPLD-UAV is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
 		}
 	},
 	"Multispectral Potato Plants Images": {
 		"id": 2265,
-		"download_sly_url": "https://www.dropbox.com/scl/fi/gmgaucl18qf47b43wg6em/multispectral-potato-plants-images-DatasetNinja.tar?rlkey=0h7enzz771yt3e5g97oi26elx&dl=1",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/e86dwy65m3mrh8k62nwng/multispectral-potato-plants-images-DatasetNinja.tar?rlkey=a262r4czgwqgjdnr1orgf0ho5&dl=1",
 		"download_original_url": {
 			"RGB Image Patches (38 MB)": "https://www.webpages.uidaho.edu/vakanski/Codes_Data/RGB_Images.zip",
 			"RGB Image Patches - Augmented Dataset (199 MB)": "https://www.webpages.uidaho.edu/vakanski/Codes_Data/RGB_Augmented.zip",
 			"Spectral Image Patches (46 MB)": "https://www.webpages.uidaho.edu/vakanski/Codes_Data/Spectral_Images.zip",
 			"Spectral Image Patches - Augmented Dataset (248 MB)": "https://www.webpages.uidaho.edu/vakanski/Codes_Data/Spectral_Augmented.zip"
+		},
+		"markdown": {
+			"LICENSE": "The dataset is posted for open public access, and can be accessed from the [following website](https://www.webpages.uidaho.edu/vakanski/Multispectral_Images_Dataset.html)\n\n[Source](https://www.webpages.uidaho.edu/vakanski/Articles/Butte_(2021)_Potato_crop_stress_identification_in_aerial_images_using_DL.pdf)\n",
+			"README": "# A Dataset of Multispectral Potato Plants Images\n\nMultispectral Potato Plants Images is a dataset for object detection and identification tasks."
 		}
 	},
 	"Apple Dataset Benchmark from Orchard Environment": {
@@ -1852,7 +1884,7 @@
 	},
 	"PST900 RGB-T": {
 		"id": 3038,
-		"download_sly_url": "https://www.dropbox.com/scl/fi/pg30fyg31zq73thwxgzhy/pst900-rgb-t-DatasetNinja.tar?rlkey=sbck751ttz99tak5d9os9loj3&dl=1",
+		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/p/p/Xx/5r5ccLmz028GhCLUZREyUJfXZU7DnuwYx2JsDzUrTM0RG8tdxH8gZvWGhcAgD0PlDTSGhwuY4K2xOrNfsufeZ0dnEhtOJOrrDwmbLHmK1WsHv5MmNlZoEvtpAiJF.tar",
 		"download_original_url": "https://drive.google.com/open?id=1hZeM-MvdUC_Btyok7mdF00RV-InbAadm",
 		"markdown": {
 			"LICENSE": "PST900 RGB-T: Penn Subterranean Thermal 900 RGB-Thermal Dataset is under [GNU GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) license.\n\n[Source](https://github.com/ShreyasSkandanS/pst900_thermal_rgb)",
@@ -1885,6 +1917,9 @@
 		}
 	},
 	"Supervisely Potatoes": {
+		"id": 3075,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/pt4dz9jl714omhd6znhhf/supervisely-potatoes-DatasetNinja.tar?rlkey=j1njkfd4gcbd0f6u6vi1tiosy&dl=1",
+		"download_original_url": "https://supervisely.com/blog/trained-smarttool-plants/",
 		"markdown": {
 			"LICENSE": "Supervisely Potatoes Dataset for Crops and Weed Segmentation is under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.\n\n[Source](https://supervisely.com/blog/train-a-model-with-62-labeled-images-hrda-semi-supervised/)",
 			"README": "# Supervisely Potatoes Dataset for Crops and Weed Segmentation\n\nSupervisely Potatoes is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
@@ -1996,7 +2031,7 @@
 	},
 	"PubTables-1M: Detection": {
 		"id": 3172,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/i/y/PK/dKiwLWKHYH79mC9TMLmm1wKzXRcJMtXYgHiPnRN4ggsyvzluEFzq06L4lQQafLgjuoRTaQ5Y2VmuPGdnxPD33SSlebRa1MaKDBxt3SJlOK9F740G1vCMZlztNi2F.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/4urpxeqh928ppndiyyos9/pubtables1m-detection-DatasetNinja.tar?rlkey=zq6ojmcggojabqc4ljohpwzsh&dl=1",
 		"download_original_url": {
 			"PubTables-1M-Detection_Annotations_Test.tar.gz": "https://huggingface.co/datasets/bsmock/pubtables-1m/resolve/main/PubTables-1M-Detection_Annotations_Test.tar.gz?download=true",
 			"PubTables-1M-Detection_Annotations_Train.tar.gz": "https://huggingface.co/datasets/bsmock/pubtables-1m/resolve/main/PubTables-1M-Detection_Annotations_Train.tar.gz?download=true",
@@ -2015,7 +2050,7 @@
 	},
 	"KFuji RGB-DS": {
 		"id": 3173,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/k/G/HP/ns3PRDIssQTlkJKxl82hhvWTYEoofDpYJajWUFgNIJKTox605Y4J06fQMSm8s1C7FL74YR9ZkHJVUpepVGpTtMtY26prcUU7YQwGqDWG0BtFFJIko9bbPlJhXXoU.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/uf4qcpdy5p97pxip01qxw/kfuji-rgbds-DatasetNinja.tar?rlkey=d1yi2hsvo5eh2b3x1w89n6oyx&dl=1",
 		"download_original_url": {
 			"KFuji_RGB-DS_dataset.zip": "https://zenodo.org/record/3715991/files/KFuji_RGB-DS_dataset.zip?download=1",
 			"LICENSE.txt": "https://zenodo.org/record/3715991/files/LICENSE.txt?download=1",
@@ -2027,8 +2062,8 @@
 		}
 	},
 	"KOMATSUNA": {
-		"id": 3198,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/3/V/Dg/gZblrHxrAoAjF1rsjiuIsj0PSMCGPgIJRKQMp2C0njl9XWKSXiERKAOXDxCOzZjZwRtTN3FpR4kCtgjHpIV4YtalybytAACR8y0yIwlNJGiQxZRxIhu5rTlsRvjS.tar",
+		"id": 3358,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/jisbjeihap3xk6v9fudy6/komatsuna-DatasetNinja.tar?rlkey=efq2onwc0luls4b5cc54y6vo8&dl=1",
 		"download_original_url": "https://limu.ait.kyushu-u.ac.jp/~agri/komatsuna/",
 		"markdown": {
 			"LICENSE": "The KOMATSUNA Dataset for Instance Segmentation, Tracking and Reconstruction is publicly available.\n\n[Source](https://openaccess.thecvf.com/content_ICCV_2017_workshops/papers/w29/Uchiyama_An_Easy-To-Setup_3D_ICCV_2017_paper.pdf)",
@@ -2037,7 +2072,7 @@
 	},
 	"Power Plant Satellite Imagery Dataset": {
 		"id": 3202,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/J/3/b0/oydVljDZNOgiYwvbs8ow75L8LzS3IB82IVWEMH8czSpvU7OjVIwpaZzDrA1P3iKLRRQ9uqDbza4xdKG0w4Hfc8tICSm56vttfMODSh0LWPJPDtWVirae7Nv8ZWmJ.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/vmgrhs065lczf17hm6fn2/power-plant-satellite-imagery-dataset-DatasetNinja.tar?rlkey=ka5vygxcx5l2pxe5rwyj681dh&dl=1",
 		"download_original_url": {
 			"Download All": "https://figshare.com/ndownloader/articles/5307364/versions/1",
 			"eGRID2014_Data_v2_US_EPA_with_imagery_list_for_power_plants.xlsx": "https://figshare.com/ndownloader/files/9097597",
@@ -2046,6 +2081,178 @@
 		"markdown": {
 			"LICENSE": "Power Plant Satellite Imagery Dataset (US Power Plants NAIP/LANDSAT8) is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://figshare.com/articles/dataset/Power_Plant_Satellite_Imagery_Dataset/5307364)",
 			"README": "# Power Plant Satellite Imagery Dataset (US Power Plants NAIP/LANDSAT8)\n\nPower Plant Satellite Imagery Dataset is a dataset for instance segmentation, semantic segmentation, object detection, and classification tasks."
+		}
+	},
+	"RSNA Bone Age 2017": {
+		"id": 3219,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/n0jpdiz2pej0z5z0242ze/rsna-bone-age-2017-DatasetNinja.tar?rlkey=fxjal14j67tac1lwzbnwvzn2f&dl=1",
+		"download_original_url": {
+			"Dataset description": "https://www.rsna.org/-/media/Files/RSNA/Education/AI%20resources%20and%20training/AI%20image%20challenge/RSNA-2017-Pediatric-Bone-Age-Challenge-Dataset-Description.ashx?la=en&hash=A0B423007088816AFFACDCA934E2F09F903215F4&hash=A0B423007088816AFFACDCA934E2F09F903215F4",
+			"Download training dataset (9.6 GB)": "https://s3.amazonaws.com/east1.public.rsna.org/AI/2017/Bone+Age+Training+Set.zip",
+			"Download training dataset annotations": "https://s3.amazonaws.com/east1.public.rsna.org/AI/2017/Bone+Age+Training+Set+Annotations.zip",
+			"Download validation dataset (1.1 GB)": "https://s3.amazonaws.com/east1.public.rsna.org/AI/2017/Bone+Age+Validation+Set.zip"
+		},
+		"markdown": {
+			"LICENSE": "You may access and use these de-identified imaging datasets and annotations (“the data”) for the purposes of academic research and education, and other non-commercial purposes as long as you agree to abide by the following provisions:\n\n1. Not to make any attempt to identify or contact any individual(s) who may be the \nsubjects of the data.\n2. If you share or re-distribute the data in any form, to meet the attribution requirements \ndescribed below:\n    • Provide a link to download the [RSNA Pediatric Bone Age Challenge image datasets and annotation files.](https://www.rsna.org/education/ai-resources-and-training/ai-image-challenge/RSNA-Pediatric-Bone-Age-Challenge-2017)\n    • Include a citation to the 2018 Radiology paper:\n        ```\n        Halabi SS, Prevedello LM, Kalpathy-Cramer J, et al. \n        [The RSNA Pediatric Bone Age Machine Learning \n        Challenge](https://pubs.rsna.org/doi/10.1148/radiol.2018180736). \n        Radiology 2018; 290(2):498-503\n        ```\n\n[Source](https://www.rsna.org/-/media/Files/RSNA/Education/AI-resources-and-training/AI-image-challenge/RSNA-2017-AI-Challenge-Terms-of-Use-and-Attribution_Final.ashx?la=en&hash=F28B401E267D05658C85F5D207EC4F9AE9AE6FA9)",
+			"README": "# RSNA Pediatric Bone Age Challenge 2017\n\nRSNA Bone Age 2017 is a dataset for identification task."
+		}
+	},
+	"ZhangLabData: Chest X-Ray": {
+		"id": 3226,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/dhizj0rvl2m1h6cdkfibd/zhanglabdata-chest-xray-DatasetNinja.tar?rlkey=ltd36sv6o7gwreck41gcd30fl&dl=1",
+		"download_original_url": "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/rscbjbr9sj-3.zip",
+		"markdown": {
+			"LICENSE": "Large Dataset of Labeled Optical Coherence Tomography (OCT) and Chest X-Ray Images is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://data.mendeley.com/datasets/rscbjbr9sj/3)",
+			"README": "# Large Dataset of Labeled Optical Coherence Tomography (OCT) and Chest X-Ray Images\n\nZhangLabData: Chest X-Ray is a dataset for classification task."
+		}
+	},
+	"ZhangLabData: OCT": {
+		"id": 3228,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/djtbrp43com41v2suygny/zhanglabdata-oct-DatasetNinja.tar?rlkey=1zoguzq46t7vs8y7fziy0txix&dl=1",
+		"download_original_url": "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/rscbjbr9sj-3.zip",
+		"markdown": {
+			"LICENSE": "Large Dataset of Labeled Optical Coherence Tomography (OCT) and Chest X-Ray Images is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://data.mendeley.com/datasets/rscbjbr9sj/3)",
+			"README": "# Large Dataset of Labeled Optical Coherence Tomography (OCT) and Chest X-Ray Images\n\nZhangLabData: OCT is a dataset for classification task."
+		}
+	},
+	"NeonTreeEvaluation: RGB": {
+		"id": 3230,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/p8rr68ly01fp82uazipkm/neontreeevaluation-rgb-DatasetNinja.tar?rlkey=dy3f7vw76mi48ft8hgy3mjgoe&dl=1",
+		"download_original_url": {
+			"annotations.zip": "https://zenodo.org/record/5914554/files/annotations.zip?download=1",
+			"evaluation.zip": "https://zenodo.org/record/5914554/files/evaluation.zip?download=1",
+			"training.zip": "https://zenodo.org/record/5914554/files/training.zip?download=1"
+		},
+		"markdown": {
+			"LICENSE": "Data for the NeonTreeEvaluation Benchmark is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode) license.",
+			"README": "# Data for the NeonTreeEvaluation Benchmark (RGB)\n\nNeonTreeEvaluation: RGB is a dataset for object detection task."
+		}
+	},
+	"DiaMOS Plant": {
+		"id": 3258,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/icmfmbbtlmabcf4wj010k/diamos-plant-DatasetNinja.tar?rlkey=plffex68chjbceknscvinu10h&dl=1",
+		"download_original_url": {
+			"Pear.zip": "https://zenodo.org/records/5557313/files/Pear.zip?download=1",
+			"Description_DIaMOS_Plant_dataset.pdf": "https://zenodo.org/records/5557313/files/Description_DIaMOS_Plant_dataset.pdf?download=1"
+		},
+		"markdown": {
+			"LICENSE": "A Dataset for Diagnosis and Monitoring Plant Disease is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://zenodo.org/records/5557313#.YgZSYHVBzmg)",
+			"README": "# DiaMOS Plant: A Dataset for Diagnosis and Monitoring Plant Disease\n\nDiaMOS Plant is a dataset for object detection task."
+		}
+	},
+	"High Resolution Fundus": {
+		"id": 3256,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/la9sfqqv7uradesxws1rz/high-resolution-fundus-DatasetNinja.tar?rlkey=pyfo3vrbigihwbd5qr2jldp2r&dl=1",
+		"download_original_url": "https://www5.cs.fau.de/fileadmin/research/datasets/fundus-images/all.zip",
+		"markdown": {
+			"LICENSE": "High Resolution Fundus (HRF) Image Database is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://www5.cs.fau.de/research/data/fundus-images/)",
+			"README": "# High Resolution Fundus (HRF) Image Database\n\nHigh Resolution Fundus is a dataset for semantic segmentation task."
+		}
+	},
+	"Vineyard Rows": {
+		"id": 3313,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/1xmqx3u1ggvcyrxk6v3hr/vineyard-rows-DatasetNinja.tar?rlkey=osh5adjoiak2j9jfixl6d3jqe&dl=1",
+		"download_original_url": "https://zenodo.org/api/records/4601472/files-archive",
+		"markdown": {
+			"LICENSE": "Semantic Segmentation Vineyard Rows is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://zenodo.org/records/4601472#.YcBSrHXMJNg)",
+			"README": "# Semantic Segmentation Vineyard Rows\n\nVineyard Rows is a dataset for semantic segmentation task."
+		}
+	},
+	"ISIC Challenge 2018": {
+		"id": 3312,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/p9ew313kcxgc9qdkn5b5h/isic-challenge-2018-DatasetNinja.tar?rlkey=qp2xbgjjde8i3e4ggh03qsjab&dl=1",
+		"download_original_url": "https://challenge.isic-archive.com/data/#2018",
+		"markdown": {
+			"LICENSE": "International Skin Imaging Collaboration Challenge 2018 is under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/legalcode) license.\n\n[Source](https://challenge.isic-archive.com/data/#2018)",
+			"README": "# ISIC Challenge 2018: International Skin Imaging Collaboration Challenge 2018\n\nISIC Challenge 2018 is a dataset for semantic segmentation task."
+		}
+	},
+	"dacl10k": {
+		"id": 3289,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/qsnvp8pxyrx6pqjg7cfz0/dacl10k-DatasetNinja.tar?rlkey=dmzybuylqcj78yas49kgyi880&dl=1",
+		"download_original_url": {
+			"The Development dataset": "https://dacl10k.s3.eu-central-1.amazonaws.com/dacl10k-challenge/dacl10k_v2_devphase.zip",
+			"The Tesfinal dataset": "https://dacl10k.s3.eu-central-1.amazonaws.com/dacl10k-challenge/dacl10k_v2_testchallenge.zip"
+		},
+		"markdown": {
+			"LICENSE": "dacl10k: Benchmark for Semantic Bridge Damage Segmentation is under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/legalcode) license.\n\n[Source](https://github.com/phiyodr/dacl10k-toolkit?tab=readme-ov-file#arrow_right-data)",
+			"README": "# dacl10k: Benchmark for Semantic Bridge Damage Segmentation\n\ndacl10k is a dataset for semantic segmentation task."
+		}
+	},
+	"LaRS": {
+		"id": 3271,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/1296b8jhvsqgx3wk098d9/lars-DatasetNinja.tar?rlkey=9xsxca5vfdlqk7aso9he8yvxx&dl=1",
+		"download_original_url": {
+			"Sequence images": "https://box.vicos.si/lars/lars_v1.0.0_images_seq.zip",
+			"Annotations": "https://box.vicos.si/lars/lars_v1.0.0_annotations.zip",
+			"Single-frame images": "https://box.vicos.si/lars/lars_v1.0.0_images.zip"
+		},
+		"markdown": {
+			"LICENSE": "LaRS: Lakes Rivers and Seas dataset is under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/legalcode) license.\n\n[Source](https://lojzezust.github.io/lars-dataset/terms.html)",
+			"README": "# LaRS: Lakes Rivers and Seas dataset\n\nLaRS is a dataset for semantic segmentation and object detection tasks."
+		}
+	},
+	"FracAtlas": {
+		"id": 3272,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/kmz78lm8tad87443svkp7/fracatlas-DatasetNinja.tar?rlkey=htwqc1dnassdinj62w8hn4p27&dl=1",
+		"download_original_url": "https://figshare.com/ndownloader/files/43283628",
+		"markdown": {
+			"LICENSE": "FracAtlas: A Dataset for Fracture Classification, Localization and Segmentation of Musculoskeletal Radiographs is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://figshare.com/articles/dataset/The_dataset/22363012)",
+			"README": "# FracAtlas: A Dataset for Fracture Classification, Localization and Segmentation of Musculoskeletal Radiographs\n\nFracAtlas is a dataset for semantic segmentation, object detection, and classification tasks."
+		}
+	},
+	"EBHI-Seg": {
+		"id": 3329,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/o5lvwx3l8e8x7iu4wjs4f/ebhiseg-DatasetNinja.tar?rlkey=in6pklicjm5pg31ya09yq847s&dl=1",
+		"download_original_url": "https://figshare.com/ndownloader/files/38179080",
+		"markdown": {
+			"LICENSE": "EBHI-Seg: Enteroscope Biopsy Histopathological Hematoxylin and Eosin Image Dataset for Image Segmentation Tasks is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://figshare.com/articles/dataset/EBHI-SEG/21540159/1)",
+			"README": "# EBHI-Seg: Enteroscope Biopsy Histopathological Hematoxylin and Eosin Image Dataset for Image Segmentation Tasks\n\nEBHI-Seg is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
+		}
+	},
+	"TAS500": {
+		"id": 3331,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/iqesuihuwmffzdbqztq9c/tas500-DatasetNinja.tar?rlkey=q7w7fbrg23zu2p5zpjfpo4e6n&dl=1",
+		"download_original_url": "https://drive.google.com/open?id=1dCxJNWGbQT-tbuDTD6nQvmWPwGS9MPwT&authuser=0",
+		"markdown": {
+			"LICENSE": "TAS500: semantic segmentation dataset for autonomous driving in unstructured environments is under [CC BY-NC-SA 3.0 US](https://creativecommons.org/licenses/by-nc-sa/3.0/) license.\n\n[Source](https://mucar3.de/icpr2020-tas500/)",
+			"README": "# TAS500: Semantic Segmentation Dataset for Autonomous Driving in Unstructured Environments\n\nTAS500 is a dataset for semantic segmentation and object detection tasks."
+		}
+	},
+	"SYNTHIA-PANO": {
+		"id": 3353,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/b1kt02ba3nsa2bf4i84eb/synthiapano-DatasetNinja.tar?rlkey=5o8cm65sl5mn0pda8d32bkr1x&dl=1",
+		"download_original_url": "https://drive.google.com/drive/folders/1loj19uFyDOQDYI1xwWM6FameR_fUxJnQ?usp=drive_link",
+		"markdown": {
+			"LICENSE": "SYNTHIA-PANO Panoramic Image Dataset is under [MIT](https://spdx.org/licenses/MIT.html) license.\n\n[Source](https://github.com/Francis515/SYNTHIA-PANO/blob/master/LICENSE)",
+			"README": "# SYNTHIA-PANO Panoramic Image Dataset\n\nSYNTHIA-PANO is a dataset for semantic segmentation and object detection tasks."
+		}
+	},
+	"MCubeS": {
+		"id": 3351,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/1vvxmjm4rifxd6r0s6arb/mcubes-DatasetNinja.tar?rlkey=yzuuuir05ihztmeljeqzicye5&dl=1",
+		"download_original_url": "https://drive.google.com/file/d/14egTCyC0Pampb7imrXVwaDRffHN7FZxh/view?usp=sharing",
+		"markdown": {
+			"LICENSE": "Multimodal Material Segmentation Dataset (MCubeS) is under [MIT](https://spdx.org/licenses/MIT.html) license.\n\n[Source](https://github.com/kyotovision-public/multimodal-material-segmentation/blob/main/LICENSE)",
+			"README": "# MCubeS: Multimodal Material Segmentation Dataset\n\nMCubeS is a dataset for semantic segmentation and object detection tasks."
+		}
+	},
+	"Laryngeal Endoscopic": {
+		"id": 3352,
+		"download_sly_url": "https://www.dropbox.com/scl/fi/b3qakg3z0ps2noqw9m8eh/laryngeal-endoscopic-DatasetNinja.tar?rlkey=9byc6shrayx2h1gn0ivsov33a&dl=1",
+		"download_original_url": "https://github.com/imesluh/vocalfolds",
+		"markdown": {
+			"LICENSE": "A Dataset of Laryngeal Endoscopic Images for Semantic Segmentation is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://github.com/imesluh/vocalfolds/blob/master/LICENSE)",
+			"README": "# A Dataset of Laryngeal Endoscopic Images for Semantic Segmentation\n\nLaryngeal Endoscopic is a dataset for semantic segmentation task."
+		}
+	},
+	"nuImages": {
+		"id": 3348,
+		"download_sly_url": "Set 'HIDE_DATASET=False' to generate download link",
+		"download_original_url": "https://www.nuscenes.org/nuimages#download",
+		"markdown": {
+			"LICENSE": "nuScenes: A multimodal dataset for autonomous driving is under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.\n\n[Source](https://www.nuscenes.org/terms-of-use)",
+			"README": "# nuImages: A Multimodal Dataset for Autonomous Driving\n\nnuImages is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
 		}
 	}
 }
