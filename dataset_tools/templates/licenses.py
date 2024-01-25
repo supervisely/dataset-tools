@@ -179,6 +179,15 @@ class License:
             self.source_url = source_url
             return self
 
+    class Etalab_2_0:
+        def __new__(cls, source_url: str = None):
+            self = super().__new__(cls)
+            self.name = "Etalab Open License 2.0"
+            self.url = "https://www.etalab.gouv.fr/wp-content/uploads/2018/11/open-licence.pdf"
+            self.redistributable = True
+            self.source_url = source_url
+            return self
+
     class MIT:
         def __new__(cls, source_url: str = None):
             self = super().__new__(cls)
