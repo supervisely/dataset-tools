@@ -251,7 +251,7 @@ class ClassBalance(BaseStats):
             axis=0,
         )
 
-    def sew_chunks(self, chunks_dir: str, updated_classes: list) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str, updated_classes: list=[]) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = None
