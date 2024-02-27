@@ -2318,7 +2318,7 @@
 	},
 	"RDD2022": {
 		"id": 3393,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/w/8/cX/dwVkyG9o8tNg9ZdMIe47nviDTwYfhqAjSQELkXQrGgHnIEJXd11p6TKMYaEkBgeaKwe0LSabJmwey1tQsroPzoAucXtbkfDBv5Dqqq3ME6uTm7bmGU7BNeT9zeiE.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/w1e4tp75fmkj8hvat986a/rdd2022-DatasetNinja.tar?rlkey=w34zo3uoifmldhehblchqh73g&dl=1",
 		"download_original_url": "https://bigdatacup.s3.ap-northeast-1.amazonaws.com/2022/CRDDC2022/RDD2022/RDD2022.zip",
 		"markdown": {
 			"LICENSE": "The multi-national Road Damage Dataset 2022 is under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode) license.\n\n[Source](https://crddc2022.sekilab.global/rules/)",
@@ -2336,7 +2336,7 @@
 	},
 	"Cherry Chevre": {
 		"id": 3398,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/8/B/iq/g0XnqUs0Erk8ZLJhtfEisvk0Qmuxdv5klC73V4LFjPzx1edCdJR8LJgU0siODFEwyKsvQ9nnQaxG7ilc48cvz7piHmUpbmGtAE5IdiawS9YgnBmGUeBxDhAYTOMy.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/ztfpsx4til97j2lpl2pvo/cherry-chevre-DatasetNinja.tar?rlkey=jv6yjpeogvnd77v7d556k8422&dl=1",
 		"download_original_url": "https://entrepot.recherche.data.gouv.fr/dataset.xhtml?persistentId=doi:10.57745/QEZBNA#",
 		"markdown": {
 			"LICENSE": "Cherry Chevre: A Fine-Grained Dataset for Goat Detection in Natural Environments is under [Etalab Open License 2.0](https://www.etalab.gouv.fr/wp-content/uploads/2018/11/open-licence.pdf) license.\n\n[Source](https://entrepot.recherche.data.gouv.fr/dataset.xhtml?persistentId=doi:10.57745/QEZBNA)",
@@ -2345,7 +2345,7 @@
 	},
 	"RUGD": {
 		"id": 3417,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/n/f/6P/kdtPgnXlKvHXuoXwsTuaWSBlWiUQAWYZO3viE24Ij9K3kJbciGpoG0t1YS87Jj9v2UinSpMf20vnrTaUdtS5zou20KEBpkeMrJib6Wk0WPzPb52Vr7biqkaJ3TJa.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/ds9ciqmqup20x91lueivd/rugd-DatasetNinja.tar?rlkey=xsgm7kld5m564fvmpenfnnv1g&dl=1",
 		"download_original_url": {
 			"Download Sample": "http://rugd.vision/data/RUGD_sample-data.zip",
 			"Download Raw Frames": "http://rugd.vision/data/RUGD_frames-with-annotations.zip",
@@ -2358,7 +2358,7 @@
 	},
 	"Fine Grained Polyp": {
 		"id": 3420,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/s/D/23/HdpkPXSIoBg1wZIdgLtWrl8C2hbyRP5ljGXul8ofAOavvBXTc0QiooAqOnjYP6A2IaCWUPvRvQginY8l0vHdgTxgT4n8WgGPkfFVDD7wgvYx0BFKnVAwCXzF97av.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/mt4wwpd1nqt8ishbt5t3p/fine-grained-polyp-DatasetNinja.tar?rlkey=c30h6k1oijg1xjpcu5r0glhr9&dl=1",
 		"download_original_url": "https://drive.google.com/file/d/1rmMLHohni3Vq_fZ-Ddt42vj6C6SSlkvW",
 		"markdown": {
 			"LICENSE": "This dataset is provided for academic and research purposes only. Any commercial use, reproduction, or distribution of this dataset, in whole or in part, is strictly prohibited.\n\nBy accessing and using this dataset, you agree to use it solely for non-commercial, research purposes and acknowledge that any commercial exploitation of this dataset is expressly forbidden. Users are required to cite the dataset appropriately in any publications or presentations that result from the use of this data.\n\n[Source](https://github.com/yaeltudela/polyp_ash?tab=readme-ov-file#research-use-only-license)",
@@ -2367,7 +2367,7 @@
 	},
 	"Meat Cut": {
 		"id": 3410,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/n/U/Ke/NnGM6L6TN0MafJn12phFRWj9NV0uY8xmQbF4m7Do3YSdLBxev79nlq89ZqepnpKlKs8Y25b2lJ7DYekqKyH2gUmRU6vBwmgjnHp31Y8fmK3n56RbPps5sleCq139.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/0b8r1wkxovirt3osa69ut/meat-cut-DatasetNinja.tar?rlkey=t3demzmmhcub5uhjcwtvbts9y&dl=1",
 		"download_original_url": "https://zenodo.org/records/4704391/files/Image%20Dataset.zip?download=1",
 		"markdown": {
 			"LICENSE": "Meat Cut Image Dataset (BEEF) is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://zenodo.org/records/4704391#.YlE-x39Bzmg)",
@@ -2376,7 +2376,7 @@
 	},
 	"VISEM-Tracking": {
 		"id": 3431,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Y/5/Zm/yNuuGKFZF0NrUHgRDiiIWRFsDFmtcYJ8x43EZHVCvvVKSDEnSQFXVWic0ozIaSnXmMs8rW5BHiobEUXA3zZBdcFuLptndYZemuHviT8fv5HLWBLdighNhWJiKOqW.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/t0jbma4gbgnrfneyipq4d/visemtracking-DatasetNinja.tar?rlkey=wo2j2npo1s876is0tyesecqja&dl=1",
 		"download_original_url": "https://zenodo.org/records/7293726/files/VISEM-Tracking.zip?download=1",
 		"markdown": {
 			"LICENSE": "VISEM-Tracking: Human Spermatozoa Tracking Dataset is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://zenodo.org/records/7293726#.Y5BoH-zP1hE)",
@@ -2385,7 +2385,7 @@
 	},
 	"BAGLS: Images": {
 		"id": 3437,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/w/M/P1/yNj7mNBKdLipLYfsWn6QIdhz6HH4gpobpmS9YzG4VDC1o2VG9YoMJtVPdNfFHEOUWlBov1RA9rJFsWjII7GQc5XOe8k9TDR100L36rAozqVCnG9keXVbjLUNsN3G.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/y2semmavbhfsepk8wwixq/bagls-images-DatasetNinja.tar?rlkey=63v6bzvt08jnn74j9rbwjdk79&dl=1",
 		"download_original_url": "https://www.kaggle.com/datasets/gomezp/benchmark-for-automatic-glottis-segmentation/download?datasetVersionNumber=2",
 		"markdown": {
 			"LICENSE": "BAGLS: Automatic Glottis Segmentation is under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.\n\n[Source](https://www.kaggle.com/datasets/gomezp/benchmark-for-automatic-glottis-segmentation)",
@@ -2394,7 +2394,7 @@
 	},
 	"Motorcycle Night Ride": {
 		"id": 3441,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/w/M/P1/yNj7mNBKdLipLYfsWn6QIdhz6HH4gpobpmS9YzG4VDC1o2VG9YoMJtVPdNfFHEOUWlBov1RA9rJFsWjII7GQc5XOe8k9TDR100L36rAozqVCnG9keXVbjLUNsN3G.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/c75qb4ex40b12nlo0sibd/motorcycle-night-ride-DatasetNinja.tar?rlkey=l2jwq4ouef779abljftm5uvhd&dl=1",
 		"download_original_url": "https://www.kaggle.com/datasets/sadhliroomyprime/motorcycle-night-ride-semantic-segmentation/download?datasetVersionNumber=2",
 		"markdown": {
 			"LICENSE": "Motorcycle Night Ride is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://www.kaggle.com/datasets/sadhliroomyprime/motorcycle-night-ride-semantic-segmentation)",
@@ -2403,7 +2403,7 @@
 	},
 	"RGB-D People Dataset": {
 		"id": 3442,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/k/Q/ty/6fmQ8USMgieDH64dAo2beYNwYZm2sgmec3X1lYNdHmwp4QcoFn1UYimlMn06O6gFtax6ZppRnuVRb2Szt71DI7GXnmK0TmW0qF8ubD23U4jZ5pqubXvf0Z3nZiTg.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/wj98nwjvmf9z63htq8ppo/rgbd-people-dataset-DatasetNinja.tar?rlkey=zvjxt9f73ir6hrq5ies2wnqyq&dl=1",
 		"download_original_url": "http://www.informatik.uni-freiburg.de/~spinello/sw/rgbd_people_unihall.tar.gz",
 		"markdown": {
 			"LICENSE": "RGB-D Peoples Dataset is under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.\n\n[Source](https://www.kaggle.com/datasets/bmanikan/rgbd-peoples-dataset)",
@@ -2412,7 +2412,7 @@
 	},
 	"STARE": {
 		"id": 3455,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/K/o/wi/UWDOE0nkS6IFtMZnsKTGi61unsJfRR2mbRw3LS00mrk2F6RMPtjWj3SLwg03Hzyrv5pKRCmt81hvAgVsO927l7vp2dGRJJdDBxl5hmaBY0lkFmr0SvxUbhqBwQZL.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/mfodfr67sqag047jkhntp/stare-DatasetNinja.tar?rlkey=z8kwhb5us58phsydquokt8kq1&dl=1",
 		"download_original_url": {
 			"Images": "https://cecas.clemson.edu/~ahoover/stare/images/all-images.zip",
 			"Adam Hoover labelled data": "https://cecas.clemson.edu/~ahoover/stare/probing/labels-ah.tar",
@@ -2426,7 +2426,7 @@
 	},
 	"Wildtrack": {
 		"id": 3492,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/8/l/t4/LJ17aaR3WUXgVyK36WfFCkxuIW6uR9zzqnBZ0ILvr2eMkiCj06QVZWF0PHSk4jHld07HWH0PmRyeg9Cy3BSY1pYMyXzIjypmNmqyZnSc1iMKldvvgg1aK0d52R7x.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/tepid1np4oyycdue4stof/wildtrack-DatasetNinja.tar?rlkey=kinag8mk3jq39pa5qgv2v9y0r&dl=1",
 		"download_original_url": "https://www.kaggle.com/datasets/aryashah2k/large-scale-multicamera-detection-dataset/download?datasetVersionNumber=1",
 		"markdown": {
 			"LICENSE": "The Wildtrack: Multi-Camera Person Dataset is publicly available.\n\n[Source](https://arxiv.org/abs/1707.09299)",
@@ -2435,7 +2435,7 @@
 	},
 	"BSTLD": {
 		"id": 3499,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/J/c/A8/iTfWA1QUPXUYQRXBZcO4b1wGLrsv45yh6QQRnbm0nLrMPVZ42GlW1LYqueZNnQ5WPW4dFjRRn0HdhrqW3SbaiXgLv0MKgsKBLdj14M4G76l4BQiUAiBfNqJ4HXsW.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/yme38vx2x7qjiow692l7t/bstld-DatasetNinja.tar?rlkey=gkya5pfq3xki0vr4g3gczw7se&dl=1",
 		"download_original_url": "https://github.com/bosch-ros-pkg/bstld/tree/master/label_files",
 		"markdown": {
 			"LICENSE": "ADD CUSTOM LICENSE MANUALLY\n\n[Source](https://hci.iwr.uni-heidelberg.de/system/files/private/datasets/1639193981/non-commercial_license.pdf)",
@@ -2444,7 +2444,7 @@
 	},
 	"S2TLD": {
 		"id": 3497,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/G/4/rC/bUnIqq1zfCe4W5vCOYY7aFJ88JmyxfDQwxkY2ypPpmsamm1SK94yR9gDP26SPbKfAiopvNpAW3JcSHFTNuCoJ34AxbrUyoqYdGdeh0hZ5U1S1O1kLNoLjE6uqaxa.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/3aq1lcc09iqm4ngzkx8lg/s2tld-DatasetNinja.tar?rlkey=fqeypdk3e90gcufoepngpv6m9&dl=1",
 		"download_original_url": {
 			"S2TLD (1,080 * 1,920)": "https://1drv.ms/u/s!Akhz5L4oxpUGiX2BR8RRl4B-XJ4I?e=fFFkll",
 			"S2TLD (720 * 1,280)": "https://1drv.ms/u/s!Akhz5L4oxpUGigJuXsgf-hyoknPp?e=TjchFL"
@@ -2456,7 +2456,7 @@
 	},
 	"Argoverse HD": {
 		"id": 3501,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/4/5/0w/ucAHBXzifTiNpMilyo1SXb3jCgcRv1eqxbnR9N0W45zsPnwvoo9k25po5fkXHPFRrgbKecU9wHp8jhbyD2vO95n3JZafC3FyJmQi5gtjxDCSKqaxqwd2dlrWtaZa.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/4scgb53gi4ctjxpvmmfbh/argoverse-hd-DatasetNinja.tar?rlkey=3xu5fvd7y1u6p91fnnmb2e73m&dl=1",
 		"download_original_url": "https://www.kaggle.com/datasets/mtlics/argoversehd/download?datasetVersionNumber=1",
 		"markdown": {
 			"LICENSE": "ADD CUSTOM LICENSE MANUALLY\n\n[Source](https://www.argoverse.org/about.html#terms-of-use)",
@@ -2465,7 +2465,7 @@
 	},
 	"Ant Detection": {
 		"id": 3508,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/0/m/sM/TgQ3VLnTy3wFmkZAMmy1lfBrQyGyfobcJlSz8Zjf762SzpegjQ3YF4gkQjq5qqb3ZDtiFpiO1oPqzbciOV1qS8FygB58aieauV0usWDybOtMKV7twGk1Vt66tyZb.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/jmi2tcwo7hjakj8793au3/ant-detection-DatasetNinja.tar?rlkey=ekvhg2vjrgrrpcsjz2v41r0h6&dl=1",
 		"download_original_url": "https://www.kaggle.com/datasets/elizamoscovskaya/ant-2-keypoints-dataset/download?datasetVersionNumber=1",
 		"markdown": {
 			"LICENSE": "Ants is under [ODbL v1.0](https://opendatacommons.org/licenses/odbl/1-0/) license.\n\n[Source](https://www.kaggle.com/datasets/elizamoscovskaya/ant-2-keypoints-dataset)",
@@ -2474,7 +2474,7 @@
 	},
 	"Tsinghua Tencent 2021": {
 		"id": 3509,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/5/A/Og/FE3XzHWlDO7wHG9cDdEW8hzTcBxwCuOWxZwJKlk7zxRJJv9CGnou2Zow8saYMK3ErbcIVXeamXwzXk6Wv0yTFBaflYkLrdWPd4VC4ShAYzZZEcpsuOsaQO7IoOtY.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/6c2a5nt7opkmwfgw8jbno/tsinghua-tencent-2021-DatasetNinja.tar?rlkey=0fd3cu84i0ehqb9m69nm6poiw&dl=1",
 		"download_original_url": "https://cg.cs.tsinghua.edu.cn/traffic-sign/tt100k_2021.zip",
 		"markdown": {
 			"LICENSE": "Tsinghua Tencent 100K 2021 Dataset is under [CC BY-NC 2.0](https://creativecommons.org/licenses/by-nc/2.0/) license.\n\n[Source](https://cg.cs.tsinghua.edu.cn/traffic-sign/)",
@@ -2483,7 +2483,7 @@
 	},
 	"Tsinghua Tencent 2016": {
 		"id": 3510,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/M/C/IO/G0cwpqr9hFw00iRG2ihvTPOjnBledzkm4eh7ZQCD49301isKYRkH8FpaoSY9ugCoULRBFGUh4l8Vkws0FSNXjSx2nQ0RkaG6ZrnOIyMeCVnSbT5bkt3ygJBHtNjy.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/ery6sgxupndagiri6rzex/tsinghua-tencent-2016-DatasetNinja.tar?rlkey=y1kldw0dlwb57vjcrsxslyv6f&dl=1",
 		"download_original_url": "https://cg.cs.tsinghua.edu.cn/traffic-sign/data_model_code/data.zip",
 		"markdown": {
 			"LICENSE": "Tsinghua Tencent 100K 2016 Dataset is under [CC BY-NC 2.0](https://creativecommons.org/licenses/by-nc/2.0/) license.\n\n[Source](https://cg.cs.tsinghua.edu.cn/traffic-sign/)",
@@ -2492,7 +2492,7 @@
 	},
 	"QHDF": {
 		"id": 3513,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/i/s/00/yYox0XSDZcEvdYI6Optx29jjJVunAxrTAeY8ULQoB8U2ZIkxJSUxpHrBXNz0tEbLK89JdOxZhCy2QuJpkcGilg8Nx8gznatY9At3VJqmPjeRKam4xuscUt42OqL6.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/yw6k8x4fl4ouszjb29rba/qhdf-DatasetNinja.tar?rlkey=rpnbrjfmf5ql837ft3p5lftth&dl=1",
 		"download_original_url": "https://data.researchdatafinder.qut.edu.au/dataset/fc42f962-29c8-4be4-8d29-f61ebe165264/resource/1fdca442-dca0-4fd0-8412-4231297336a9/download/qhdf2020.tar.gz",
 		"markdown": {
 			"LICENSE": "QUT-HIA-DAF Field Data is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://data.researchdatafinder.qut.edu.au/dataset/qut-hia-daf-capsicum-datasets/resource/1fdca442-dca0-4fd0-8412-4231297336a9)",
@@ -2501,7 +2501,7 @@
 	},
 	"QHDP": {
 		"id": 3517,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Y/0/nb/FLNffmQueAMrbPRU2rzfPVsLpkP7BohMMcujwIIsm7N4IdSmc52xCdSRI3bagq15sl62VbQSROiMag6NmOVkD0JhEiWZXFm81UpMtSpTlr8b7C2Cyobg89BkPdHp.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/h8jlb7omeu6qo2rgh50yv/qhdp-DatasetNinja.tar?rlkey=dgv77gjck30pv8hfmra8bfim5&dl=1",
 		"download_original_url": "https://data.researchdatafinder.qut.edu.au/dataset/fc42f962-29c8-4be4-8d29-f61ebe165264/resource/b168423a-8b77-4649-be9f-921f196ea608/download/qhdp2020.tar.gz",
 		"markdown": {
 			"LICENSE": "QHDP: QUT-HIA-DAF Polytunnel Dataset is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://data.researchdatafinder.qut.edu.au/dataset/qut-hia-daf-capsicum-datasets/resource/b168423a-8b77-4649-be9f-921f196ea608)",
@@ -2510,7 +2510,7 @@
 	},
 	"FGVD": {
 		"id": 3521,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/D/X/Ww/a1JaYrzHnj7trF7Ot4w1k15u3pebtIrRkVdG1F7DA04tIxda5TxEux6bwaZWmhDankHfoPzySYASJF8gP2AB7gmpVA6AKMimQ0Xi9iA8ymhydiDX1KDK0mJiKUro.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/ailagmzrj674sb5prsjj8/fgvd-DatasetNinja.tar?rlkey=pe05vn4w1w0u3b2g3zic0lg0k&dl=1",
 		"download_original_url": "https://zenodo.org/records/7488960/files/IDD_FGVD.tar.gz?download=1",
 		"markdown": {
 			"LICENSE": "FGVD: Fine-Grained Vehicle Detection Dataset is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://zenodo.org/records/7488960)",
@@ -2519,7 +2519,7 @@
 	},
 	"NAO": {
 		"id": 3527,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/H/j/Sy/wt85EkIHYFmZb7sH9tNks8qI5Q4pEUowQzOU9znyXnVrGW2sKiG0jkQGacVSPWMzoOKshpmThUHwizAG2TiXY5POihme49pT9aiORwePM6kUnzzDZ4DF6ocWHdW0.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/d2tnbozoblf3r479r0ue3/nao-DatasetNinja.tar?rlkey=8uv3up022vb181avqicn6qx3w&dl=1",
 		"download_original_url": "https://drive.google.com/drive/folders/15P8sOWoJku6SSEiHLEts86ORfytGezi8",
 		"markdown": {
 			"LICENSE": "The images copyright belongs to the original [Flickr](https://www.flickr.com/) users. The bounding box annotations are made available under the [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/) license.\n\n[Source](https://drive.google.com/file/d/1TTq1CeQe0Ln8gpY6DceMEK5AXTQEAeJ-/view?usp=drive_link)\n",
@@ -2528,7 +2528,7 @@
 	},
 	"METU-ALET": {
 		"id": 3532,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/P/7/uS/v8tXfM2iDo1Zk7ud3FGuLdUkP5DSgxeAmMFyaLMu5N0oZw4q01iAYeUsAXh97Hu8EwEmw7dtlVrGZzo8bPGHjpXGpCMH6ZZrWGH3vhzKDhhg30Jh4AtORAgLDuCg.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/pclsf5he3gah9kmvqivts/metualet-DatasetNinja.tar?rlkey=zbkdnyqj396c8g5w1ihvp35g2&dl=1",
 		"download_original_url": "https://cengmetuedutr-my.sharepoint.com/:u:/g/personal/skalkan_ceng_metu_edu_tr/Ee9IYWHjbWxMrQNuVkuvlU0Buu3DgplFP7BBAWMyG06Qlw?e=z84zLt",
 		"markdown": {
 			"LICENSE": "The METU-ALET dataset is copyright free for research and commercial purposes provided that suitable citation is provided (see below):\n\n* The \"downloaded\" images are selected from copyright free images from [Creativecommons](https://creativecommons.org/), [Wikicommons](https://commons.wikimedia.org/), [Flickr](https://www.flickr.com/), [Pexels](https://www.pexels.com/), [Unsplash](https://unsplash.com/), [Shopify](https://www.shopify.com/), [Pixabay](https://pixabay.com/), [Everystock](https://www.everystockphoto.com/).\n* Additions to the images (photographed and synthesized) and object annotations are provided copyright free as well.\n\n[Source](https://github.com/metu-kovan/METU-ALET?tab=readme-ov-file#copyright)",
@@ -2537,7 +2537,7 @@
 	},
 	"Human Parts": {
 		"id": 3529,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/a/8/qK/huBDDEyXVPjRvwo0rF5bOrLD1h7l4E0sn1xbqLZBDVsVaS4JkmSwTWZdZli8mrtvvSQNR1zL8MFlZkkTy8rzKCqEZwSIX0SuFBxgxKUkNpkhs4bgu9tczhkxrOfJ.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/6jzdg34u3a9qrgnd8kuwc/human-parts-DatasetNinja.tar?rlkey=5ytp11m7lr8gkv3nt5ffynia2&dl=1",
 		"download_original_url": "https://drive.google.com/file/d/1L7oxFqRi63APVi-ffeK3L7dF_qTkZmbW/view?usp=sharing",
 		"markdown": {
 			"LICENSE": "Human Parts Dataset is under [MIT](https://spdx.org/licenses/MIT.html) license.\n\n[Source](https://github.com/xiaojie1017/Human-Parts/blob/master/LICENSE)",
@@ -2546,7 +2546,7 @@
 	},
 	"AquaTrash": {
 		"id": 3545,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/m/D/td/pLbVkk9xKng16UmwnFGqkG7LKxLCrXf2tnSxeAQFJOaiDVrrV45FZeRs0db0l5biLjQ84D3V82p4zWKWlEaTfAUE1kpqcpdpQ9FRzjLpGhx3KHzmLLD6Jkger1xm.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/2drm8qf32kwmtm1lib4me/aquatrash-DatasetNinja.tar?rlkey=9lkrcs3mpc6jx26086qqcyajo&dl=1",
 		"download_original_url": "https://github.com/Harsh9524/AquaTrash",
 		"markdown": {
 			"LICENSE": "ADD CUSTOM LICENSE MANUALLY\n\n[Source](https://github.com/Harsh9524/AquaTrash?tab=readme-ov-file#usage)",
@@ -2555,7 +2555,7 @@
 	},
 	"Drinking Waste": {
 		"id": 3530,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/V/U/8M/D5d4uB69s5AFEKnUXvzIqa9jCGW1J7oVILx6zx10ug91MV5dUsI5EIqVqnysfqenutJINOspMixSUsNDFJ71dtfF2bGm1TvAqF1JP2vtXsUuhTqcquAPCHq3RJmz.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/5skm5jx1b62sq0uyrbr0f/drinking-waste-DatasetNinja.tar?rlkey=s5vzv2pv5sn37wq9abj16ag1q&dl=1",
 		"download_original_url": "https://www.kaggle.com/datasets/arkadiyhacks/drinking-waste-classification/download?datasetVersionNumber=2",
 		"markdown": {
 			"LICENSE": "Drinking Waste Dataset is under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) license.\n\n[Source](https://www.kaggle.com/datasets/arkadiyhacks/drinking-waste-classification)",
@@ -2564,7 +2564,7 @@
 	},
 	"Environmental Microorganism Image Dataset": {
 		"id": 3551,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/d/D/CE/MOpFP1t7EQktnkiRaV7REGWdWJl5bsZk6tWvFyKArHylM4KCGmjHeHSUzMcxM4Xy6cjSWwSs4aw0dXbcBHnQBFvwzdNb0EPBJU2IZ1f0kcVDFU9XqktgWJbgyffU.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/ih0qnti4t0n5gospww3d7/environmental-microorganism-image-dataset-DatasetNinja.tar?rlkey=ep9hx41qggwczlj24e6wvvawv&dl=1",
 		"download_original_url": "https://figshare.com/ndownloader/files/31660352",
 		"markdown": {
 			"LICENSE": "Environmental Microorganism Image Dataset Sixth Version is under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) license.\n\n[Source](https://figshare.com/articles/dataset/EMDS-6/17125025/1)",
@@ -2573,7 +2573,7 @@
 	},
 	"Person in Context": {
 		"id": 3552,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/Q/R/lk/0IBq89VEHmFpUPhX3E3idK1md9lV3hjxNfYeSoncFSE1Lerh6aw2GXYCZWkjp9mIANk0KKp6Zy2q65nNnIAOmWD90iCAEVwrCclqr9ngKeC4G4vdVVYHeRZk77yd.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/owz3lely2oinaar33ftpw/person-in-context-DatasetNinja.tar?rlkey=vst4sraxp9g8raodezdh4idmc&dl=1",
 		"download_original_url": "https://drive.google.com/open?id=1TATEqQwRrlb8ero1yurL1Nd9dIknQnyX",
 		"markdown": {
 			"LICENSE": "This PIC API is made freely available to academic and non-academic entities for non-commercial purposes such as academic research, teaching, scientific publications, or personal experimentation. Permission is granted to use the code given that you agree to our license terms.\n\n[Source](https://github.com/siliu-group/pic-challenge#license)",
@@ -2591,11 +2591,20 @@
 	},
 	"HuTics": {
 		"id": 3553,
-		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/k/g/r8/DX59EykRaqJoGdDFVeIsSQGLQ6u9T367aVF0APmYaKpO6bcMJws1DRB08JxOui6TMjzLg4b3i131e2TCWlxEMvqBKnoUxRhrX87VfulNdRK6SqKhmrTK4MeeOYFL.tar",
+		"download_sly_url": "https://www.dropbox.com/scl/fi/8baqkaa1lirqvp4h30g0q/hutics-DatasetNinja.tar?rlkey=8m91daycdcbe6131jn9yp4mom&dl=1",
 		"download_original_url": "https://drive.google.com/file/d/1bCWQW123BGZUdqOJws6F9PHFeQbkMmkZ/view",
 		"markdown": {
 			"LICENSE": "HuTics Dataset is under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) license.\n\n[Source](https://github.com/zhongyi-zhou/GestureIMT/blob/main/LICENSE)",
 			"README": "# HuTics: Human Deictic Gestures Dataset\n\nHuTics is a dataset for instance segmentation, semantic segmentation, and object detection tasks."
+		}
+	},
+	"DeepDoors2": {
+		"id": 3564,
+		"download_sly_url": "https://assets.supervisely.com/supervisely-supervisely-assets-public/teams_storage/i/l/Kr/heN2O31Rk7vkMak6pPtUfygTxef14IrJMbiNzPuJYPMZglxK6hSY4QsMxqWGHYfvMMiYKlR64iRFf82NRxvOqhkN3QmOyU6AOSYDUup5i7n84xJMKFC90A9knVRL.tar",
+		"download_original_url": "https://drive.google.com/drive/folders/1SxVKeJ9RBcoJXHSHw-LWaLGG07BZT-b5?usp=sharing",
+		"markdown": {
+			"LICENSE": "The DeepDoors Version 2.0 Dataset is publicly available.\n\n[Source](https://link.springer.com/article/10.1007/s42452-021-04588-3)",
+			"README": "# DeepDoors Version 2.0 Dataset\n\nDeepDoors2 is a dataset for instance segmentation, semantic segmentation, object detection, classification, and monocular depth estimation tasks."
 		}
 	}
 }
