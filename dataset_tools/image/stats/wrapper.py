@@ -135,14 +135,15 @@ def count_stats(
     """
     Count dtools statistics instances passed as a list.
 
+    :param api: Supervisely API
+    :type api: sly.Api, optional
     :param project: Supervisely project ID or a local project path.
     :type project: Union[int, str]
     :param stats: list of instances of statistics
     :type stats: list
     :param sample_rate: Modify size of a statistics sample.
     :type sample_rate: float, optional
-    :param api: Supervisely API
-    :type api: sly.Api, optional
+
 
     :Usage example:
 
