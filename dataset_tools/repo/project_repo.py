@@ -8,14 +8,12 @@ from typing import List, Literal, Optional
 
 import cv2
 import requests
-import supervisely as sly
 import tqdm
 from dotenv import load_dotenv
 from PIL import Image
-from supervisely._utils import camel_to_snake
-from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
+import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
@@ -23,6 +21,8 @@ from dataset_tools.repo.sample_project import (
 )
 from dataset_tools.templates import DatasetCategory, License
 from dataset_tools.text.generate_summary import list2sentence
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 DOWNLOAD_ARCHIVE_TEAMFILES_DIR = "/tmp/supervisely/export/export-to-supervisely-format/"
 
@@ -38,6 +38,9 @@ CITATION_TEMPLATE = (
 )
 
 LICENSE_TEMPLATE = "{project_name_full} is under [{license_name}]({license_url}) license.\n\n[Source]({source_url})"
+PUBLICLY_AVAILABLE_LICENSE_TEMPLATE = (
+    "The {project_name_full} is publicly available.\n\n[Source]({source_url})"
+)
 UNKNOWN_LICENSE_TEMPLATE = (
     "License is unknown for the {project_name_full} dataset.\n\n[Source]({source_url})"
 )
@@ -70,7 +73,9 @@ class ProjectRepo:
     def __init__(self, api: sly.Api, project_id: int, settings: dict):
         self.project_id = project_id
         self.project_info = api.project.get_info_by_id(project_id)
-        self.project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
+        self.project_meta = sly.ProjectMeta.from_json(
+            api.project.get_meta(project_id, with_settings=True)
+        )
         self.project_stats = api.project.get_stats(self.project_id)
         self.datasets = api.dataset.get_list(project_id)
 
@@ -228,9 +233,16 @@ class ProjectRepo:
                 )
                 self.download_sly_url = "Set 'HIDE_DATASET=False' to generate download link"
                 return
+            if "https://www.dropbox.com/" in self.project_info.custom_data.get("download_sly_url"):
+                sly.logger.warn(
+                    "Download archive is already stored in the dropbox repositiry. Skipping the creation of download link."
+                )
+                self.download_sly_url = self.project_info.custom_data["download_sly_url"]
+                return
             sly.logger.warn(
                 "This is a release version of a dataset. Don't forget to double-check annotations shapes, colors, tags, etc."
             )
+
         else:
             sly.logger.info("Download sly url is passed with force: 'force_download_sly_url==True'")
 
@@ -245,6 +257,11 @@ class ProjectRepo:
             self.api,
             {
                 self.project_name: {
+                    "id": self.project_info.id,
+                    "download_sly_url": self.project_info.custom_data.get("download_sly_url"),
+                    "download_original_url": self.project_info.custom_data.get(
+                        "download_original_url"
+                    ),
                     "markdown": _markdown,
                 }
             },
@@ -258,6 +275,22 @@ class ProjectRepo:
         self.download_sly_url = download.prepare_link(
             self.api, self.api.project.get_info_by_id(self.project_id), force, tf_urls_path, files
         )
+
+        if not force and "https://www.dropbox.com" in self.download_sly_url:
+            sly.logger.warn(
+                f"Be careful: the '{self.project_info.name}' .tar archive is stored on dropbox repository"
+            )
+            with requests.get(self.download_sly_url, stream=True) as r:
+                if r.status_code == 200:
+                    self.download_archive_size = int(r.headers.get("Content-Length"))
+
+            return
+
+        if force and "https://www.dropbox.com" in self.download_sly_url:
+            sly.logger.info(
+                f"Creating forced download link. Dropbox link will be rewritten automatically."
+            )
+            return
 
         def sorting_key(filename):
             match = re.search(r"(\d+)_", filename)
@@ -820,6 +853,11 @@ class ProjectRepo:
                 sly.logger.warning("Custom license must be added manually.")
         elif isinstance(self.license, License.Unknown):
             license_content = UNKNOWN_LICENSE_TEMPLATE.format(
+                project_name_full=self.project_name_full,
+                source_url=self.license.source_url,
+            )
+        elif isinstance(self.license, License.PubliclyAvailable):
+            license_content = PUBLICLY_AVAILABLE_LICENSE_TEMPLATE.format(
                 project_name_full=self.project_name_full,
                 source_url=self.license.source_url,
             )

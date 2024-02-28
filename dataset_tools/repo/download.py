@@ -52,6 +52,10 @@ def prepare_link(
             f"Download URL for dataset '{project.name}' not found. Please update dataset-tools to the latest version with 'pip install --upgrade dataset-tools'"
         )
 
+    if not force:       
+        if "https://www.dropbox.com" in urls[project.name]["download_sly_url"]:
+            return urls[project.name]["download_sly_url"]
+
     def _get_duplicates(files):
         split_dict = {}
         for file in files:
@@ -142,6 +146,7 @@ def update_sly_url_dict(api: sly.Api, new_dict: dict, tf_urls_path: str) -> None
         data = {}
 
     sly.logger.info("Updating dictionary with download links...")
+
     data.update(new_dict)
 
     with open(local_save_path, "w") as f:

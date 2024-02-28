@@ -358,11 +358,14 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         content += f"The dataset presented here is not the original one. Learn more on the dataset's homepage."
 
     content += "\n\n"
-    content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} "
+    if totals.get("total_classes", 0) == 0:
+        content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects."
+    else:
+        content += f"The dataset consists of {totals.get('total_assets', 0)} {modality} with {totals.get('total_objects', 0)} labeled objects belonging to {totals.get('total_classes', 0)} "
     if len(top_classes) == 1:
         content += f"single class "
     elif len(top_classes) == 0:
-        content += f"classes."
+        content += f""
     else:
         content += f"different classes "
 

@@ -3,9 +3,9 @@ class License:
         def __new__(cls, source_url: str = None, redistributable=True, **kwargs):
             self = super().__new__(cls)
             self.name = "custom"
-            self.url = kwargs.get('url', source_url)             
-            self.redistributable = redistributable        
-            self.source_url = kwargs.get('url', source_url)
+            self.url = kwargs.get("url", source_url)
+            self.redistributable = redistributable
+            self.source_url = kwargs.get("url", source_url)
             return self
 
     class Unknown:
@@ -15,6 +15,15 @@ class License:
             self.url = None
             self.redistributable = False
             self.source_url = source_url
+            return self
+
+    class PubliclyAvailable:
+        def __new__(cls, source_url: str = None):
+            self = super().__new__(cls)
+            self.name = "publicly available"
+            self.url = None
+            self.source_url = source_url
+            self.redistributable = True
             return self
 
     class BSD_3_Clause:
@@ -170,6 +179,15 @@ class License:
             self.source_url = source_url
             return self
 
+    class Etalab_2_0:
+        def __new__(cls, source_url: str = None):
+            self = super().__new__(cls)
+            self.name = "Etalab Open License 2.0"
+            self.url = "https://www.etalab.gouv.fr/wp-content/uploads/2018/11/open-licence.pdf"
+            self.redistributable = True
+            self.source_url = source_url
+            return self
+
     class MIT:
         def __new__(cls, source_url: str = None):
             self = super().__new__(cls)
@@ -205,7 +223,7 @@ class License:
             self.redistributable = True
             self.source_url = source_url
             return self
-        
+
     class GNU_AGPL_v3:
         def __new__(cls, source_url: str = None):
             self = super().__new__(cls)
@@ -213,8 +231,8 @@ class License:
             self.url = "https://www.gnu.org/licenses/agpl-3.0.html"
             self.redistributable = True
             self.source_url = source_url
-            return self        
-        
+            return self
+
     class GNU_GPL_v2:
         def __new__(cls, source_url: str = None):
             self = super().__new__(cls)
@@ -223,7 +241,7 @@ class License:
             self.redistributable = True
             self.source_url = source_url
             return self
-        
+
     class GNU_LGPL_v3:
         def __new__(cls, source_url: str = None):
             self = super().__new__(cls)
@@ -241,7 +259,16 @@ class License:
             self.redistributable = True
             self.source_url = source_url
             return self
-        
+
+    class CDLA_Permissive_2_0:
+        def __new__(cls, source_url: str = None):
+            self = super().__new__(cls)
+            self.name = "CDLA Permissive 2.0"
+            self.url = "https://cdla.dev/permissive-2-0/"
+            self.redistributable = True
+            self.source_url = source_url
+            return self
+
     class OpenAccess:
         def __new__(cls, source_url: str = None):
             self = super().__new__(cls)
@@ -249,5 +276,4 @@ class License:
             self.url = "http://purl.org/eprint/accessRights/OpenAccess"
             self.redistributable = True
             self.source_url = source_url
-            return self            
-
+            return self

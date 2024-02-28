@@ -22,6 +22,10 @@ class CVTask:
     class MonocularDepthEstimation:
         def __new__(cls):
             return "monocular depth estimation"
+        
+    class StereoDepthEstimation:
+        def __new__(cls):
+            return "stereo depth estimation"        
 
     class SemiSupervisedLearning:
         def __new__(cls):

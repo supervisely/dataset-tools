@@ -73,6 +73,10 @@ class Domain:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class ThermalDetection(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
     class VehicleDetection(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
@@ -86,6 +90,7 @@ class Domain:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
             self.text = "internet of things (IoT)"
+
 
 class Research:
     class Agricultural(DatasetApplications):
@@ -105,6 +110,10 @@ class Research:
             super().__init__(is_used)
 
     class Genetic(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
+    class Geological(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
@@ -199,6 +208,10 @@ class Industry:
             super().__init__(is_used)
 
     class Manufacturing(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+
+    class Marine(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 

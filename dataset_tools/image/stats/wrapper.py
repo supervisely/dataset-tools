@@ -47,6 +47,7 @@ def sample_images(
     image_stats = sorted(image_stats, key=lambda x: x["id"])
     imageTag_stats = sorted(imageTag_stats, key=lambda x: x["id"])
     objectTag_stats = sorted(objectTag_stats, key=lambda x: x["id"])
+<<<<<<< HEAD
     image_stats, imageTag_stats, objectTag_stats = (
         project_stats["images"]["datasets"],
         project_stats["imageTags"]["datasets"],
@@ -56,6 +57,8 @@ def sample_images(
     image_stats = sorted(image_stats, key=lambda x: x["id"])
     imageTag_stats = sorted(imageTag_stats, key=lambda x: x["id"])
     objectTag_stats = sorted(objectTag_stats, key=lambda x: x["id"])
+=======
+>>>>>>> origin/main
 
     for dataset, image_stat, imageTag_stat, objectTag_stat in zip(
         datasets, image_stats, imageTag_stats, objectTag_stats
@@ -65,6 +68,7 @@ def sample_images(
             and imageTag_stat["imagesTagged"] == 0
             and objectTag_stat["objectsTagged"] == 0
         )
+<<<<<<< HEAD
     for dataset, image_stat, imageTag_stat, objectTag_stat in zip(
         datasets, image_stats, imageTag_stats, objectTag_stats
     ):
@@ -73,6 +77,8 @@ def sample_images(
             and imageTag_stat["imagesTagged"] == 0
             and objectTag_stat["objectsTagged"] == 0
         )
+=======
+>>>>>>> origin/main
         if dataset.items_count == 0 or is_unlabeled:
             continue
         k = int(
@@ -126,11 +132,18 @@ def count_images_stats(
 
 
 def count_stats(
+<<<<<<< HEAD
     api: sly.Api,
+=======
+>>>>>>> origin/main
     project: Union[int, str],
     project_stats: dict,
     stats: list,
     sample_rate: float = 1,
+<<<<<<< HEAD
+=======
+    api: sly.Api = None,
+>>>>>>> origin/main
 ) -> None:
     """
     Count dtools statistics instances passed as a list.
