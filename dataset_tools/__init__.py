@@ -23,7 +23,10 @@ from dataset_tools.image.stats.preview_for_classes import (
     ClassesPreview,
     ClassesPreviewTags,
 )
-from dataset_tools.image.stats.wrapper import count_stats  # , initialize
+from dataset_tools.image.stats.wrapper import (
+    count_stats,
+    count_images_stats,
+)  # , initialize
 from dataset_tools.repo.download import download, prepare_link, update_sly_url_dict
 from dataset_tools.repo.project_repo import ProjectRepo
 from dataset_tools.text.generate_summary import (

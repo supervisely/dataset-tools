@@ -12,6 +12,7 @@ CLASSES_CNT_LIMIT = 100
 MAX_SIZE_OBJECT_SIZES_BYTES = 1e7
 SHRINKAGE_COEF = 0.1
 
+
 class ClassesPerImage(BaseStats):
     """
     Columns:
@@ -36,10 +37,12 @@ class ClassesPerImage(BaseStats):
         stat_cache: dict = None,
     ) -> None:
         self._meta = project_meta
-        self._stats = {}
+        self.project_stats = project_stats
+        self.datasets = datasets
         self.force = force
         self._stat_cache = stat_cache
-        self.project_stats = project_stats
+
+        self._stats = {}
 
         self._dataset_id_to_name = None
         if datasets is not None:
@@ -63,15 +66,24 @@ class ClassesPerImage(BaseStats):
         self._stats["data"] = []
         self._referencesRow = []
 
-        total = self.project_stats["images"]["total"]['imagesInDataset'] * (len(self.project_stats['images']["objectClasses"])+5)
-        self.update_freq = 1       
-        if total  > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
-            self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total  
+        total = self.project_stats["images"]["total"]["imagesInDataset"] * (
+            len(self.project_stats["images"]["objectClasses"]) + 5
+        )
+        self.update_freq = 1
+        if total > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
+            self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total
 
+    def clean(self):
+        self.__init__(
+            self._meta,
+            self.project_stats,
+            self.datasets,
+            self.force,
+            self._stat_cache,
+        )
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         if self.update_freq >= random.random():
-
             cur_class_names = ["unlabeled"]
             cur_class_colors = [UNLABELED_COLOR]
             classname_to_index = {}
@@ -107,7 +119,9 @@ class ClassesPerImage(BaseStats):
                     mask_areas = (np.sum(stacked_masks, axis=(0, 1)) / total_area) * 100
 
                     mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
-                    stat_area = {cls: area for cls, area in zip(cur_class_names, mask_areas.tolist())}
+                    stat_area = {
+                        cls: area for cls, area in zip(cur_class_names, mask_areas.tolist())
+                    }
 
                     if self._stat_cache is not None:
                         if image.id in self._stat_cache:
@@ -126,7 +140,9 @@ class ClassesPerImage(BaseStats):
 
             if self._dataset_id_to_name is not None:
                 table_row.append(self._dataset_id_to_name[image.dataset_id])
-            area_unl = stat_area.get("unlabeled", 0) # if not np.isnan(stat_area["unlabeled"]) else 0
+            area_unl = stat_area.get(
+                "unlabeled", 0
+            )  # if not np.isnan(stat_area["unlabeled"]) else 0
             table_row.extend(
                 [
                     image.height,  # stat_area["height"],
@@ -142,7 +158,9 @@ class ClassesPerImage(BaseStats):
                     cur_count = 0
                 else:
                     cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
-                    cur_count = stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
+                    cur_count = (
+                        stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
+                    )
                 table_row.append(cur_count)
                 table_row.append(round(cur_area, 2) if cur_area != 0 else 0)
 
@@ -188,3 +206,48 @@ class ClassesPerImage(BaseStats):
             "referencesRow": self._referencesRow,
         }
         return res
+
+    def to_numpy_raw(self):
+        return np.array(
+            [[a] + [b] for a, b in zip(self._stats["data"], self._referencesRow)],
+            dtype=object,
+        )
+
+    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []):
+        files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
+
+        res = []
+        is_zero_area = None
+        references = []
+        labeled_cls = self._class_names[1:]
+
+        def update_shape(loaded_data: list, updated_classes, insert_val=0) -> list:
+            if len(updated_classes) > 0:
+                indices = list(sorted([labeled_cls.index(cls) for cls in updated_classes]))
+                for idx, image in enumerate(loaded_data):
+                    stat_data, ref_data = image
+                    cls_data = stat_data[5:]
+                    for ind in indices:
+                        cls_data.insert(2 * ind, insert_val)
+                        cls_data.insert(2 * ind + 1, insert_val)
+                    stat_data = stat_data[:5] + cls_data
+                    loaded_data[idx] = [stat_data, ref_data]
+            return loaded_data
+
+        for file in files:
+            loaded_data = np.load(file, allow_pickle=True).tolist()
+            if len(loaded_data[0][0][5:]) != (len(labeled_cls) * 2):
+                loaded_data = update_shape(loaded_data, updated_classes)
+
+            for image in loaded_data:
+                stat_data, ref_data = image
+                res.append(stat_data)
+                references.append(ref_data)
+
+            save_data = np.array(loaded_data, dtype=object)
+            np.save(file, save_data)
+
+        self._stats["data"] = res
+        self._referencesRow = references
+
+        return np.array(res)

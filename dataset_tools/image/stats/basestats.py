@@ -11,6 +11,9 @@ class BaseStats:
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         pass
 
+    def clean(self) -> None:
+        pass
+
     def to_json(self) -> Dict:
         pass
 
@@ -29,12 +32,17 @@ class BaseStats:
         if self.to_pandas() is not None:
             table = self.to_pandas()[:100]  # max rows == 100
             table = table.iloc[:, :100]  # select the first 100 columns
-            table.dfi.export(path, max_rows=-1, max_cols=-1, table_conversion="matplotlib")
+            table.dfi.export(
+                path, max_rows=-1, max_cols=-1, table_conversion="matplotlib"
+            )
 
     @property
     def basename_stem(self) -> str:
         """Get name of your class for your file system"""
         return camel_to_snake(self.__class__.__name__)
+
+    def sew_chunks(self) -> str:
+        pass
 
     def _get_summated_canvas(self, bitmap_masks_rgb: List[np.ndarray]) -> np.ndarray:
         masks1channel = [mask[:, :, 0] for mask in bitmap_masks_rgb]

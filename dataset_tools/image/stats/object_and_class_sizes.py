@@ -1,7 +1,7 @@
 import random
 from collections import defaultdict, namedtuple
 from typing import Dict, List
-
+import numpy as np
 import supervisely as sly
 from supervisely.app.widgets import TreemapChart
 
@@ -11,8 +11,12 @@ MAX_SIZE_OBJECT_SIZES_BYTES = 1e7
 SHRINKAGE_COEF = 0.01
 
 # LiteGeometry = namedtuple("LiteGeometry", ["__class__"])
-LiteLabel = namedtuple("LiteLabel", ["obj_class_name","geometry_type","geometry_to_bbox","geometry_area"])
-LiteAnnotation = namedtuple("LiteAnnotation", ["labels","img_size"])
+LiteLabel = namedtuple(
+    "LiteLabel",
+    ["obj_class_name", "geometry_type", "geometry_to_bbox", "geometry_area"],
+)
+LiteAnnotation = namedtuple("LiteAnnotation", ["labels", "img_size"])
+
 
 class ObjectSizes(BaseStats):
     """
@@ -36,9 +40,11 @@ class ObjectSizes(BaseStats):
         datasets: List[sly.DatasetInfo] = None,
         force: bool = False,
     ):
-        self.force = force
         self.project_meta = project_meta
         self.project_stats = project_stats
+        self.datasets = datasets
+        self.force = force
+
         self._dataset_id_to_name = None
         if datasets is not None:
             self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
@@ -47,8 +53,18 @@ class ObjectSizes(BaseStats):
 
         total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
         self.update_freq = 1
-        if total_objects  > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
-            self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total_objects
+        if total_objects > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
+            self.update_freq = (
+                MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total_objects
+            )
+
+    def clean(self):
+        self.__init__(
+            self.project_meta,
+            self.project_stats,
+            self.datasets,
+            self.force,
+        )
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         if self.update_freq >= random.random():
@@ -74,12 +90,14 @@ class ObjectSizes(BaseStats):
                 object_data["image_size_hw"] = f"{image_height} x {image_width}"
 
                 lite_label = LiteLabel(
-                    obj_class_name=label.obj_class.name, 
-                    geometry_type=type(label.geometry), 
-                    geometry_to_bbox = label.geometry.to_bbox(),
-                    geometry_area = label.geometry.area
+                    obj_class_name=label.obj_class.name,
+                    geometry_type=type(label.geometry),
+                    geometry_to_bbox=label.geometry.to_bbox(),
+                    geometry_area=label.geometry.area,
                 )
-                object_data.update(calculate_obj_sizes(lite_label, image_height, image_width))
+                object_data.update(
+                    calculate_obj_sizes(lite_label, image_height, image_width)
+                )
 
                 object_data = list(object_data.values())
 
@@ -87,7 +105,9 @@ class ObjectSizes(BaseStats):
 
     def to_json(self) -> Dict:
         if not self._stats:
-            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            sly.logger.warning(
+                "No stats were added in update() method, the result will be None."
+            )
             return
 
         options = {
@@ -139,6 +159,28 @@ class ObjectSizes(BaseStats):
 
         return res
 
+    def to_numpy_raw(self) -> np.ndarray:
+        return np.array(self._stats, dtype=object)
+
+    def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
+        files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
+
+        res = []
+        references = []
+
+        for file in files:
+            loaded_data = np.load(file, allow_pickle=True)
+            # stat_data, ref_data = loaded_data[:4, :], loaded_data[4, :]
+
+            for obj in loaded_data.tolist():
+                stat_data, ref_data = obj
+                res.append(stat_data)
+                references.append(ref_data)
+
+        self._stats = [(rf, rs) for rf, rs in zip(res, references)]
+
+        return np.array(res, dtype=object)
+
 
 class ClassSizes(BaseStats):
     """
@@ -166,27 +208,37 @@ class ClassSizes(BaseStats):
     """
 
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False):
-        self.force = force
         self.project_meta = project_meta
+        self.force = force
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 
         self._data = []
 
+    def clean(self):
+        self.__init__(
+            self.project_meta,
+            self.force,
+        )
+
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        lite_labels = [LiteLabel(
-            obj_class_name=label.obj_class.name, 
-            geometry_type=type(label.geometry), 
-            geometry_to_bbox = label.geometry.to_bbox(),
-            geometry_area = label.geometry.area
-            ) for label in ann.labels]
+        lite_labels = [
+            LiteLabel(
+                obj_class_name=label.obj_class.name,
+                geometry_type=type(label.geometry),
+                geometry_to_bbox=label.geometry.to_bbox(),
+                geometry_area=label.geometry.area,
+            )
+            for label in ann.labels
+        ]
         lite_ann = LiteAnnotation(labels=lite_labels, img_size=ann.img_size)
 
         self._data.append(lite_ann)
 
-
     def to_json(self) -> Dict:
         if not self._data:
-            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            sly.logger.warning(
+                "No stats were added in update() method, the result will be None."
+            )
             return
 
         stats = []
@@ -236,10 +288,12 @@ class ClassSizes(BaseStats):
                 "max_height_px": max(class_heights_px[class_title]),
                 "max_height_pc": max(class_heights_pc[class_title]),
                 "avg_height_px": round(
-                    sum(class_heights_px[class_title]) / len(class_heights_px[class_title]),
+                    sum(class_heights_px[class_title])
+                    / len(class_heights_px[class_title]),
                 ),
                 "avg_height_pc": round(
-                    sum(class_heights_pc[class_title]) / len(class_heights_pc[class_title]),
+                    sum(class_heights_pc[class_title])
+                    / len(class_heights_pc[class_title]),
                     2,
                 ),
                 "min_width_px": min(class_widths_px[class_title]),
@@ -247,10 +301,12 @@ class ClassSizes(BaseStats):
                 "max_width_px": max(class_widths_px[class_title]),
                 "max_width_pc": max(class_widths_pc[class_title]),
                 "avg_width_px": round(
-                    sum(class_widths_px[class_title]) / len(class_widths_px[class_title]),
+                    sum(class_widths_px[class_title])
+                    / len(class_widths_px[class_title]),
                 ),
                 "avg_width_pc": round(
-                    sum(class_widths_pc[class_title]) / len(class_widths_pc[class_title]),
+                    sum(class_widths_pc[class_title])
+                    / len(class_widths_pc[class_title]),
                     2,
                 ),
             }
@@ -288,21 +344,48 @@ class ClassSizes(BaseStats):
             "columnsOptions": [
                 {"type": "class"},
                 {"maxValue": max([class_data[1] for class_data in stats])},
-                {"postfix": "%", "tooltip": "Average object area in percents of all image."},
-                {"postfix": "%", "tooltip": "Maximum object area in percents of all image."},
-                {"postfix": "%", "tooltip": "Minimum object area in percents of all image."},
+                {
+                    "postfix": "%",
+                    "tooltip": "Average object area in percents of all image.",
+                },
+                {
+                    "postfix": "%",
+                    "tooltip": "Maximum object area in percents of all image.",
+                },
+                {
+                    "postfix": "%",
+                    "tooltip": "Minimum object area in percents of all image.",
+                },
                 {"postfix": "px"},
-                {"postfix": "%", "tooltip": "Minimum object height in percents of image height."},
+                {
+                    "postfix": "%",
+                    "tooltip": "Minimum object height in percents of image height.",
+                },
                 {"postfix": "px"},
-                {"postfix": "%", "tooltip": "Maximum object height in percents of image height."},
+                {
+                    "postfix": "%",
+                    "tooltip": "Maximum object height in percents of image height.",
+                },
                 {"postfix": "px"},
-                {"postfix": "%", "tooltip": "Average object height in percents of image height."},
+                {
+                    "postfix": "%",
+                    "tooltip": "Average object height in percents of image height.",
+                },
                 {"postfix": "px"},
-                {"postfix": "%", "tooltip": "Minimum object width in percents of image width."},
+                {
+                    "postfix": "%",
+                    "tooltip": "Minimum object width in percents of image width.",
+                },
                 {"postfix": "px"},
-                {"postfix": "%", "tooltip": "Maximum object width in percents of image width."},
+                {
+                    "postfix": "%",
+                    "tooltip": "Maximum object width in percents of image width.",
+                },
                 {"postfix": "px"},
-                {"postfix": "%", "tooltip": "Average object width in percents of image width."},
+                {
+                    "postfix": "%",
+                    "tooltip": "Average object width in percents of image width.",
+                },
             ],
             "data": stats,
             "options": options,
@@ -310,11 +393,28 @@ class ClassSizes(BaseStats):
 
         return res
 
+    def to_numpy_raw(self) -> np.ndarray:
+        return np.array(self._data, dtype=object)
+
+    def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
+        files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
+
+        for file in files:
+            loaded_data = np.load(file, allow_pickle=True)
+
+            for image in loaded_data.tolist():
+                labels, img_size = image
+                lite_ann = LiteAnnotation(labels, img_size)
+                self._data.append(lite_ann)
+
+        return np.array(self._data, dtype=object)
+
 
 class ClassesTreemap(BaseStats):
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False):
-        self.force = force
         self.project_meta = project_meta
+        self.force = force
+
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
         self._number_of_classes = len(self._class_titles)
         self._class_rgbs = [obj_class.color for obj_class in project_meta.obj_classes]
@@ -322,22 +422,31 @@ class ClassesTreemap(BaseStats):
 
         self._data = []
 
-    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
+    def clean(self):
+        self.__init__(
+            self.project_meta,
+            self.force,
+        )
 
-        lite_labels = [LiteLabel(
-            obj_class_name=label.obj_class.name, 
-            geometry_type=type(label.geometry), 
-            geometry_to_bbox = label.geometry.to_bbox(),
-            geometry_area = label.geometry.area
-            ) for label in ann.labels]
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
+        lite_labels = [
+            LiteLabel(
+                obj_class_name=label.obj_class.name,
+                geometry_type=type(label.geometry),
+                geometry_to_bbox=label.geometry.to_bbox(),
+                geometry_area=label.geometry.area,
+            )
+            for label in ann.labels
+        ]
         lite_ann = LiteAnnotation(labels=lite_labels, img_size=ann.img_size)
 
         self._data.append(lite_ann)
 
-
     def to_json(self) -> Dict:
         if not self._data:
-            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            sly.logger.warning(
+                "No stats were added in update() method, the result will be None."
+            )
             return
 
         tooltip = "Average area of class objects on image is {y}%"
@@ -403,6 +512,22 @@ class ClassesTreemap(BaseStats):
         res["options"]["chart"]["height"] = height
 
         return res
+
+    def to_numpy_raw(self) -> np.ndarray:
+        return np.array(self._data, dtype=object)
+
+    def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
+        files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
+
+        for file in files:
+            loaded_data = np.load(file, allow_pickle=True)
+
+            for image in loaded_data.tolist():
+                labels, img_size = image
+                lite_ann = LiteAnnotation(labels, img_size)
+                self._data.append(lite_ann)
+
+        return np.array(self._data, dtype=object)
 
 
 def rgb_to_hex(rgb: List[int]) -> str:

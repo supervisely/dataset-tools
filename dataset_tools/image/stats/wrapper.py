@@ -2,11 +2,13 @@ import gc
 import multiprocessing
 import os
 import random
-from typing import List, Union
+from typing import List, Union, Optional
 
 import supervisely as sly
 import tqdm
 from memory_profiler import profile
+
+from supervisely import ImageInfo, ProjectMeta
 
 from dataset_tools import (
     ClassBalance,
@@ -15,7 +17,12 @@ from dataset_tools import (
     ObjectsDistribution,
 )
 
-CLASSES_TO_OPTIMIZE = [ClassBalance, ClassCooccurrence, ClassesPerImage, ObjectsDistribution]
+CLASSES_TO_OPTIMIZE = [
+    ClassBalance,
+    ClassCooccurrence,
+    ClassesPerImage,
+    ObjectsDistribution,
+]
 MAX_HEIGHT = 500
 MAX_WIDTH = 500
 
@@ -40,6 +47,18 @@ def sample_images(
     image_stats = sorted(image_stats, key=lambda x: x["id"])
     imageTag_stats = sorted(imageTag_stats, key=lambda x: x["id"])
     objectTag_stats = sorted(objectTag_stats, key=lambda x: x["id"])
+<<<<<<< HEAD
+    image_stats, imageTag_stats, objectTag_stats = (
+        project_stats["images"]["datasets"],
+        project_stats["imageTags"]["datasets"],
+        project_stats["objectTags"]["datasets"],
+    )
+
+    image_stats = sorted(image_stats, key=lambda x: x["id"])
+    imageTag_stats = sorted(imageTag_stats, key=lambda x: x["id"])
+    objectTag_stats = sorted(objectTag_stats, key=lambda x: x["id"])
+=======
+>>>>>>> origin/main
 
     for dataset, image_stat, imageTag_stat, objectTag_stat in zip(
         datasets, image_stats, imageTag_stats, objectTag_stats
@@ -49,6 +68,17 @@ def sample_images(
             and imageTag_stat["imagesTagged"] == 0
             and objectTag_stat["objectsTagged"] == 0
         )
+<<<<<<< HEAD
+    for dataset, image_stat, imageTag_stat, objectTag_stat in zip(
+        datasets, image_stats, imageTag_stats, objectTag_stats
+    ):
+        is_unlabeled = (
+            image_stat["imagesMarked"] == 0
+            and imageTag_stat["imagesTagged"] == 0
+            and objectTag_stat["objectsTagged"] == 0
+        )
+=======
+>>>>>>> origin/main
         if dataset.items_count == 0 or is_unlabeled:
             continue
         k = int(
@@ -78,24 +108,55 @@ def sample_images(
     return samples, total
 
 
+def count_images_stats(
+    api: sly.Api,
+    project: ImageInfo,
+    project_meta: ProjectMeta,
+    stats: list,
+    image_infos: List[ImageInfo],
+) -> None:
+    with tqdm.tqdm(desc="Calculating stats", total=len(images)) as pbar:
+        for dataset in api.dataset.get_list(project.id):
+            images = [image for image in image_infos if image.dataset_id == dataset.id]
+
+            for batch in sly.batched(images, 100):
+                image_ids = [image.id for image in batch]
+
+                janns = api.annotation.download_json_batch(dataset.id, [id for id in image_ids])
+                anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in janns]
+
+                for img, ann in zip(batch, anns):
+                    for stat in stats:
+                        stat.update(img, ann)
+                    pbar.update(1)
+
+
 def count_stats(
+<<<<<<< HEAD
+    api: sly.Api,
+=======
+>>>>>>> origin/main
     project: Union[int, str],
     project_stats: dict,
     stats: list,
     sample_rate: float = 1,
+<<<<<<< HEAD
+=======
     api: sly.Api = None,
+>>>>>>> origin/main
 ) -> None:
     """
     Count dtools statistics instances passed as a list.
 
+    :param api: Supervisely API
+    :type api: sly.Api, optional
     :param project: Supervisely project ID or a local project path.
     :type project: Union[int, str]
     :param stats: list of instances of statistics
     :type stats: list
     :param sample_rate: Modify size of a statistics sample.
     :type sample_rate: float, optional
-    :param api: Supervisely API
-    :type api: sly.Api, optional
+
 
     :Usage example:
 
@@ -145,8 +206,8 @@ def count_stats(
         return
     if sample_rate <= 0 or sample_rate > 1:
         raise ValueError("Sample rate has to be in range (0, 1]")
-    if api is None:
-        api = sly.Api.from_env()
+    # if api is None:
+    #     api = sly.Api.from_env()
 
     if isinstance(project, int):
         project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project, with_settings=True))

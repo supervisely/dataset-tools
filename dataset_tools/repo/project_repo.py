@@ -506,7 +506,7 @@ class ProjectRepo:
             heatmaps.force, classes_previews.force, classes_previews_tags.force = False, False, True
 
         dtools.count_stats(
-            self.project_id, self.project_stats, stats=stats + vstats, sample_rate=srate
+            self.api, self.project_id, self.project_stats, stats=stats + vstats, sample_rate=srate
         )
 
         sly.logger.info("Saving stats...")
