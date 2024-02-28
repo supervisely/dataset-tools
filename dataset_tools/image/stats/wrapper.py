@@ -47,7 +47,24 @@ def sample_images(
     image_stats = sorted(image_stats, key=lambda x: x["id"])
     imageTag_stats = sorted(imageTag_stats, key=lambda x: x["id"])
     objectTag_stats = sorted(objectTag_stats, key=lambda x: x["id"])
+    image_stats, imageTag_stats, objectTag_stats = (
+        project_stats["images"]["datasets"],
+        project_stats["imageTags"]["datasets"],
+        project_stats["objectTags"]["datasets"],
+    )
 
+    image_stats = sorted(image_stats, key=lambda x: x["id"])
+    imageTag_stats = sorted(imageTag_stats, key=lambda x: x["id"])
+    objectTag_stats = sorted(objectTag_stats, key=lambda x: x["id"])
+
+    for dataset, image_stat, imageTag_stat, objectTag_stat in zip(
+        datasets, image_stats, imageTag_stats, objectTag_stats
+    ):
+        is_unlabeled = (
+            image_stat["imagesMarked"] == 0
+            and imageTag_stat["imagesTagged"] == 0
+            and objectTag_stat["objectsTagged"] == 0
+        )
     for dataset, image_stat, imageTag_stat, objectTag_stat in zip(
         datasets, image_stats, imageTag_stats, objectTag_stats
     ):
@@ -99,13 +116,8 @@ def count_images_stats(
             for batch in sly.batched(images, 100):
                 image_ids = [image.id for image in batch]
 
-                janns = api.annotation.download_json_batch(
-                    dataset.id, [id for id in image_ids]
-                )
-                anns = [
-                    sly.Annotation.from_json(ann_json, project_meta)
-                    for ann_json in janns
-                ]
+                janns = api.annotation.download_json_batch(dataset.id, [id for id in image_ids])
+                anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in janns]
 
                 for img, ann in zip(batch, anns):
                     for stat in stats:
@@ -184,21 +196,17 @@ def count_stats(
     #     api = sly.Api.from_env()
 
     if isinstance(project, int):
-        project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project))
+        project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project, with_settings=True))
         datasets = api.dataset.get_list(project)
     elif isinstance(project, str):
         project_fs = sly.Project(project, sly.OpenMode.READ)
         project_meta = project_fs.meta
         datasets = project_fs.datasets
     else:
-        raise ValueError(
-            "Project should be either an integer project ID or a string project path."
-        )
+        raise ValueError("Project should be either an integer project ID or a string project path.")
 
     samples, total = sample_images(api, project, project_stats, datasets, sample_rate)
-    desc = "Calculating stats" + (
-        f" [sample={sample_rate}]" if sample_rate != 1 else ""
-    )
+    desc = "Calculating stats" + (f" [sample={sample_rate}]" if sample_rate != 1 else "")
     # sly.logger.info(f"CPU count: {NUM_PROCESSING}")
     with tqdm.tqdm(desc=desc, total=total) as pbar:
         for dataset, images in samples:
@@ -207,13 +215,8 @@ def count_stats(
                 image_names = [image.name for image in batch]
 
                 if isinstance(project, int):
-                    janns = api.annotation.download_json_batch(
-                        dataset.id, [id for id in image_ids]
-                    )
-                    anns = [
-                        sly.Annotation.from_json(ann_json, project_meta)
-                        for ann_json in janns
-                    ]
+                    janns = api.annotation.download_json_batch(dataset.id, [id for id in image_ids])
+                    anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in janns]
                 else:
                     anns = [dataset.get_ann(name, project_meta) for name in image_names]
 
