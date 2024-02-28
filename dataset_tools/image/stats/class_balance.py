@@ -1,6 +1,6 @@
 import multiprocessing
 import random
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import supervisely as sly
@@ -168,7 +168,10 @@ class ClassBalance(BaseStats):
                     #     # self.accum_ids[idx] = list(set(self.accum_ids[idx]))
                     # self.ds_position[idx] += 1
 
-    def to_json(self) -> Dict:
+    def to_json(self) -> Optional[Dict]:
+        if len(self._meta.obj_classes) == 0:
+            return None
+
         columns = [
             "Class",
             "Images",
@@ -177,6 +180,7 @@ class ClassBalance(BaseStats):
             "Area on image",
         ]
         rows = []
+
         for name, idx in self._name_to_index.items():
             rows.append(
                 [
@@ -228,7 +232,7 @@ class ClassBalance(BaseStats):
 
     def to_numpy_raw(self):
         # if unlabeled
-        if self.avg_nonzero_area[0] >= 100:
+        if (self.avg_nonzero_area[0] or 0) >= 100:
             return
         images_count = np.array(self.images_count, dtype="int32")
         objects_count = np.array(self.objects_count, dtype="int32")
@@ -251,7 +255,7 @@ class ClassBalance(BaseStats):
             axis=0,
         )
 
-    def sew_chunks(self, chunks_dir: str, updated_classes: list=[]) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str, updated_classes: list = []) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = None
@@ -261,17 +265,24 @@ class ClassBalance(BaseStats):
 
         def update_shape(
             array: np.ndarray, updated_classes, insert_val=0
-        ) -> np.ndarray:
+        ) -> Tuple[np.ndarray, np.ndarray]:
             if len(updated_classes) > 0:
-                indicies = [self.class_names.index(cls) for cls in updated_classes]
-                return np.apply_along_axis(
-                    lambda line: np.insert(
-                        line, indicies, [insert_val] * len(indicies)
-                    ),
-                    axis=1,
-                    arr=array,
+                indices = list(
+                    sorted([self.class_names.index(cls) for cls in updated_classes])
                 )
-            return array
+                tmp = array.copy()
+                for ind in indices:
+                    tmp = np.apply_along_axis(
+                        lambda line: np.insert(line, [ind], [insert_val]),
+                        axis=1,
+                        arr=tmp,
+                    )
+                sdata, rdata = tmp[:4, :], tmp[4, :]
+                rdata = np.array(
+                    [[] if el == 0 else el for el in rdata.tolist()], dtype=object
+                )
+                return sdata, rdata
+            return array[:4, :], array[4, :]
 
         def concatenate_lists(a, b):
             return a + b if a and b else a if a else b
@@ -282,14 +293,12 @@ class ClassBalance(BaseStats):
                 none_chunks_cnt += 1
                 continue
 
-            if loaded_data.shape[1] != len(self.class_names):  # TODO with set()
-                loaded_data = update_shape(loaded_data, updated_classes)
             stat_data, ref_data = loaded_data[:4, :], loaded_data[4, :]
+            if loaded_data.shape[1] != len(self.class_names):
+                stat_data, ref_data = update_shape(loaded_data, updated_classes)
+
             new_shape = (stat_data.shape[0], len(self.class_names))
 
-            ref_data = np.array(
-                [[] if el == 0 else el for el in ref_data.tolist()], dtype=object
-            )
             if references is None:
                 references = [[] for _ in range(len(ref_data))]
 
@@ -308,6 +317,11 @@ class ClassBalance(BaseStats):
 
             np.save(file, np.vstack([stat_data, ref_data]))
 
+        if none_chunks_cnt == len(files):
+            sly.logger.warning(
+                f"All chunks of {self.basename_stem} stat are None. Ignore sewing chunks."
+            )
+            return
         # count on image
         res[2] = res[1] / np.where(res[0] == 0, 1, res[0])
 

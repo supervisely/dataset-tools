@@ -102,9 +102,7 @@ class ClassesPerImage(BaseStats):
                 for cls in cur_class_names[1:]:
                     render_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
 
-                    class_labels = [
-                        label for label in ann.labels if label.obj_class.name == cls
-                    ]
+                    class_labels = [label for label in ann.labels if label.obj_class.name == cls]
                     clann = ann.clone(labels=class_labels)
 
                     clann.draw(render_rgb, [1, 1, 1])
@@ -120,12 +118,9 @@ class ClassesPerImage(BaseStats):
                     total_area = stacked_masks.shape[0] * stacked_masks.shape[1]
                     mask_areas = (np.sum(stacked_masks, axis=(0, 1)) / total_area) * 100
 
-                    mask_areas = np.insert(
-                        mask_areas, 0, self.calc_unlabeled_area_in(masks)
-                    )
+                    mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
                     stat_area = {
-                        cls: area
-                        for cls, area in zip(cur_class_names, mask_areas.tolist())
+                        cls: area for cls, area in zip(cur_class_names, mask_areas.tolist())
                     }
 
                     if self._stat_cache is not None:
@@ -162,15 +157,9 @@ class ClassesPerImage(BaseStats):
                     cur_area = 0
                     cur_count = 0
                 else:
-                    cur_area = (
-                        stat_area[class_name]
-                        if not np.isnan(stat_area[class_name])
-                        else 0
-                    )
+                    cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
                     cur_count = (
-                        stat_count[class_name]
-                        if not np.isnan(stat_count[class_name])
-                        else 0
+                        stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
                     )
                 table_row.append(cur_count)
                 table_row.append(round(cur_area, 2) if cur_area != 0 else 0)
@@ -224,21 +213,39 @@ class ClassesPerImage(BaseStats):
             dtype=object,
         )
 
-    def sew_chunks(self, chunks_dir):
+    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []):
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = []
         is_zero_area = None
         references = []
+        labeled_cls = self._class_names[1:]
+
+        def update_shape(loaded_data: list, updated_classes, insert_val=0) -> list:
+            if len(updated_classes) > 0:
+                indices = list(sorted([labeled_cls.index(cls) for cls in updated_classes]))
+                for idx, image in enumerate(loaded_data):
+                    stat_data, ref_data = image
+                    cls_data = stat_data[5:]
+                    for ind in indices:
+                        cls_data.insert(2 * ind, insert_val)
+                        cls_data.insert(2 * ind + 1, insert_val)
+                    stat_data = stat_data[:5] + cls_data
+                    loaded_data[idx] = [stat_data, ref_data]
+            return loaded_data
 
         for file in files:
-            loaded_data = np.load(file, allow_pickle=True)
-            # stat_data, ref_data = loaded_data[:4, :], loaded_data[4, :]
+            loaded_data = np.load(file, allow_pickle=True).tolist()
+            if len(loaded_data[0][0][5:]) != (len(labeled_cls) * 2):
+                loaded_data = update_shape(loaded_data, updated_classes)
 
-            for image in loaded_data.tolist():
+            for image in loaded_data:
                 stat_data, ref_data = image
                 res.append(stat_data)
                 references.append(ref_data)
+
+            save_data = np.array(loaded_data, dtype=object)
+            np.save(file, save_data)
 
         self._stats["data"] = res
         self._referencesRow = references

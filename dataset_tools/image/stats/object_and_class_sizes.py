@@ -162,7 +162,7 @@ class ObjectSizes(BaseStats):
     def to_numpy_raw(self) -> np.ndarray:
         return np.array(self._stats, dtype=object)
 
-    def sew_chunks(self, chunks_dir) -> np.ndarray:
+    def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = []
@@ -396,7 +396,7 @@ class ClassSizes(BaseStats):
     def to_numpy_raw(self) -> np.ndarray:
         return np.array(self._data, dtype=object)
 
-    def sew_chunks(self, chunks_dir) -> np.ndarray:
+    def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         for file in files:
@@ -516,7 +516,7 @@ class ClassesTreemap(BaseStats):
     def to_numpy_raw(self) -> np.ndarray:
         return np.array(self._data, dtype=object)
 
-    def sew_chunks(self, chunks_dir) -> np.ndarray:
+    def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         for file in files:
