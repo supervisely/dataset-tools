@@ -22,6 +22,10 @@ class CVTask:
     class Counting:
         def __new__(cls):
             return "counting"
+
+    class Localization:
+        def __new__(cls):
+            return "localization"
             
     class MonocularDepthEstimation:
         def __new__(cls):
