@@ -19,6 +19,10 @@ class CVTask:
         def __new__(cls):
             return "identification"
 
+    class Identification:
+        def __new__(cls):
+            return "counting"
+            
     class MonocularDepthEstimation:
         def __new__(cls):
             return "monocular depth estimation"
