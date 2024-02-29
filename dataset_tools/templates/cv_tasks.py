@@ -19,7 +19,7 @@ class CVTask:
         def __new__(cls):
             return "identification"
 
-    class Identification:
+    class Counting:
         def __new__(cls):
             return "counting"
             
