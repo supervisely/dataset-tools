@@ -195,6 +195,10 @@ class Industry:
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
 
+    class Fishery(DatasetApplications):
+        def __init__(self, is_used: bool = DatasetApplications().is_used):
+            super().__init__(is_used)
+            
     class Forestry(DatasetApplications):
         def __init__(self, is_used: bool = DatasetApplications().is_used):
             super().__init__(is_used)
