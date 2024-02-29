@@ -247,9 +247,11 @@ class ProjectRepo:
             sly.logger.info("Download sly url is passed with force: 'force_download_sly_url==True'")
 
         _markdown = {
-            "LICENSE": self._build_license(license_path)
-            if "license" in force_texts or not sly.fs.file_exists(license_path)
-            else curr_license_content,
+            "LICENSE": (
+                self._build_license(license_path)
+                if "license" in force_texts or not sly.fs.file_exists(license_path)
+                else curr_license_content
+            ),
             "README": self._build_readme(readme_path),
         }
 
@@ -654,7 +656,7 @@ class ProjectRepo:
                 msg = f"Skipping building of demo project: '{sample_project_name}'{', and'.join(msg_)}."
                 sly.logger.info(msg)
 
-                self._demo_update_custom_data(teamfiles_archive_path)
+                self._demo_update_archivesize(teamfiles_archive_path)
                 return
 
         else:
@@ -733,14 +735,13 @@ class ProjectRepo:
 
             sly.logger.info("Archive with sample project was uploaded to teamfiles")
 
-        self._demo_update_custom_data(teamfiles_archive_path)
+        self._demo_update_archivesize(teamfiles_archive_path)
 
-    def _demo_update_custom_data(self, teamfiles_archive_path):
+    def _demo_update_archivesize(self, teamfiles_archive_path):
         file_info = self.api.file.get_info_by_path(self.team_id, teamfiles_archive_path)
 
         self.download_sly_sample_url = file_info.full_storage_url if file_info is not None else None
         self.download_sample_archive_size = file_info.sizeb if file_info is not None else None
-        self._update_custom_data()
 
     def build_texts(
         self,
@@ -751,6 +752,7 @@ class ProjectRepo:
             Literal["ClassesPreview", "HorizontalGrid", "SideAnnotationsGrid"]
         ] = "ClassesPreview",
     ):
+        self._update_custom_data()
         sly.logger.info("Starting to build texts...")
 
         if force is None:
