@@ -193,8 +193,9 @@ class ProjectRepo:
 
         if self.class2color == "predefined":
             sly.logger.info("Custom classes colors are not specified. Using standard predefined...")
-            colors = sly.color.get_predefined_colors(self.project_stats)
-            obj_classes = self.project_meta.obj_classes.values()
+            num_classes = len(self.project_stats["images"]["objectClasses"])
+            colors = sly.color.get_predefined_colors(num_classes)
+            obj_classes = self.project_meta.obj_classes.items()
             for obj_class, color in zip(obj_classes, colors):
                 items.append(obj_class.clone(color=color))
         else:
