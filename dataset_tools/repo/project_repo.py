@@ -124,7 +124,7 @@ class ProjectRepo:
         self.authors_contacts = self.__dict__.get("authors_contacts", None)
         self.classification_task_classes = None
 
-        if self.class2color:
+        if self.class2color is not None:
             self._update_colors()
 
         self.categories = [self.category.text]
@@ -189,14 +189,23 @@ class ProjectRepo:
         self._update_custom_data()
 
     def _update_colors(self):
-        sly.logger.info("Custom classes colors are specified. Updating...")
-
         items = []
-        for obj_class in self.project_meta.obj_classes.items():
-            if obj_class.name in self.class2color:
-                items.append(obj_class.clone(color=self.class2color[obj_class.name]))
-            else:
-                items.append(obj_class)
+
+        if self.class2color == "predefined":
+            sly.logger.info("Custom classes colors are not specified. Using standard predefined...")
+            colors = sly.color.get_predefined_colors(self.project_stats)
+            obj_classes = self.project_meta.obj_classes.values()
+            for obj_class, color in zip(obj_classes, colors):
+                items.append(obj_class.clone(color=color))
+        else:
+            sly.logger.info("Custom classes colors are specified. Updating...")
+
+            for obj_class in self.project_meta.obj_classes.items():
+                if obj_class.name in self.class2color:
+                    items.append(obj_class.clone(color=self.class2color[obj_class.name]))
+                else:
+                    items.append(obj_class)
+
         project_meta = sly.ProjectMeta(
             obj_classes=items,
             tag_metas=self.project_meta.tag_metas,
@@ -205,7 +214,7 @@ class ProjectRepo:
         self.api.project.update_meta(self.project_id, project_meta)
         self.project_meta = project_meta
 
-        sly.logger.info("Custom classes colors are updated.")
+        sly.logger.info("Classes colors are updated.")
 
     def _process_download_link(self, force: bool = False):
         if not self.license.redistributable:
