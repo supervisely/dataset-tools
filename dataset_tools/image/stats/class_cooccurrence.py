@@ -33,7 +33,9 @@ class ClassCooccurrence(BaseStats):
         self._references = defaultdict(lambda: defaultdict(list))
 
         self._num_classes = len(self._class_names)
-        self.co_occurrence_matrix = np.zeros((self._num_classes, self._num_classes), dtype=int)
+        self.co_occurrence_matrix = np.zeros(
+            (self._num_classes, self._num_classes), dtype=int
+        )
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         if self._num_classes == 1:
@@ -74,11 +76,15 @@ class ClassCooccurrence(BaseStats):
         colomns_options[0] = {"type": "class"}  # not used in Web
 
         for idx in range(1, len(colomns_options)):
-            colomns_options[idx] = {"maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))}
+            colomns_options[idx] = {
+                "maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))
+            }
 
         data = [
             [value] + sublist
-            for value, sublist in zip(self._class_names, self.co_occurrence_matrix.tolist())
+            for value, sublist in zip(
+                self._class_names, self.co_occurrence_matrix.tolist()
+            )
         ]
 
         res = {
@@ -102,7 +108,7 @@ class ClassCooccurrence(BaseStats):
         ref_list = [[None for _ in range(n)] for _ in range(n)]
         for i in range(n):
             for j in range(n):
-                ref_list[i][j] = self._references[i][j]
+                ref_list[i][j] = set(self._references[i][j])
 
         references = np.array(ref_list, dtype=object)
 
@@ -114,7 +120,9 @@ class ClassCooccurrence(BaseStats):
             axis=0,
         )
 
-    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
+    def sew_chunks(
+        self, chunks_dir: str, updated_classes: List[str] = []
+    ) -> np.ndarray:
         if self._num_classes == 1:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
@@ -130,7 +138,11 @@ class ClassCooccurrence(BaseStats):
                 return a
             else:
                 return [
-                    (elem1 + elem2 if elem1 is not None and elem2 is not None else elem1 or elem2)
+                    (
+                        elem1 + elem2
+                        if elem1 is not None and elem2 is not None
+                        else elem1 or elem2
+                    )
                     for elem1, elem2 in zip(a, b)
                 ]
 
@@ -138,7 +150,9 @@ class ClassCooccurrence(BaseStats):
             array: np.ndarray, updated_classes, insert_val=0
         ) -> Tuple[np.ndarray, np.ndarray]:
             if len(updated_classes) > 0:
-                indices = list(sorted([self._class_names.index(cls) for cls in updated_classes]))
+                indices = list(
+                    sorted([self._class_names.index(cls) for cls in updated_classes])
+                )
                 sdata = array[0].copy()
                 rdata = array[1].copy().tolist()
 
@@ -182,6 +196,6 @@ class ClassCooccurrence(BaseStats):
         self.co_occurrence_matrix = res
         for i, sublist in enumerate(references):
             for j, inner_list in enumerate(sublist):
-                self._references[i][j] = inner_list
+                self._references[i][j] = list(inner_list)
 
         return res
