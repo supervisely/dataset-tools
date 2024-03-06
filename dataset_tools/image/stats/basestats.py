@@ -21,7 +21,7 @@ class BaseStats:
         json = self.to_json()
         try:
             table = pd.DataFrame(data=json["data"], columns=json["columns"])
-        except KeyError:
+        except (TypeError, KeyError):
             table = None
         return table
 

@@ -123,7 +123,7 @@ class ClassCooccurrence(BaseStats):
     def sew_chunks(
         self, chunks_dir: str, updated_classes: List[str] = []
     ) -> np.ndarray:
-        if self._num_classes == 1:
+        if self._num_classes <= 1:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
