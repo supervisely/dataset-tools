@@ -139,9 +139,9 @@ class ClassCooccurrence(BaseStats):
             else:
                 return [
                     (
-                        elem1 + elem2
+                        elem1 + list(elem2)
                         if elem1 is not None and elem2 is not None
-                        else elem1 or elem2
+                        else elem1 or list(elem2)
                     )
                     for elem1, elem2 in zip(a, b)
                 ]
