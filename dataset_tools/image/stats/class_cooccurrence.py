@@ -68,6 +68,8 @@ class ClassCooccurrence(BaseStats):
         self.__init__(self._meta, self.force)
 
     def to_json(self) -> Optional[Dict]:
+        if self._num_classes <= 1:
+            return None
         options = {
             "fixColumns": 1,  # not used in Web
             "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
