@@ -4,6 +4,7 @@ import random
 import re
 import shutil
 import time
+from datetime import datetime
 from typing import List, Literal, Optional
 
 import cv2
@@ -763,6 +764,7 @@ class ProjectRepo:
         ] = "ClassesPreview",
     ):
         self._update_custom_data()
+        self._update_repos_list()
         sly.logger.info("Starting to build texts...")
 
         if force is None:
@@ -933,3 +935,33 @@ class ProjectRepo:
             download_file.write(download_content)
 
         sly.logger.info("Successfully built and saved download.")
+
+    def _update_repos_list(self):
+        json_path = sly.app.get_data_dir() + "/repos.json"
+        tf_repos_path = "/ninja-updater/_repos_list/repos.json"
+        self.api.file.download(self.team_id, tf_repos_path, json_path)
+        if not sly.fs.file_exists(json_path):
+            repos = {}
+        else:
+            with open(json_path, "r", encoding="utf-8") as f:
+                repos = json.load(f)
+
+        dt = datetime.strptime(self.project_info.created_at, "%Y-%m-%dT%H:%M:%S.%fZ")
+        month = dt.strftime("%B")
+        year = dt.strftime("%Y")
+        mmyy = f"{month}-{year}"
+
+        if repos.get(mmyy) is None:
+            repos[mmyy] = [self.github_url]
+        else:
+            try:
+                repos[mmyy].index(self.github_url)
+            except ValueError:
+                repos[mmyy].append(self.github_url)
+
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(repos, f)
+
+        self.api.file.upload(self.team_id, json_path, tf_repos_path)
+
+        sly.logger.info(f"The '{tf_repos_path}' was updated.")
