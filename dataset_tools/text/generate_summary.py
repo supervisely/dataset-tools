@@ -434,11 +434,12 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
         )
     s = '<span style="font-weight: 600; color: grey; border-bottom: 1px dashed #d3d3d3;">'
     e = "</span>"
-    organization_name = (
-        [s + x + e for x in organization_name]
-        if isinstance(organization_name, list)
-        else s + organization_name + e
-    )
+    if organization_name is not None:
+        organization_name = (
+            [s + x + e for x in organization_name]
+            if isinstance(organization_name, list)
+            else s + organization_name + e
+        )
     if organization_name is not None and organization_url is not None:
         content += (
             f"The dataset was released in {release_year} by the {list2sentence(organization_name)}."
