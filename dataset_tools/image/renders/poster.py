@@ -124,7 +124,13 @@ class Poster:
                     continue
 
                 ann: sly.Annotation
+                draw_text = True
+                if len(ann.labels) > 40:
+                    draw_text = False
                 thickness = ann._get_thickness()
+                if not draw_text:
+                    thickness //= 3
+
                 for label in ann.labels:
                     if type(label.geometry) == sly.Point:
                         label.draw(np_img, thickness=int(thickness * 2))
@@ -136,7 +142,8 @@ class Poster:
                         font = sly_font.get_font(font_size=font_size)
                         _, _, _, bottom = font.getbbox(label.obj_class.name)
                         anchor = (bbox.top - bottom, bbox.left)
-                        sly.image.draw_text(np_img, label.obj_class.name, anchor, font=font)
+                        if draw_text:
+                            sly.image.draw_text(np_img, label.obj_class.name, anchor, font=font)
                 if not self._is_detection_task:
                     ann.draw_pretty(np_img, thickness=3, opacity=0.7, fill_rectangles=False)
                 np_img = cv2.addWeighted(np_img, 0.8, background, 0.2, 0)
