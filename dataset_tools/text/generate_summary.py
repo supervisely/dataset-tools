@@ -143,8 +143,10 @@ def get_summary_data(
             if isinstance(slytag_names, list):
                 data = []
                 for image, object in zip(stats["imageTags"]["items"], stats["objectTags"]["items"]):
-                    data.append(("objects", object)) if image["total"] == 0 else data.append(
-                        ("images", image)
+                    (
+                        data.append(("objects", object))
+                        if image["total"] == 0
+                        else data.append(("images", image))
                     )
 
                 sorted_data = sorted((data), key=lambda x: x[1]["total"], reverse=True)
@@ -427,9 +429,12 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     content += ". "
 
     if not is_original_dataset:
-        sly.logger.warn(
+        sly.logger.warning(
             "Please do not fill 'ORGANIZATION_NAME' and 'ORGANIZATION_URL' fields if the dataset was derived from multiple sources."
         )
+    s = '<span style="font-weight: 600; color: grey; border-bottom: 1px dashed #d3d3d3;">'
+    e = "</span>"
+    organization_name = [s + x + e for x in organization_name]
     if organization_name is not None and organization_url is not None:
         content += (
             f"The dataset was released in {release_year} by the {list2sentence(organization_name)}."
