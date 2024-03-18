@@ -257,17 +257,43 @@ class ClassSizes(BaseStats):
     """
 
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False):
-        self.project_meta = project_meta
+        self._meta = project_meta
         self.force = force
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 
         self._data = []
 
+        self._class_ids = {
+            item.sly_id: item.name for item in self._meta.obj_classes.items()
+        }
+
     def clean(self):
         self.__init__(
-            self.project_meta,
+            self._meta,
             self.force,
         )
+
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+
+        lite_labels = []
+
+        for figure in figures:
+            lite_labels.append(
+                LiteLabel(
+                    obj_class_name=self._class_ids[figure.class_id],
+                    geometry_type=figure.geometry_type,
+                    geometry_to_bbox=int(figure.area),
+                    geometry_area=int(figure.area),
+                )
+            )
+        lite_ann = LiteAnnotation(
+            labels=lite_labels, img_size=(image.height, image.width)
+        )
+
+        self._data.append(lite_ann)
+
+    def to_json2(self) -> Dict:
+        return self.to_json()
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         lite_labels = [
@@ -303,13 +329,19 @@ class ClassSizes(BaseStats):
             image_height, image_width = ann.img_size
             for label in ann.labels:
                 # if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
-                if label.geometry_type not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
+                if label.geometry_type not in [
+                    sly.Bitmap.geometry_name(),
+                    sly.Rectangle.geometry_name(),
+                    sly.Polygon.geometry_name(),
+                ]:
                     continue
 
                 # class_object_counts[label.obj_class.name] += 1
                 class_object_counts[label.obj_class_name] += 1
 
-                obj_sizes = calculate_obj_sizes(label, image_height, image_width)
+                obj_sizes = calculate_obj_sizes(
+                    label, image_height, image_width, int(label.geometry_area)
+                )
 
                 class_heights_px[label.obj_class_name].append(obj_sizes["height_px"])
                 class_heights_pc[label.obj_class_name].append(obj_sizes["height_pc"])
@@ -461,7 +493,7 @@ class ClassSizes(BaseStats):
 
 class ClassesTreemap(BaseStats):
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False):
-        self.project_meta = project_meta
+        self._meta = project_meta
         self.force = force
 
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
@@ -471,11 +503,37 @@ class ClassesTreemap(BaseStats):
 
         self._data = []
 
+        self._class_ids = {
+            item.sly_id: item.name for item in self._meta.obj_classes.items()
+        }
+
     def clean(self):
         self.__init__(
-            self.project_meta,
+            self._meta,
             self.force,
         )
+
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+
+        lite_labels = []
+
+        for figure in figures:
+            lite_labels.append(
+                LiteLabel(
+                    obj_class_name=self._class_ids[figure.class_id],
+                    geometry_type=figure.geometry_type,
+                    geometry_to_bbox=int(figure.area),
+                    geometry_area=int(figure.area),
+                )
+            )
+        lite_ann = LiteAnnotation(
+            labels=lite_labels, img_size=(image.height, image.width)
+        )
+
+        self._data.append(lite_ann)
+
+    def to_json2(self) -> Dict:
+        return self.to_json()
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         lite_labels = [
@@ -513,12 +571,18 @@ class ClassesTreemap(BaseStats):
             image_height, image_width = ann.img_size
             for label in ann.labels:
                 # if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
-                if label.geometry_type not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
+                if label.geometry_type not in [
+                    sly.Bitmap.geometry_name(),
+                    sly.Rectangle.geometry_name(),
+                    sly.Polygon.geometry_name(),
+                ]:
                     continue
 
                 class_object_counts[label.obj_class_name] += 1
 
-                obj_sizes = calculate_obj_sizes(label, image_height, image_width)
+                obj_sizes = calculate_obj_sizes(
+                    label, image_height, image_width, label.geometry_area
+                )
 
                 class_areas_pc[label.obj_class_name].append(obj_sizes["area_pc"])
 

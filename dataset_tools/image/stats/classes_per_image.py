@@ -80,8 +80,8 @@ class ClassesPerImage(BaseStats):
         self._class_ids = {
             item.sly_id: item.name for item in self._meta.obj_classes.items()
         }
-        self._count = {class_id: 0 for class_id in self._class_ids}
-        self._area = {class_id: 0 for class_id in self._class_ids}
+        # self._count = {class_id: 0 for class_id in self._class_ids}
+        # self._area = {class_id: 0 for class_id in self._class_ids}
 
         self._references = []
 
@@ -95,6 +95,10 @@ class ClassesPerImage(BaseStats):
         )
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+        self._count = {class_id: 0 for class_id in self._class_ids}
+        self._area = {class_id: 0 for class_id in self._class_ids}
+
+        image_area = image.height * image.width
 
         row = [
             image.name,
@@ -106,7 +110,7 @@ class ClassesPerImage(BaseStats):
 
         for figure in figures:
             self._count[figure.class_id] += 1
-            self._area[figure.class_id] += int(figure.area)
+            self._area[figure.class_id] += round(int(figure.area) / image_area * 100, 2)
 
         for class_id in self._class_ids:
             row.extend([self._count[class_id], self._area[class_id]])
