@@ -4,8 +4,11 @@ from typing import Dict, List
 import supervisely as sly
 import numpy as np
 from supervisely.app.widgets import HeatmapChart
-
+from supervisely.api.entity_annotation.figure_api import FigureInfo
+from supervisely.api.image_api import ImageInfo
 from dataset_tools.image.stats.basestats import BaseStats
+
+from supervisely.imaging.color import random_rgb
 
 MAX_NUMBER_OF_COLUMNS = 100
 LiteLabel = namedtuple("LiteLabel", ["obj_class_name"])
@@ -31,35 +34,151 @@ class ObjectsDistribution(BaseStats):
         project_meta: sly.ProjectMeta,
         force: bool = False,
     ):
-        self.project_meta = project_meta
+        self._meta = project_meta
         self.force = force
 
-        self._obj_classes = project_meta.obj_classes
-        self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
+        # self._obj_classes = project_meta.obj_classes
+        # self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 
         self._images = []
-        self._anns = []
+        # self._anns = []
+        self._figures = {}
+
+        self._class_ids = {
+            item.sly_id: item.name for item in self._meta.obj_classes.items()
+        }
 
     def clean(self) -> None:
-        self.__init__(
-            self.project_meta,
-            self.force,
+        self.__init__(self._meta, self.force)
+
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+        self._images.append(image.id)
+        self._figures[image.id] = figures
+
+    def to_json2(self) -> Dict:
+        if len(self._images) == 0:
+            sly.logger.warning(
+                "No stats were added in update() method, the result will be None."
+            )
+            return
+
+        self._stats = defaultdict(
+            lambda: defaultdict(lambda: {"count": 0, "image_ids": []})
         )
+        counters = defaultdict(lambda: {"count": 0, "image_ids": []})
+
+        for image_id in self._images:
+            # image_id = image.id
+
+            figures = self._figures[image_id]
+            counters = defaultdict(lambda: {"count": 0, "image_ids": []})
+
+            for class_id, class_name in self._class_ids.items():
+                classes_id = [figure.class_id for figure in figures]
+                if class_id not in classes_id:
+                    counters[class_name]["image_ids"].append(image_id)
+
+            for figure in figures:
+                class_name = self._class_ids[figure.class_id]
+                counters[class_name]["count"] += 1
+                counters[class_name]["image_ids"].append(image_id)
+
+            for class_name in self._class_ids.values():
+                count = counters[class_name]["count"]
+                image_ids = counters[class_name]["image_ids"]
+                self._stats[class_name][count]["image_ids"].extend(list(set(image_ids)))
+                self._stats[class_name][count]["count"] += 1
+
+        max_column = max(
+            [max(class_data.keys()) for class_data in self._stats.values()]
+        )
+        columns = [i for i in range(max_column + 1)]
+
+        series = list()
+        colors = list()
+        for class_name, class_data in self._stats.items():
+            row = {
+                "name": class_name,
+                "y": [class_data[column]["count"] for column in columns],
+                "x": columns,
+            }
+
+            series.append(row)
+            for cls_name in self._class_ids.values():
+                if cls_name == class_name:
+                    # color = obj_class.color
+                    color = random_rgb()
+                    break
+            colors.append(rgb_to_hex(color))
+
+        references = defaultdict(dict)
+
+        for column in columns:
+            for class_name, class_data in self._stats.items():
+                image_ids = class_data[column]["image_ids"]
+                reference = {
+                    column: image_ids,
+                }
+                if references[class_name]:
+                    references[class_name].update(reference)
+                else:
+                    references[class_name] = reference
+
+        hmp = HeatmapChart(
+            title="Objects on images - distribution for every class",
+            xaxis_title="Number of objects on image",
+            color_range="row",
+            tooltip="Click to preview {y} images with {x} objects of class {series_name}",
+        )
+        hmp.add_series_batch(series)
+
+        number_of_rows = len(series)
+        max_widget_height = 10000
+        if number_of_rows < 5:
+            row_height = 70
+        elif number_of_rows < 20:
+            row_height = 50
+        else:
+            row_height = 30
+
+        res = hmp.get_json_data()
+        number_of_columns = len(columns)
+        calculated_height = number_of_rows * row_height
+        height = min(calculated_height, max_widget_height) + 150
+        res["referencesCell"] = references
+        res["options"]["chart"]["height"] = height
+        res["options"]["colors"] = colors
+
+        # Disabling labels and ticks for x-axis if there are too many columns.
+        if MAX_NUMBER_OF_COLUMNS > number_of_columns > 40:
+            res["options"]["xaxis"]["labels"] = {"show": False}
+            res["options"]["xaxis"]["axisTicks"] = {"show": False}
+            res["options"]["dataLabels"] = {"enabled": False}
+        elif number_of_columns >= MAX_NUMBER_OF_COLUMNS:
+            return
+
+        return res
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         self._images.append(image.id)
 
-        lite_labels = [LiteLabel(obj_class_name=label.obj_class.name) for label in ann.labels]
+        lite_labels = [
+            LiteLabel(obj_class_name=label.obj_class.name) for label in ann.labels
+        ]
         lite_ann = LiteAnnotation(labels=lite_labels)
 
         self._anns.append(lite_ann)
 
     def to_json(self) -> Dict:
         if len(self._images) == 0:
-            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            sly.logger.warning(
+                "No stats were added in update() method, the result will be None."
+            )
             return
 
-        self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
+        self._stats = defaultdict(
+            lambda: defaultdict(lambda: {"count": 0, "image_ids": []})
+        )
         counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
         for image_id, ann in zip(self._images, self._anns):
@@ -78,10 +197,14 @@ class ObjectsDistribution(BaseStats):
             for class_title in self._class_titles:
                 count = counters[class_title]["count"]
                 image_ids = counters[class_title]["image_ids"]
-                self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
+                self._stats[class_title][count]["image_ids"].extend(
+                    list(set(image_ids))
+                )
                 self._stats[class_title][count]["count"] += 1
 
-        max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
+        max_column = max(
+            [max(class_data.keys()) for class_data in self._stats.values()]
+        )
         columns = [i for i in range(max_column + 1)]
 
         series = list()
@@ -169,7 +292,9 @@ class ObjectsDistribution(BaseStats):
         self._anns = []
         for label in [elem[1:] for elem in res]:
             self._anns.append(
-                LiteAnnotation(labels=[LiteLabel(obj_class_name=name) for name in label])
+                LiteAnnotation(
+                    labels=[LiteLabel(obj_class_name=name) for name in label]
+                )
             )
 
         res

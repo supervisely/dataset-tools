@@ -18,7 +18,10 @@ class BaseStats:
         pass
 
     def to_pandas(self) -> pd.DataFrame:
-        json = self.to_json()
+        try:
+            json = self.to_json()
+        except:
+            json = self.to_json2()
         try:
             table = pd.DataFrame(data=json["data"], columns=json["columns"])
         except (TypeError, KeyError):

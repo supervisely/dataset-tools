@@ -83,6 +83,8 @@ class ClassesPerImage(BaseStats):
         self._count = {class_id: 0 for class_id in self._class_ids}
         self._area = {class_id: 0 for class_id in self._class_ids}
 
+        self._references = []
+
     def clean(self):
         self.__init__(
             self._meta,
@@ -137,7 +139,6 @@ class ClassesPerImage(BaseStats):
         }
 
         # TODO добавить алфавитную сортировку по изображениям + сплитам
-
         for class_name in self._class_ids.values():
             columns_options.append({"subtitle": "objects count"})
             columns_options.append({"subtitle": "covered area", "postfix": "%"})
@@ -291,7 +292,7 @@ class ClassesPerImage(BaseStats):
 
     def to_numpy_raw(self):
         return np.array(
-            [[a] + [b] for a, b in zip(self._stats["data"], self._references)],
+            [[a] + [b] for a, b in zip(self._data, self._references)],
             dtype=object,
         )
 
