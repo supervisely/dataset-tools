@@ -89,19 +89,17 @@ class ClassBalance(BaseStats):
             self._stat_cache,
         )
 
-    def update2(self, figures_batch: List[FigureInfo]):
-        for f in figures_batch:  # TODO optimize for batches (mb vectorize using numpy?)
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
 
-            if f.entity_id not in self._images_set[f.class_id]:
-                self._images_set[f.class_id].add(f.entity_id)
+        for figure in figures:
+            if figure.entity_id not in self._images_set[figure.class_id]:
+                self._images_set[figure.class_id].add(figure.entity_id)
 
-            if f.id not in self._objects_set[f.class_id]:
-                self._objects_set[f.class_id].add(f.id)
+            if figure.id not in self._objects_set[figure.class_id]:
+                self._objects_set[figure.class_id].add(figure.id)
 
-            self._area_figures_sum[f.class_id] += int(f.area)
-            self._area_images_sum[f.class_id] += (
-                500 * 375
-            )  # hardcode rm when figures.list update ready
+            self._area_figures_sum[figure.class_id] += int(figure.area)
+            self._area_images_sum[figure.class_id] += image.width * image.height
 
     def to_json2(self) -> Optional[Dict]:
         for id in self._class_ids:

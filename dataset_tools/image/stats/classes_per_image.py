@@ -5,6 +5,8 @@ import numpy as np
 import supervisely as sly
 
 from dataset_tools.image.stats.basestats import BaseStats
+from supervisely.api.image_api import ImageInfo
+from supervisely.api.entity_annotation.figure_api import FigureInfo
 
 UNLABELED_COLOR = [0, 0, 0]
 CLASSES_CNT_LIMIT = 100
@@ -32,7 +34,7 @@ class ClassesPerImage(BaseStats):
         self,
         project_meta: sly.ProjectMeta,
         project_stats: dict,
-        datasets: List[sly.DatasetInfo] = None,
+        datasets: List[sly.DatasetInfo],
         force: bool = False,
         stat_cache: dict = None,
     ) -> None:
@@ -42,36 +44,44 @@ class ClassesPerImage(BaseStats):
         self.force = force
         self._stat_cache = stat_cache
 
-        self._stats = {}
+        # self._stats = {}
 
-        self._dataset_id_to_name = None
-        if datasets is not None:
-            self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
+        # self._dataset_id_to_name = None
+        # if datasets is not None:
+        #     self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
 
-        self._class_names = ["unlabeled"]
-        self._class_indices_colors = [UNLABELED_COLOR]
-        self._classname_to_index = {}
+        # self._class_names = ["unlabeled"]
+        # self._class_indices_colors = [UNLABELED_COLOR]
+        # self._classname_to_index = {}
 
-        for idx, obj_class in enumerate(self._meta.obj_classes):
-            if idx >= CLASSES_CNT_LIMIT:
-                sly.logger.warn(
-                    f"{self.__class__.__name__}: will use first {CLASSES_CNT_LIMIT} classes."
-                )
-                break
-            self._class_names.append(obj_class.name)
-            class_index = idx + 1
-            self._class_indices_colors.append([class_index, class_index, class_index])
-            self._classname_to_index[obj_class.name] = class_index
+        # for idx, obj_class in enumerate(self._meta.obj_classes):
+        #     if idx >= CLASSES_CNT_LIMIT:
+        #         sly.logger.warn(
+        #             f"{self.__class__.__name__}: will use first {CLASSES_CNT_LIMIT} classes."
+        #         )
+        #         break
+        #     self._class_names.append(obj_class.name)
+        #     class_index = idx + 1
+        #     self._class_indices_colors.append([class_index, class_index, class_index])
+        #     self._classname_to_index[obj_class.name] = class_index
 
-        self._stats["data"] = []
-        self._referencesRow = []
+        # self._stats["data"] = []
+        # self._references = []
 
-        total = self.project_stats["images"]["total"]["imagesInDataset"] * (
-            len(self.project_stats["images"]["objectClasses"]) + 5
-        )
-        self.update_freq = 1
-        if total > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
-            self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total
+        # total = self.project_stats["images"]["total"]["imagesInDataset"] * (
+        #     len(self.project_stats["images"]["objectClasses"]) + 5
+        # )
+        # self.update_freq = 1
+        # if total > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
+        #     self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total
+
+        self._data = []
+        self._split = {ds.id: ds.name for ds in datasets}
+        self._class_ids = {
+            item.sly_id: item.name for item in self._meta.obj_classes.items()
+        }
+        self._count = {class_id: 0 for class_id in self._class_ids}
+        self._area = {class_id: 0 for class_id in self._class_ids}
 
     def clean(self):
         self.__init__(
@@ -81,6 +91,67 @@ class ClassesPerImage(BaseStats):
             self.force,
             self._stat_cache,
         )
+
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+
+        row = [
+            image.name,
+            self._split[image.dataset_id],
+            image.height,
+            image.width,
+            0,  # TODO unlabeled
+        ]
+
+        for figure in figures:
+            self._count[figure.class_id] += 1
+            self._area[figure.class_id] += int(figure.area)
+
+        for class_id in self._class_ids:
+            row.extend([self._count[class_id], self._area[class_id]])
+
+        self._data.append(row)
+        self._references.append([image.id])
+
+    def to_json2(self):
+
+        columns = ["Image", "Split", "Height", "Width", "Unlabeled"]
+
+        columns_options = [None] * len(columns)
+
+        columns_options[columns.index("Split")] = {
+            "subtitle": "folder name",
+        }
+        # TODO Add slytagsplits and tree-folders
+        # columns_options[columns.index("Split")] = {
+        #     "subtitle": "tag name",
+        # }
+        columns_options[columns.index("Height")] = {
+            "postfix": "px",
+        }
+        columns_options[columns.index("Width")] = {
+            "postfix": "px",
+        }
+        columns_options[columns.index("Unlabeled")] = {
+            "subtitle": "area",
+            "postfix": "%",
+        }
+
+        # TODO добавить алфавитную сортировку по изображениям + сплитам
+
+        for class_name in self._class_ids.values():
+            columns_options.append({"subtitle": "objects count"})
+            columns_options.append({"subtitle": "covered area", "postfix": "%"})
+            columns.extend([class_name] * 2)
+
+        options = {"fixColumns": 1}
+        res = {
+            "columns": columns,
+            "columnsOptions": columns_options,
+            "data": self._data,
+            "options": options,
+            "referencesRow": self._references,
+        }
+        return res
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         if self.update_freq >= random.random():
@@ -102,7 +173,9 @@ class ClassesPerImage(BaseStats):
                 for cls in cur_class_names[1:]:
                     render_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
 
-                    class_labels = [label for label in ann.labels if label.obj_class.name == cls]
+                    class_labels = [
+                        label for label in ann.labels if label.obj_class.name == cls
+                    ]
                     clann = ann.clone(labels=class_labels)
 
                     clann.draw(render_rgb, [1, 1, 1])
@@ -118,9 +191,12 @@ class ClassesPerImage(BaseStats):
                     total_area = stacked_masks.shape[0] * stacked_masks.shape[1]
                     mask_areas = (np.sum(stacked_masks, axis=(0, 1)) / total_area) * 100
 
-                    mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
+                    mask_areas = np.insert(
+                        mask_areas, 0, self.calc_unlabeled_area_in(masks)
+                    )
                     stat_area = {
-                        cls: area for cls, area in zip(cur_class_names, mask_areas.tolist())
+                        cls: area
+                        for cls, area in zip(cur_class_names, mask_areas.tolist())
                     }
 
                     if self._stat_cache is not None:
@@ -157,15 +233,21 @@ class ClassesPerImage(BaseStats):
                     cur_area = 0
                     cur_count = 0
                 else:
-                    cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
+                    cur_area = (
+                        stat_area[class_name]
+                        if not np.isnan(stat_area[class_name])
+                        else 0
+                    )
                     cur_count = (
-                        stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
+                        stat_count[class_name]
+                        if not np.isnan(stat_count[class_name])
+                        else 0
                     )
                 table_row.append(cur_count)
                 table_row.append(round(cur_area, 2) if cur_area != 0 else 0)
 
             self._stats["data"].append(table_row)
-            self._referencesRow.append([image.id])
+            self._references.append([image.id])
 
     def to_json(self) -> Dict:
         if self._dataset_id_to_name is not None:
@@ -203,13 +285,13 @@ class ClassesPerImage(BaseStats):
             "columnsOptions": columns_options,
             "data": self._stats["data"],
             "options": options,
-            "referencesRow": self._referencesRow,
+            "referencesRow": self._references,
         }
         return res
 
     def to_numpy_raw(self):
         return np.array(
-            [[a] + [b] for a, b in zip(self._stats["data"], self._referencesRow)],
+            [[a] + [b] for a, b in zip(self._stats["data"], self._references)],
             dtype=object,
         )
 
@@ -223,7 +305,9 @@ class ClassesPerImage(BaseStats):
 
         def update_shape(loaded_data: list, updated_classes, insert_val=0) -> list:
             if len(updated_classes) > 0:
-                indices = list(sorted([labeled_cls.index(cls) for cls in updated_classes]))
+                indices = list(
+                    sorted([labeled_cls.index(cls) for cls in updated_classes])
+                )
                 for idx, image in enumerate(loaded_data):
                     stat_data, ref_data = image
                     cls_data = stat_data[5:]
@@ -248,6 +332,6 @@ class ClassesPerImage(BaseStats):
             np.save(file, save_data)
 
         self._stats["data"] = res
-        self._referencesRow = references
+        self._references = references
 
         return np.array(res)
