@@ -6,6 +6,8 @@ import json, os
 
 import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseStats
+from supervisely.api.image_api import ImageInfo
+from supervisely.api.entity_annotation.figure_api import FigureInfo
 
 REFERENCES_LIMIT = 1000
 
@@ -36,6 +38,40 @@ class ClassCooccurrence(BaseStats):
         self.co_occurrence_matrix = np.zeros(
             (self._num_classes, self._num_classes), dtype=int
         )
+
+        self._class_ids = {
+            item.sly_id: item.name for item in self._meta.obj_classes.items()
+        }
+
+    def update2(self, figures_batch: List[FigureInfo]):
+        if self._num_classes == 1:
+            return
+
+        for f in figures_batch:
+
+            classes = set()
+            for label in ann.labels:
+                classes.add(label.obj_class.name)
+
+            for class_ in classes:
+                idx = self._name_to_index[class_]
+                self.co_occurrence_matrix[idx][idx] += 1
+                self._references[idx][idx].append(image.id)
+
+            classes = list(classes)
+            for i in range(len(classes)):
+                for j in range(i + 1, len(classes)):
+                    class_i = classes[i]
+                    class_j = classes[j]
+                    idx_i = self._name_to_index[class_i]
+                    idx_j = self._name_to_index[class_j]
+                    self.co_occurrence_matrix[idx_i][idx_j] += 1
+                    self.co_occurrence_matrix[idx_j][idx_i] += 1
+
+                    if len(self._references[idx_i][idx_j]) <= REFERENCES_LIMIT:
+                        self._references[idx_i][idx_j].append(image.id)
+                    if len(self._references[idx_j][idx_i]) <= REFERENCES_LIMIT:
+                        self._references[idx_j][idx_i].append(image.id)
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         if self._num_classes == 1:

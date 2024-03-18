@@ -1,7 +1,8 @@
 import multiprocessing
 import random
 from typing import Dict, List, Optional, Tuple
-
+from supervisely.api.entity_annotation.figure_api import FigureInfo
+from supervisely.api.image_api import ImageInfo
 import numpy as np
 import supervisely as sly
 
@@ -33,38 +34,52 @@ class ClassBalance(BaseStats):
         self.force = force
         self._stat_cache = stat_cache
 
-        self._stats = {}
-        self.references_probabilities = {}
-        for cls in project_stats["images"]["objectClasses"]:
-            self.references_probabilities[cls["objectClass"]["name"]] = (
-                REFERENCES_LIMIT / cls["total"] if cls["total"] != 0 else 1
-            )
+        # self._stats = {}
+        # self.references_probabilities = {}
+        # for cls in project_stats["images"]["objectClasses"]:
+        #     self.references_probabilities[cls["objectClass"]["name"]] = (
+        #         REFERENCES_LIMIT / cls["total"] if cls["total"] != 0 else 1
+        #     )
 
-        self.class_names = ["unlabeled"]
-        class_colors = [UNLABELED_COLOR]
-        class_indices_colors = [UNLABELED_COLOR]
+        # self.class_names = ["unlabeled"]
+        # class_colors = [UNLABELED_COLOR]
+        # class_indices_colors = [UNLABELED_COLOR]
 
-        self._name_to_index = {}
-        for idx, obj_class in enumerate(self._meta.obj_classes):
-            self.class_names.append(obj_class.name)
-            class_colors.append(obj_class.color)
-            cls_idx = idx + 1
-            class_indices_colors.append([cls_idx, cls_idx, cls_idx])
-            self._name_to_index[obj_class.name] = cls_idx
+        # self._name_to_cls_id = {}
+        # for idx, obj_class in enumerate(self._meta.obj_classes):
+        #     self.class_names.append(obj_class.name)
+        #     class_colors.append(obj_class.color)
+        #     cls_idx = idx + 1
+        #     class_indices_colors.append([cls_idx, cls_idx, cls_idx])
+        #     self._name_to_cls_id[obj_class.name] = cls_idx
 
-        self.class_indices_colors = class_indices_colors
+        # self.class_indices_colors = class_indices_colors
 
-        self.sum_class_area_per_image = [0] * len(self.class_names)
-        self.objects_count = [0] * len(self.class_names)
-        self.images_count = [0] * len(self.class_names)
+        # self.sum_class_area_per_image = [0] * len(self.class_names)
+        # self.objects_count = [0] * len(self.class_names)
+        # self.images_count = [0] * len(self.class_names)
 
-        self.image_counts_filter_by_id = [[] for _ in self.class_names]
-        # self.dataset_counts_filter_by_id = [{} for _ in self.class_names]
-        # self.ds_position = [0 for _ in self.class_names]
-        # self.accum_ids = [set() for _ in self.class_names]
+        # self.image_counts_filter_by_id = [[] for _ in self.class_names]
+        # # self.dataset_counts_filter_by_id = [{} for _ in self.class_names]
+        # # self.ds_position = [0 for _ in self.class_names]
+        # # self.accum_ids = [set() for _ in self.class_names]
 
-        self.avg_nonzero_area = [None] * len(self.class_names)
-        self.avg_nonzero_count = [None] * len(self.class_names)
+        # self.avg_nonzero_area = [None] * len(self.class_names)
+        # self.avg_nonzero_count = [None] * len(self.class_names)
+
+        self._class_ids = {
+            item.sly_id: item.name for item in self._meta.obj_classes.items()
+        }
+
+        self._images_set = {class_id: set() for class_id in self._class_ids}
+
+        self._objects_set = {class_id: set() for class_id in self._class_ids}
+
+        self._count_on_image = {class_id: 0 for class_id in self._class_ids}
+
+        self._area_figures_sum = {class_id: 0 for class_id in self._class_ids}
+        self._area_images_sum = {class_id: 0 for class_id in self._class_ids}
+        self._area_on_image_avg = {class_id: 0 for class_id in self._class_ids}
 
     def clean(self) -> None:
         self.__init__(
@@ -73,6 +88,95 @@ class ClassBalance(BaseStats):
             self.force,
             self._stat_cache,
         )
+
+    def update2(self, figures_batch: List[FigureInfo]):
+        for f in figures_batch:  # TODO optimize for batches (mb vectorize using numpy?)
+
+            if f.entity_id not in self._images_set[f.class_id]:
+                self._images_set[f.class_id].add(f.entity_id)
+
+            if f.id not in self._objects_set[f.class_id]:
+                self._objects_set[f.class_id].add(f.id)
+
+            self._area_figures_sum[f.class_id] += int(f.area)
+            self._area_images_sum[f.class_id] += (
+                500 * 375
+            )  # hardcode rm when figures.list update ready
+
+    def to_json2(self) -> Optional[Dict]:
+        for id in self._class_ids:
+            objects_count = len(self._objects_set[id])
+            images_count = len(self._images_set[id])
+            self._count_on_image[id] = objects_count / images_count
+            self._area_on_image_avg[id] = (
+                self._area_figures_sum[id] / self._area_images_sum[id]
+            )
+
+        columns = [
+            "Class",
+            "Images",
+            "Objects",
+            "Count on image",
+            "Area on image",
+        ]
+        rows, refs = [], []
+        max_images_count, max_objects_count = 0, 0
+        max_count_on_image, max_area_on_image = 0, 0
+        for id, name in self._class_ids.items():
+            images_count = len(self._images_set[id])
+            objects_count = len(self._objects_set[id])
+            count_on_image_avg = round(self._count_on_image[id], 2)
+            area_on_image_avg = round(self._area_on_image_avg[id] * 100, 2)
+            rows.append(
+                [
+                    name,
+                    images_count,
+                    objects_count,
+                    count_on_image_avg,
+                    area_on_image_avg,
+                ]
+            )
+            refs.append(list(self._images_set[id]))
+            max_images_count = max(max_images_count, images_count)
+            max_objects_count = max(max_objects_count, objects_count)
+            max_count_on_image = max(max_count_on_image, count_on_image_avg)
+            max_area_on_image = max(max_area_on_image, area_on_image_avg)
+
+        colomns_options = [None] * len(columns)
+        colomns_options[0] = {"type": "class"}
+        colomns_options[1] = {
+            "maxValue": max_images_count,
+            "tooltip": "Number of images with at least one object of corresponding class",
+        }
+        colomns_options[2] = {
+            "maxValue": max_objects_count,
+            "tooltip": "Number of objects of corresponding class in the project",
+        }
+        colomns_options[3] = {
+            "maxValue": max_count_on_image,
+            "subtitle": "average",
+            "tooltip": "Average number of objects of corresponding class on the image. Images without such objects are not taking into account",
+        }
+        colomns_options[4] = {
+            "postfix": "%",
+            "maxValue": max_area_on_image,
+            "subtitle": "average",
+            "tooltip": "Average image area of corresponding class. Images without such objects are not taking into account",
+        }
+        options = {
+            "fixColumns": 1,
+            "sort": {"columnIndex": 1, "order": "desc"},
+            "pageSize": 10,
+        }  # asc
+
+        res = {
+            "columns": columns,
+            "data": rows,
+            "referencesRow": refs,
+            "options": options,
+            "columnsOptions": colomns_options,
+        }
+        return res
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation):
         cur_class_names = ["unlabeled"]
@@ -181,7 +285,7 @@ class ClassBalance(BaseStats):
         ]
         rows = []
 
-        for name, idx in self._name_to_index.items():
+        for name, idx in self._name_to_cls_id.items():
             rows.append(
                 [
                     name,
