@@ -93,12 +93,8 @@ class ClassBalance(BaseStats):
             return
 
         for figure in figures:
-            if figure.entity_id not in self._images_set[figure.class_id]:
-                self._images_set[figure.class_id].add(figure.entity_id)
-
-            if figure.id not in self._objects_set[figure.class_id]:
-                self._objects_set[figure.class_id].add(figure.id)
-
+            self._images_set[figure.class_id].add(figure.entity_id)
+            self._objects_set[figure.class_id].add(figure.id)
             self._area_images_percent_sum[figure.class_id] += int(figure.real_area) / (
                 image.width * image.height
             )
@@ -107,8 +103,12 @@ class ClassBalance(BaseStats):
         for id in self._class_ids:
             objects_count = len(self._objects_set[id])
             images_count = len(self._images_set[id])
-            self._count_on_image[id] = objects_count / images_count
-            self._area_on_image_avg[id] = self._area_images_percent_sum[id] / images_count
+            try:
+                self._count_on_image[id] = objects_count / images_count
+                self._area_on_image_avg[id] = self._area_images_percent_sum[id] / images_count
+            except ZeroDivisionError:
+                self._count_on_image[id] = 0
+                self._area_on_image_avg[id] = 0
 
         columns = [
             "Class",
