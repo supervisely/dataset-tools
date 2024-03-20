@@ -1,5 +1,5 @@
 from collections import defaultdict, namedtuple
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import supervisely as sly
 import numpy as np
@@ -44,27 +44,24 @@ class ObjectsDistribution(BaseStats):
         # self._anns = []
         self._figures = {}
 
-        self._class_ids = {
-            item.sly_id: item.name for item in self._meta.obj_classes.items()
-        }
+        self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
 
     def clean(self) -> None:
         self.__init__(self._meta, self.force)
 
-    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+    def update2(self, image: ImageInfo, figures: Optional[List[FigureInfo]]):
+        if figures is None:
+            return
+
         self._images.append(image.id)
         self._figures[image.id] = figures
 
     def to_json2(self) -> Dict:
         if len(self._images) == 0:
-            sly.logger.warning(
-                "No stats were added in update() method, the result will be None."
-            )
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
-        self._stats = defaultdict(
-            lambda: defaultdict(lambda: {"count": 0, "image_ids": []})
-        )
+        self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
         counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
         for image_id in self._images:
@@ -89,9 +86,7 @@ class ObjectsDistribution(BaseStats):
                 self._stats[class_name][count]["image_ids"].extend(list(set(image_ids)))
                 self._stats[class_name][count]["count"] += 1
 
-        max_column = max(
-            [max(class_data.keys()) for class_data in self._stats.values()]
-        )
+        max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
         columns = [i for i in range(max_column + 1)]
 
         series = list()
@@ -162,23 +157,17 @@ class ObjectsDistribution(BaseStats):
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         self._images.append(image.id)
 
-        lite_labels = [
-            LiteLabel(obj_class_name=label.obj_class.name) for label in ann.labels
-        ]
+        lite_labels = [LiteLabel(obj_class_name=label.obj_class.name) for label in ann.labels]
         lite_ann = LiteAnnotation(labels=lite_labels)
 
         self._anns.append(lite_ann)
 
     def to_json(self) -> Dict:
         if len(self._images) == 0:
-            sly.logger.warning(
-                "No stats were added in update() method, the result will be None."
-            )
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
-        self._stats = defaultdict(
-            lambda: defaultdict(lambda: {"count": 0, "image_ids": []})
-        )
+        self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
         counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
         for image_id, ann in zip(self._images, self._anns):
@@ -197,14 +186,10 @@ class ObjectsDistribution(BaseStats):
             for class_title in self._class_titles:
                 count = counters[class_title]["count"]
                 image_ids = counters[class_title]["image_ids"]
-                self._stats[class_title][count]["image_ids"].extend(
-                    list(set(image_ids))
-                )
+                self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
                 self._stats[class_title][count]["count"] += 1
 
-        max_column = max(
-            [max(class_data.keys()) for class_data in self._stats.values()]
-        )
+        max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
         columns = [i for i in range(max_column + 1)]
 
         series = list()
@@ -292,9 +277,7 @@ class ObjectsDistribution(BaseStats):
         self._anns = []
         for label in [elem[1:] for elem in res]:
             self._anns.append(
-                LiteAnnotation(
-                    labels=[LiteLabel(obj_class_name=name) for name in label]
-                )
+                LiteAnnotation(labels=[LiteLabel(obj_class_name=name) for name in label])
             )
 
         res

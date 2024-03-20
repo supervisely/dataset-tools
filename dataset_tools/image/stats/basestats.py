@@ -9,13 +9,13 @@ from supervisely._utils import camel_to_snake
 
 class BaseStats:
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        pass
+        raise NotImplementedError()
 
     def clean(self) -> None:
-        pass
+        raise NotImplementedError()
 
     def to_json(self) -> Dict:
-        pass
+        raise NotImplementedError()
 
     def to_pandas(self) -> pd.DataFrame:
         try:
@@ -35,9 +35,7 @@ class BaseStats:
         if self.to_pandas() is not None:
             table = self.to_pandas()[:100]  # max rows == 100
             table = table.iloc[:, :100]  # select the first 100 columns
-            table.dfi.export(
-                path, max_rows=-1, max_cols=-1, table_conversion="matplotlib"
-            )
+            table.dfi.export(path, max_rows=-1, max_cols=-1, table_conversion="matplotlib")
 
     @property
     def basename_stem(self) -> str:
@@ -45,7 +43,7 @@ class BaseStats:
         return camel_to_snake(self.__class__.__name__)
 
     def sew_chunks(self) -> str:
-        pass
+        raise NotImplementedError()
 
     def _get_summated_canvas(self, bitmap_masks_rgb: List[np.ndarray]) -> np.ndarray:
         masks1channel = [mask[:, :, 0] for mask in bitmap_masks_rgb]
@@ -63,6 +61,12 @@ class BaseStats:
         canvas = self._get_summated_canvas(masks)
         zeros_count = np.count_nonzero(canvas == 0)
         return (zeros_count / canvas.size) * 100
+
+    def project_mask(self, canvas, mask, origin=(0, 0)):
+        mask_height, mask_width = mask.shape
+        x, y = origin
+        canvas[y : y + mask_height, x : x + mask_width] += mask
+        return canvas
 
     def group_equal_masks(self, masks: List[np.ndarray]) -> List[int]:
         masks_1channel = [mask[:, :, 0] for mask in masks]
@@ -88,7 +92,7 @@ class BaseStats:
 
 class BaseVisual:
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        pass
+        raise NotImplementedError()
 
     def to_image(
         self,
