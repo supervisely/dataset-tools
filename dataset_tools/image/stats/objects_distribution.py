@@ -47,16 +47,20 @@ class ObjectsDistribution(BaseStats):
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes}
         self._distribution_dict = {class_id: {0: set()} for class_id in self._class_ids}
         self._max_count = 0
-        self._class_rgbs = {item.sly_id: item.color for item in self._meta.obj_classes}
+        self._classes_hex = {
+            item.sly_id: rgb_to_hex(item.color) for item in self._meta.obj_classes
+        }
 
     def clean(self) -> None:
         self.__init__(self._meta, self.force)
 
     def update2(self, image: ImageInfo, figures: Optional[List[FigureInfo]]):
         if figures is None:
+            for class_id in self._class_ids:
+                self._distribution_dict[class_id][0].add(image.id)
             return
 
-        zerocount_classes = [class_id for class_id in self._class_ids]
+        nonzero = []
         sorted_figures = sorted(figures, key=lambda x: x.class_id)
 
         for class_id, group in groupby(sorted_figures, key=lambda x: x.class_id):
@@ -65,30 +69,27 @@ class ObjectsDistribution(BaseStats):
             if num_img is None:
                 self._distribution_dict[class_id][count] = set()
             self._distribution_dict[class_id][count].add(image.id)
-            del zerocount_classes[(zerocount_classes.index(class_id))]
+            nonzero.append(class_id)
             self._max_count = count if count > self._max_count else self._max_count
 
-        for class_id in zerocount_classes:
-            self._distribution_dict[class_id][0].add(image.id)
+        for class_id in self._class_ids:
+            if class_id not in nonzero:
+                self._distribution_dict[class_id][0].add(image.id)
 
     def to_json2(self) -> Dict:
         series, colors = [], []
         references = defaultdict(dict)
+        axis = [i for i in range(self._max_count + 1)]
         for class_id, class_name in self._class_ids.items():
-            axis = [i for i in range(self._max_count + 1)]
+
             class_ditrib = self._distribution_dict[class_id]
+            reference = {x: [] for x in axis}
 
             values = [0 for _ in range(self._max_count + 1)]
             for objects_count, images_set in class_ditrib.items():
                 values[objects_count] = len(images_set)
-
-            references = {k: list(v) for k, v in class_ditrib.items()}
-
-            # reference = {objects_count: list(images_set)}
-            # if references[class_name]:
-            #     references[class_name].update(reference)
-            # else:
-            #     references[class_name] = reference
+                reference[objects_count] = list(images_set)
+                references.setdefault(class_name, {}).update(reference)
 
             row = {
                 "name": class_name,
@@ -97,7 +98,7 @@ class ObjectsDistribution(BaseStats):
             }
 
             series.append(row)
-            colors.append(self._class_rgbs[class_id])
+            colors.append(self._classes_hex[class_id])
 
         hmp = HeatmapChart(
             title="Objects on images - distribution for every class",
