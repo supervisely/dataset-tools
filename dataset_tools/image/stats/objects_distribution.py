@@ -54,8 +54,8 @@ class ObjectsDistribution(BaseStats):
     def clean(self) -> None:
         self.__init__(self._meta, self.force)
 
-    def update2(self, image: ImageInfo, figures: Optional[List[FigureInfo]]):
-        if figures is None:
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+        if len(figures) == 0:
             for class_id in self._class_ids:
                 self._distribution_dict[class_id][0].add(image.id)
             return
