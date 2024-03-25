@@ -144,7 +144,7 @@ def get_summary_data(
                 data = []
                 for image, object in zip(stats["imageTags"]["items"], stats["objectTags"]["items"]):
                     (
-                        data.append(("objects", object))
+                        data.append(("instances", object))
                         if image["total"] == 0
                         else data.append(("images", image))
                     )
