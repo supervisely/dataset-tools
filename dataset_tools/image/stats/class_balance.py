@@ -55,6 +55,10 @@ class ClassBalance(BaseStats):
 
         # self.class_indices_colors = class_indices_colors
 
+        self.class_names = ["unlabeled"]
+        for obj_class in self._meta.obj_classes:
+            self.class_names.append(obj_class.name)
+        # # TODO rm later
         # self.sum_class_area_per_image = [0] * len(self.class_names)
         # self.objects_count = [0] * len(self.class_names)
         # self.images_count = [0] * len(self.class_names)
@@ -68,17 +72,16 @@ class ClassBalance(BaseStats):
         # self.avg_nonzero_count = [None] * len(self.class_names)
 
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes}
-        self.class_names = ["unlabeled"]
-        for obj_class in self._meta.obj_classes:
-            self.class_names.append(obj_class.name)
 
-        self._images_set = self._objects_set = {
-            class_id: set() for class_id in self._class_ids
-        }
+        self._images_set = {class_id: set() for class_id in self._class_ids}
+        self._objects_set = {class_id: set() for class_id in self._class_ids}
         self._count_on_image = {class_id: 0 for class_id in self._class_ids}
-        self._area_figures_sum = self._area_images_sum = self._area_on_image_avg = (
-            self._area_images_percent_sum
-        ) = {class_id: 0 for class_id in self._class_ids}
+        self._area_figures_sum = {class_id: 0 for class_id in self._class_ids}
+        self._area_images_sum = {class_id: 0 for class_id in self._class_ids}
+        self._area_on_image_avg = {class_id: 0 for class_id in self._class_ids}
+        self._area_images_percent_sum = {class_id: 0 for class_id in self._class_ids}
+
+        self.is_unlabeled = True
 
     def clean(self) -> None:
         self.__init__(
@@ -90,6 +93,7 @@ class ClassBalance(BaseStats):
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
             return
+        self.is_unlabeled = False
 
         for figure in figures:
             self._images_set[figure.class_id].add(figure.entity_id)
@@ -335,17 +339,36 @@ class ClassBalance(BaseStats):
 
     def to_numpy_raw(self):
         # if unlabeled
-        if (self.avg_nonzero_area[0] or 0) >= 100:
+        if self.is_unlabeled:
             return
-        images_count = np.array(self.images_count, dtype="int32")
-        objects_count = np.array(self.objects_count, dtype="int32")
+
+        images_count, objects_count = [], []
+        avg_cnt_on_img, sum_area_on_img = [], []
+        refs = []
+
+        for id in self._class_ids:
+            objects_count.append(len(self._objects_set[id]))
+            images_count.append(len(self._images_set[id]))
+            try:
+                avg_cnt_on_img.append(objects_count[-1] / images_count[-1])
+                sum_area_on_img.append(
+                    self._area_images_percent_sum[id] / images_count[-1]
+                )
+            except ZeroDivisionError:
+                avg_cnt_on_img.append(0)
+                sum_area_on_img.append(0)
+
+            refs.append(list(self._images_set[id]))
+
+        images_count = np.array(images_count, dtype="int32")
+        objects_count = np.array(objects_count, dtype="int32")
         avg_cnt_on_img = np.array(
-            [elem or 0 for elem in self.avg_nonzero_count], dtype="int32"
+            [elem or 0 for elem in avg_cnt_on_img], dtype="float32"
         )
         sum_area_on_img = np.array(
-            [elem or 0 for elem in self.avg_nonzero_area], dtype="float32"
+            [elem or 0 for elem in sum_area_on_img], dtype="float32"
         )
-        references = np.array(self.image_counts_filter_by_id, dtype=object)
+        references = np.array(refs, dtype=object)
 
         return np.stack(
             [
