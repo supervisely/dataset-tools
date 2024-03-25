@@ -43,38 +43,40 @@ class ClassesPerImage(BaseStats):
         self.project_stats = project_stats
         self.datasets = datasets
         self.force = force
-        # self._stat_cache = stat_cache
+        self._stat_cache = stat_cache
 
-        # self._stats = {}
+        self._stats = {}
 
-        # self._dataset_id_to_name = None
-        # if datasets is not None:
-        #     self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
+        self._dataset_id_to_name = None
+        if datasets is not None:
+            self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
 
-        # self._class_names = ["unlabeled"]
-        # self._class_indices_colors = [UNLABELED_COLOR]
-        # self._classname_to_index = {}
+        self._class_names = ["unlabeled"]
+        self._class_indices_colors = [UNLABELED_COLOR]
+        self._classname_to_index = {}
 
-        # for idx, obj_class in enumerate(self._meta.obj_classes):
-        #     if idx >= CLASSES_CNT_LIMIT:
-        #         sly.logger.warn(
-        #             f"{self.__class__.__name__}: will use first {CLASSES_CNT_LIMIT} classes."
-        #         )
-        #         break
-        #     self._class_names.append(obj_class.name)
-        #     class_index = idx + 1
-        #     self._class_indices_colors.append([class_index, class_index, class_index])
-        #     self._classname_to_index[obj_class.name] = class_index
+        for idx, obj_class in enumerate(self._meta.obj_classes):
+            if idx >= CLASSES_CNT_LIMIT:
+                sly.logger.warn(
+                    f"{self.__class__.__name__}: will use first {CLASSES_CNT_LIMIT} classes."
+                )
+                break
+            self._class_names.append(obj_class.name)
+            class_index = idx + 1
+            self._class_indices_colors.append([class_index, class_index, class_index])
+            self._classname_to_index[obj_class.name] = class_index
 
-        # self._stats["data"] = []
-        # self._references = []
+        self._stats["data"] = []
+        self._references = []
 
-        # total = self.project_stats["images"]["total"]["imagesInDataset"] * (
-        #     len(self.project_stats["images"]["objectClasses"]) + 5
-        # )
-        # self.update_freq = 1
-        # if total > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
-        #     self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total
+        total = self.project_stats["images"]["total"]["imagesInDataset"] * (
+            len(self.project_stats["images"]["objectClasses"]) + 5
+        )
+        self.update_freq = 1
+        if total > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
+            self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total
+
+        # new
 
         self._data = []
         self._splits = {ds.id: ds.name for ds in datasets}
@@ -297,7 +299,7 @@ class ClassesPerImage(BaseStats):
             dtype=object,
         )
 
-    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []):
+    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = {}):
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = []
@@ -308,7 +310,12 @@ class ClassesPerImage(BaseStats):
         def update_shape(loaded_data: list, updated_classes, insert_val=0) -> list:
             if len(updated_classes) > 0:
                 indices = list(
-                    sorted([labeled_cls.index(cls) for cls in updated_classes])
+                    sorted(
+                        [
+                            labeled_cls.index(cls)
+                            for cls in list(updated_classes.values())
+                        ]
+                    )
                 )
                 for idx, image in enumerate(loaded_data):
                     stat_data, ref_data = image
@@ -322,7 +329,9 @@ class ClassesPerImage(BaseStats):
 
         for file in files:
             loaded_data = np.load(file, allow_pickle=True).tolist()
-            if len(loaded_data[0][0][5:]) != (len(labeled_cls) * 2):
+            if len(loaded_data[0][0][4:]) != (
+                len(labeled_cls) * 2
+            ):  # TODO unlabeled ..[5:]..
                 loaded_data = update_shape(loaded_data, updated_classes)
 
             for image in loaded_data:
@@ -334,6 +343,8 @@ class ClassesPerImage(BaseStats):
             np.save(file, save_data)
 
         self._stats["data"] = res
+
+        self._data = res
         self._references = references
 
         return np.array(res)

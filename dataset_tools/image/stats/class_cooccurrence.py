@@ -37,7 +37,7 @@ class ClassCooccurrence(BaseStats):
         self._num_classes = len(self._class_names)
         self.co_occurrence_matrix = np.zeros(
             (self._num_classes, self._num_classes), dtype=int
-        )
+        )  # TODO maybe rm numpy sewing at all?
 
         self._class_ids = {
             item.sly_id: item.name for item in self._meta.obj_classes.items()

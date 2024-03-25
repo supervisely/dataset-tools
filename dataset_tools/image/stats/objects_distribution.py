@@ -81,7 +81,6 @@ class ObjectsDistribution(BaseStats):
         references = defaultdict(dict)
         axis = [i for i in range(self._max_count + 1)]
         for class_id, class_name in self._class_ids.items():
-
             class_ditrib = self._distribution_dict[class_id]
             reference = {x: [] for x in axis}
 
@@ -248,12 +247,12 @@ class ObjectsDistribution(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        images = [
-            [im_id] + [lbl.obj_class_name for lbl in ann.labels]
-            for im_id, ann in zip(self._images, self._anns)
-        ]
+        # images = [
+        #     [im_id] + [lbl.obj_class_name for lbl in ann.labels]
+        #     for im_id, ann in zip(self._images, self._anns)
+        # ]
 
-        return np.array(images, dtype=object)
+        return np.array(self._distribution_dict, dtype=object)
 
     def sew_chunks(self, chunks_dir: str, *args, **kwargs) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
@@ -261,16 +260,27 @@ class ObjectsDistribution(BaseStats):
         res = []
 
         for file in files:
-            stat_data = np.load(file, allow_pickle=True)
-            res.extend(stat_data.tolist())
+            stat_data = np.load(file, allow_pickle=True).tolist()
+            for class_id in self._class_ids:
+                for objects_count, images_set in stat_data[class_id].items():
+                    try:
+                        self._distribution_dict[class_id][objects_count].update(
+                            images_set
+                        )
+                    except KeyError:
+                        self._distribution_dict[class_id][objects_count] = images_set
+                    self._max_count = max(self._max_count, objects_count)
 
-        self._images = [elem[0] for elem in res]
-        self._anns = []
-        for label in [elem[1:] for elem in res]:
-            self._anns.append(
-                LiteAnnotation(
-                    labels=[LiteLabel(obj_class_name=name) for name in label]
-                )
-            )
+                    # .update(stat_data[class_id])
+            # res.extend(stat_data.tolist())
 
-        res
+        # self._images = [elem[0] for elem in res]
+        # self._anns = []
+        # for label in [elem[1:] for elem in res]:
+        #     self._anns.append(
+        #         LiteAnnotation(
+        #             labels=[LiteLabel(obj_class_name=name) for name in label]
+        #         )
+        #     )
+
+        return None
