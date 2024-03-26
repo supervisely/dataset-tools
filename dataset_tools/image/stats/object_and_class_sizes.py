@@ -639,6 +639,8 @@ class ClassesTreemap(BaseStats):
     def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
+        # TODO handle when class has 0 images
+
         for file in files:
             loaded_data = np.load(file, allow_pickle=True)
 

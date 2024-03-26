@@ -395,13 +395,19 @@ class ClassBalance(BaseStats):
     def sew_chunks(self, chunks_dir: str, updated_classes: dict = {}) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
-        if len(updated_classes) > 0:
-            self._class_ids.update(updated_classes)
+        # if len(updated_classes) > 0:
+        #     self._class_ids.update(updated_classes)
+        #     for class_id in updated_classes:
+        #         self._images_set[class_id] = set()
+        #         self._objects_set[class_id] = set()
+        #         self._area_images_percent_sum[class_id] = 0
 
         for file in files:
             loaded_data = np.load(file, allow_pickle=True).tolist()
             if loaded_data is not None:
                 for class_id in self._class_ids:
+                    if loaded_data[0].get(class_id) is None:
+                        continue
                     self._images_set[class_id].update(loaded_data[0][class_id])
                     self._objects_set[class_id].update(loaded_data[1][class_id])
                     self._area_images_percent_sum[class_id] += loaded_data[2][class_id]

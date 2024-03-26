@@ -309,14 +309,8 @@ class ClassesPerImage(BaseStats):
 
         def update_shape(loaded_data: list, updated_classes, insert_val=0) -> list:
             if len(updated_classes) > 0:
-                indices = list(
-                    sorted(
-                        [
-                            labeled_cls.index(cls)
-                            for cls in list(updated_classes.values())
-                        ]
-                    )
-                )
+                classnames = list(updated_classes.values())
+                indices = list(sorted([labeled_cls.index(cls) for cls in classnames]))
                 for idx, image in enumerate(loaded_data):
                     stat_data, ref_data = image
                     cls_data = stat_data[5:]

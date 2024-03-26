@@ -244,7 +244,9 @@ class ProjectRepo:
                 )
                 self.download_sly_url = "Set 'HIDE_DATASET=False' to generate download link"
                 return
-            if "https://www.dropbox.com/" in self.project_info.custom_data.get("download_sly_url"):
+            if "https://www.dropbox.com/" in self.project_info.custom_data.get(
+                "download_sly_url", ""
+            ):
                 sly.logger.warn(
                     "Download archive is already stored in the dropbox repositiry. Skipping the creation of download link."
                 )

@@ -194,11 +194,12 @@ class ClassCooccurrence(BaseStats):
                 ]
 
         def update_shape(
-            array: np.ndarray, updated_classes, insert_val=0
+            array: np.ndarray, updated_classes: dict, insert_val=0
         ) -> Tuple[np.ndarray, np.ndarray]:
             if len(updated_classes) > 0:
+                _updated_classes = list(updated_classes.values())
                 indices = list(
-                    sorted([self._class_names.index(cls) for cls in updated_classes])
+                    sorted([self._class_names.index(cls) for cls in _updated_classes])
                 )
                 sdata = array[0].copy()
                 rdata = array[1].copy().tolist()

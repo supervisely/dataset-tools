@@ -254,7 +254,10 @@ class ObjectsDistribution(BaseStats):
 
         return np.array(self._distribution_dict, dtype=object)
 
-    def sew_chunks(self, chunks_dir: str, *args, **kwargs) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str, updated_classes: dict) -> np.ndarray:
+        # if len(updated_classes) > 0:
+        #     self._class_ids.update(updated_classes)
+
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = []
@@ -262,6 +265,8 @@ class ObjectsDistribution(BaseStats):
         for file in files:
             stat_data = np.load(file, allow_pickle=True).tolist()
             for class_id in self._class_ids:
+                if stat_data.get(class_id) is None:
+                    continue
                 for objects_count, images_set in stat_data[class_id].items():
                     try:
                         self._distribution_dict[class_id][objects_count].update(
