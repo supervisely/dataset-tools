@@ -95,8 +95,6 @@ class ClassBalance(BaseStats):
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
 
-        if image.id == 28437310:
-            pass
 
         if len(figures) == 0:
             return
