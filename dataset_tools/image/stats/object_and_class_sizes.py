@@ -57,12 +57,8 @@ class ObjectSizes(BaseStats):
         total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
         self.update_freq = 1
         if total_objects > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
-            self.update_freq = (
-                MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total_objects
-            )
-        self._class_ids = {
-            item.sly_id: item.name for item in self._meta.obj_classes.items()
-        }
+            self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total_objects
+        self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
 
     def clean(self):
         self.__init__(
@@ -104,13 +100,11 @@ class ObjectSizes(BaseStats):
             lite_label = LiteLabel(
                 obj_class_name=self._class_ids[figure.class_id],
                 geometry_type=figure.geometry_type,
-                geometry_to_bbox=int(figure.real_area),
-                geometry_area=int(figure.real_area),
+                geometry_to_bbox=int(figure.area),
+                geometry_area=int(figure.area),
             )
             object_data.update(
-                calculate_obj_sizes(
-                    lite_label, image_height, image_width, int(figure.real_area)
-                )
+                calculate_obj_sizes(lite_label, image_height, image_width, int(figure.area))
             )
 
             object_data = list(object_data.values())
@@ -149,9 +143,7 @@ class ObjectSizes(BaseStats):
                     geometry_to_bbox=label.geometry.to_bbox(),
                     geometry_area=label.geometry.area,
                 )
-                object_data.update(
-                    calculate_obj_sizes(lite_label, image_height, image_width)
-                )
+                object_data.update(calculate_obj_sizes(lite_label, image_height, image_width))
 
                 object_data = list(object_data.values())
 
@@ -159,9 +151,7 @@ class ObjectSizes(BaseStats):
 
     def to_json(self) -> Dict:
         if not self._stats:
-            sly.logger.warning(
-                "No stats were added in update() method, the result will be None."
-            )
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
         options = {
@@ -268,9 +258,7 @@ class ClassSizes(BaseStats):
 
         self._data = []
 
-        self._class_ids = {
-            item.sly_id: item.name for item in self._meta.obj_classes.items()
-        }
+        self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
 
     def clean(self):
         self.__init__(
@@ -288,13 +276,11 @@ class ClassSizes(BaseStats):
                 LiteLabel(
                     obj_class_name=self._class_ids[figure.class_id],
                     geometry_type=figure.geometry_type,
-                    geometry_to_bbox=int(figure.real_area),
-                    geometry_area=int(figure.real_area),
+                    geometry_to_bbox=int(figure.area),
+                    geometry_area=int(figure.area),
                 )
             )
-        lite_ann = LiteAnnotation(
-            labels=lite_labels, img_size=(image.height, image.width)
-        )
+        lite_ann = LiteAnnotation(labels=lite_labels, img_size=(image.height, image.width))
 
         self._data.append(lite_ann)
 
@@ -317,9 +303,7 @@ class ClassSizes(BaseStats):
 
     def to_json(self) -> Dict:
         if not self._data:
-            sly.logger.warning(
-                "No stats were added in update() method, the result will be None."
-            )
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
         stats = []
@@ -375,12 +359,10 @@ class ClassSizes(BaseStats):
                 "max_height_px": max(class_heights_px[class_title]),
                 "max_height_pc": max(class_heights_pc[class_title]),
                 "avg_height_px": round(
-                    sum(class_heights_px[class_title])
-                    / len(class_heights_px[class_title]),
+                    sum(class_heights_px[class_title]) / len(class_heights_px[class_title]),
                 ),
                 "avg_height_pc": round(
-                    sum(class_heights_pc[class_title])
-                    / len(class_heights_pc[class_title]),
+                    sum(class_heights_pc[class_title]) / len(class_heights_pc[class_title]),
                     2,
                 ),
                 "min_width_px": min(class_widths_px[class_title]),
@@ -388,12 +370,10 @@ class ClassSizes(BaseStats):
                 "max_width_px": max(class_widths_px[class_title]),
                 "max_width_pc": max(class_widths_pc[class_title]),
                 "avg_width_px": round(
-                    sum(class_widths_px[class_title])
-                    / len(class_widths_px[class_title]),
+                    sum(class_widths_px[class_title]) / len(class_widths_px[class_title]),
                 ),
                 "avg_width_pc": round(
-                    sum(class_widths_pc[class_title])
-                    / len(class_widths_pc[class_title]),
+                    sum(class_widths_pc[class_title]) / len(class_widths_pc[class_title]),
                     2,
                 ),
             }
@@ -509,9 +489,7 @@ class ClassesTreemap(BaseStats):
 
         self._data = []
 
-        self._class_ids = {
-            item.sly_id: item.name for item in self._meta.obj_classes.items()
-        }
+        self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
 
     def clean(self):
         self.__init__(
@@ -529,13 +507,11 @@ class ClassesTreemap(BaseStats):
                 LiteLabel(
                     obj_class_name=self._class_ids[figure.class_id],
                     geometry_type=figure.geometry_type,
-                    geometry_to_bbox=int(figure.real_area),
-                    geometry_area=int(figure.real_area),
+                    geometry_to_bbox=int(figure.area),
+                    geometry_area=int(figure.area),
                 )
             )
-        lite_ann = LiteAnnotation(
-            labels=lite_labels, img_size=(image.height, image.width)
-        )
+        lite_ann = LiteAnnotation(labels=lite_labels, img_size=(image.height, image.width))
 
         self._data.append(lite_ann)
 
@@ -558,9 +534,7 @@ class ClassesTreemap(BaseStats):
 
     def to_json(self) -> Dict:
         if not self._data:
-            sly.logger.warning(
-                "No stats were added in update() method, the result will be None."
-            )
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
         tooltip = "Average area of class objects on image is {y}%"
@@ -656,9 +630,7 @@ def rgb_to_hex(rgb: List[int]) -> str:
     return "#{:02x}{:02x}{:02x}".format(*rgb)
 
 
-def calculate_obj_sizes(
-    label: sly.Label, image_height: int, image_width: int, area=None
-) -> Dict:
+def calculate_obj_sizes(label: sly.Label, image_height: int, image_width: int, area=None) -> Dict:
     image_area = image_height * image_width
 
     try:

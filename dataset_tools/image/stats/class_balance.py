@@ -94,6 +94,10 @@ class ClassBalance(BaseStats):
         )
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+
+        if image.id == 28437310:
+            pass
+
         if len(figures) == 0:
             return
         self.is_unlabeled = False
@@ -101,7 +105,7 @@ class ClassBalance(BaseStats):
         for figure in figures:
             self._images_set[figure.class_id].add(figure.entity_id)
             self._objects_set[figure.class_id].add(figure.id)
-            self._area_images_percent_sum[figure.class_id] += int(figure.real_area) / (
+            self._area_images_percent_sum[figure.class_id] += int(figure.area) / (
                 image.width * image.height
             )
 
@@ -344,7 +348,7 @@ class ClassBalance(BaseStats):
         # if unlabeled
         if self.is_unlabeled:
             return
-
+        # %%
         # images_count, objects_count = [], []
         # avg_cnt_on_img, sum_area_on_img = [], []
         # refs = []
@@ -376,10 +380,10 @@ class ClassBalance(BaseStats):
         # for figure in figures:
         #     self._images_set[figure.class_id].add(figure.entity_id)
         #     self._objects_set[figure.class_id].add(figure.id)
-        #     self._area_images_percent_sum[figure.class_id] += int(figure.real_area) / (
+        #     self._area_images_percent_sum[figure.class_id] += int(figure.area) / (
         #         image.width * image.height
         #     )
-
+        # %%
         images_set = np.array(self._images_set, dtype=object)
         objects_set = np.array(self._objects_set, dtype=object)
         area_images_percent = np.array(self._area_images_percent_sum, dtype=object)
@@ -394,36 +398,31 @@ class ClassBalance(BaseStats):
 
     def sew_chunks(self, chunks_dir: str, updated_classes: dict = {}) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
-
-        # if len(updated_classes) > 0:
-        #     self._class_ids.update(updated_classes)
-        #     for class_id in updated_classes:
-        #         self._images_set[class_id] = set()
-        #         self._objects_set[class_id] = set()
-        #         self._area_images_percent_sum[class_id] = 0
-
         for file in files:
             loaded_data = np.load(file, allow_pickle=True).tolist()
             if loaded_data is not None:
+                loaded_classes = set([class_id for class_id in loaded_data[0]])
+                true_classes = set(self._class_ids)
+
+                added = true_classes - loaded_classes
+                for class_id in list(added):
+                    loaded_data[0][class_id] = set()
+                    loaded_data[1][class_id] = set()
+                    loaded_data[2][class_id] = 0
+
+                removed = loaded_classes - true_classes
+                for class_id in list(removed):
+                    loaded_data[0].pop(class_id)
+                    loaded_data[1].pop(class_id)
+                    loaded_data[2].pop(class_id)
+
+                save_data = np.array(loaded_data, dtype=object)
+                np.save(file, save_data)
+
                 for class_id in self._class_ids:
-                    if loaded_data[0].get(class_id) is None:
-                        continue
                     self._images_set[class_id].update(loaded_data[0][class_id])
                     self._objects_set[class_id].update(loaded_data[1][class_id])
                     self._area_images_percent_sum[class_id] += loaded_data[2][class_id]
-
-            images_set = np.array(self._images_set, dtype=object)
-            objects_set = np.array(self._objects_set, dtype=object)
-            area_images_percent = np.array(self._area_images_percent_sum, dtype=object)
-            save_data = np.stack(
-                [
-                    images_set,
-                    objects_set,
-                    area_images_percent,
-                ],
-                axis=0,
-            )
-            np.save(file, save_data)
 
         return None
 
