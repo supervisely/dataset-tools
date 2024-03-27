@@ -260,32 +260,37 @@ class ObjectsDistribution(BaseStats):
 
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
-        res = []
-
         for file in files:
-            stat_data = np.load(file, allow_pickle=True).tolist()
-            for class_id in self._class_ids:
-                if stat_data.get(class_id) is None:
-                    continue
-                for objects_count, images_set in stat_data[class_id].items():
-                    try:
-                        self._distribution_dict[class_id][objects_count].update(
-                            images_set
-                        )
-                    except KeyError:
-                        self._distribution_dict[class_id][objects_count] = images_set
-                    self._max_count = max(self._max_count, objects_count)
+            loaded_data = np.load(file, allow_pickle=True).tolist()
+            if loaded_data is not None:
+                loaded_classes = set([class_id for class_id in loaded_data])
+                true_classes = set(self._class_ids)
 
-                    # .update(stat_data[class_id])
-            # res.extend(stat_data.tolist())
+                added = true_classes - loaded_classes
+                for class_id in list(added):
+                    if loaded_data.get(class_id) is None:
+                        loaded_data[class_id] = {0: set()}
+                    for other_class in loaded_data:
+                        for images_set in loaded_data[other_class].values():
+                            loaded_data[class_id][0].update(images_set)
 
-        # self._images = [elem[0] for elem in res]
-        # self._anns = []
-        # for label in [elem[1:] for elem in res]:
-        #     self._anns.append(
-        #         LiteAnnotation(
-        #             labels=[LiteLabel(obj_class_name=name) for name in label]
-        #         )
-        #     )
+                removed = loaded_classes - true_classes
+                for class_id in list(removed):
+                    loaded_data.pop(class_id)
+
+                save_data = np.array(loaded_data, dtype=object)
+                np.save(file, save_data)
+
+                for class_id in self._class_ids:
+                    for objects_count, images_set in loaded_data[class_id].items():
+                        try:
+                            self._distribution_dict[class_id][objects_count].update(
+                                images_set
+                            )
+                        except KeyError:
+                            self._distribution_dict[class_id][
+                                objects_count
+                            ] = images_set
+                        self._max_count = max(self._max_count, objects_count)
 
         return None
