@@ -24,6 +24,7 @@ from dataset_tools.image.stats.preview_for_classes import (
     ClassesPreview,
     ClassesPreviewTags,
 )
+from dataset_tools.image.stats.tags_per_image import TagsPerImage
 from dataset_tools.image.stats.tags_vals import TagsVals
 from dataset_tools.image.stats.wrapper import (  # , initialize
     count_images_stats,

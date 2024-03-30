@@ -443,16 +443,20 @@ class ProjectRepo:
         cls_prevs_settings = settings.get("ClassesPreview", {})
         heatmaps_settings = settings.get("ClassesHeatmaps", {})
         # previews_settings = settings.get("Previews", {})
+        cls_prevs_tags = cls_prevs_settings.get("tags", [])
 
         stat_cache = {}
         stats = [
             dtools.ClassBalance(self.project_meta, self.project_stats, stat_cache=stat_cache),
-            dtools.ClassCooccurrence(self.project_meta),
+            dtools.ClassCooccurrence(self.project_meta, cls_prevs_tags),
             dtools.ClassCooccurrenceTags(self.project_meta),
             dtools.ClassesPerImage(
                 self.project_meta, self.project_stats, self.datasets, stat_cache=stat_cache
             ),
             dtools.TagsVals(self.project_meta),
+            dtools.TagsPerImage(
+                self.project_meta, self.project_stats, self.datasets, stat_cache=stat_cache
+            ),
             dtools.ObjectsDistribution(self.project_meta),
             dtools.ObjectSizes(self.project_meta, self.project_stats),
             dtools.ClassSizes(self.project_meta),
@@ -479,7 +483,7 @@ class ProjectRepo:
                 stat.force = True
             if (
                 isinstance(stat, dtools.ClassCooccurrence)
-                and len(self.project_meta.obj_classes.items()) == 1
+                and len(self.project_meta.obj_classes.items() + cls_prevs_tags) == 1
             ):
                 stat.force = False
         stats = [stat for stat in stats if stat.force]

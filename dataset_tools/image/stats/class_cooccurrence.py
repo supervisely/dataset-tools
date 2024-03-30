@@ -1,10 +1,11 @@
+import json
+import os
 from collections import defaultdict
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-import json, os
-
 import supervisely as sly
+
 from dataset_tools.image.stats.basestats import BaseStats
 
 REFERENCES_LIMIT = 1000
@@ -19,23 +20,25 @@ class ClassCooccurrence(BaseStats):
         etc.
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
+    def __init__(
+        self, project_meta: sly.ProjectMeta, cls_prevs_tags: list = [], force: bool = False
+    ) -> None:
         self._meta = project_meta
         self._stats = {}
+        self._cls_prevs_tags = cls_prevs_tags
         self.force = force
 
         self._name_to_index = {}
 
-        for idx, obj_class in enumerate(self._meta.obj_classes):
-            self._name_to_index[obj_class.name] = idx
+        self._class_names = [cls.name for cls in project_meta.obj_classes] + self._cls_prevs_tags
 
-        self._class_names = [cls.name for cls in project_meta.obj_classes]
+        for idx, obj_class_name in enumerate(self._class_names):
+            self._name_to_index[obj_class_name] = idx
+
         self._references = defaultdict(lambda: defaultdict(list))
 
         self._num_classes = len(self._class_names)
-        self.co_occurrence_matrix = np.zeros(
-            (self._num_classes, self._num_classes), dtype=int
-        )
+        self.co_occurrence_matrix = np.zeros((self._num_classes, self._num_classes), dtype=int)
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         if self._num_classes == 1:
@@ -43,6 +46,10 @@ class ClassCooccurrence(BaseStats):
         classes = set()
         for label in ann.labels:
             classes.add(label.obj_class.name)
+
+        for tag in ann.img_tags:
+            if tag.name in self._cls_prevs_tags:
+                classes.add(tag.name)
 
         for class_ in classes:
             idx = self._name_to_index[class_]
@@ -78,15 +85,11 @@ class ClassCooccurrence(BaseStats):
         colomns_options[0] = {"type": "class"}  # not used in Web
 
         for idx in range(1, len(colomns_options)):
-            colomns_options[idx] = {
-                "maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))
-            }
+            colomns_options[idx] = {"maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))}
 
         data = [
             [value] + sublist
-            for value, sublist in zip(
-                self._class_names, self.co_occurrence_matrix.tolist()
-            )
+            for value, sublist in zip(self._class_names, self.co_occurrence_matrix.tolist())
         ]
 
         res = {
@@ -122,9 +125,7 @@ class ClassCooccurrence(BaseStats):
             axis=0,
         )
 
-    def sew_chunks(
-        self, chunks_dir: str, updated_classes: List[str] = []
-    ) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
         if self._num_classes <= 1:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
@@ -152,9 +153,7 @@ class ClassCooccurrence(BaseStats):
             array: np.ndarray, updated_classes, insert_val=0
         ) -> Tuple[np.ndarray, np.ndarray]:
             if len(updated_classes) > 0:
-                indices = list(
-                    sorted([self._class_names.index(cls) for cls in updated_classes])
-                )
+                indices = list(sorted([self._class_names.index(cls) for cls in updated_classes]))
                 sdata = array[0].copy()
                 rdata = array[1].copy().tolist()
 
