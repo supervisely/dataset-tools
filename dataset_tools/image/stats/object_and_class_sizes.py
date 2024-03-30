@@ -1,11 +1,14 @@
 import random
 from collections import defaultdict, namedtuple
 from typing import Dict, List
+
 import numpy as np
 import supervisely as sly
-from supervisely.app.widgets import TreemapChart
 
 from dataset_tools.image.stats.basestats import BaseStats
+
+# from supervisely.app.widgets import TreemapChart
+
 
 MAX_SIZE_OBJECT_SIZES_BYTES = 1e7
 SHRINKAGE_COEF = 0.01
@@ -54,9 +57,7 @@ class ObjectSizes(BaseStats):
         total_objects = self.project_stats["objects"]["total"]["objectsInDataset"]
         self.update_freq = 1
         if total_objects > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
-            self.update_freq = (
-                MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total_objects
-            )
+            self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total_objects
 
     def clean(self):
         self.__init__(
@@ -95,9 +96,7 @@ class ObjectSizes(BaseStats):
                     geometry_to_bbox=label.geometry.to_bbox(),
                     geometry_area=label.geometry.area,
                 )
-                object_data.update(
-                    calculate_obj_sizes(lite_label, image_height, image_width)
-                )
+                object_data.update(calculate_obj_sizes(lite_label, image_height, image_width))
 
                 object_data = list(object_data.values())
 
@@ -105,9 +104,7 @@ class ObjectSizes(BaseStats):
 
     def to_json(self) -> Dict:
         if not self._stats:
-            sly.logger.warning(
-                "No stats were added in update() method, the result will be None."
-            )
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
         options = {
@@ -236,9 +233,7 @@ class ClassSizes(BaseStats):
 
     def to_json(self) -> Dict:
         if not self._data:
-            sly.logger.warning(
-                "No stats were added in update() method, the result will be None."
-            )
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
         stats = []
@@ -288,12 +283,10 @@ class ClassSizes(BaseStats):
                 "max_height_px": max(class_heights_px[class_title]),
                 "max_height_pc": max(class_heights_pc[class_title]),
                 "avg_height_px": round(
-                    sum(class_heights_px[class_title])
-                    / len(class_heights_px[class_title]),
+                    sum(class_heights_px[class_title]) / len(class_heights_px[class_title]),
                 ),
                 "avg_height_pc": round(
-                    sum(class_heights_pc[class_title])
-                    / len(class_heights_pc[class_title]),
+                    sum(class_heights_pc[class_title]) / len(class_heights_pc[class_title]),
                     2,
                 ),
                 "min_width_px": min(class_widths_px[class_title]),
@@ -301,12 +294,10 @@ class ClassSizes(BaseStats):
                 "max_width_px": max(class_widths_px[class_title]),
                 "max_width_pc": max(class_widths_pc[class_title]),
                 "avg_width_px": round(
-                    sum(class_widths_px[class_title])
-                    / len(class_widths_px[class_title]),
+                    sum(class_widths_px[class_title]) / len(class_widths_px[class_title]),
                 ),
                 "avg_width_pc": round(
-                    sum(class_widths_pc[class_title])
-                    / len(class_widths_pc[class_title]),
+                    sum(class_widths_pc[class_title]) / len(class_widths_pc[class_title]),
                     2,
                 ),
             }
@@ -444,9 +435,7 @@ class ClassesTreemap(BaseStats):
 
     def to_json(self) -> Dict:
         if not self._data:
-            sly.logger.warning(
-                "No stats were added in update() method, the result will be None."
-            )
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
         tooltip = "Average area of class objects on image is {y}%"

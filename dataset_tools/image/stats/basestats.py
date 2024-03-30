@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-import dataframe_image as dfi
+# import dataframe_image as dfi
 import numpy as np
 import pandas as pd
 import supervisely as sly
@@ -32,9 +32,7 @@ class BaseStats:
         if self.to_pandas() is not None:
             table = self.to_pandas()[:100]  # max rows == 100
             table = table.iloc[:, :100]  # select the first 100 columns
-            table.dfi.export(
-                path, max_rows=-1, max_cols=-1, table_conversion="matplotlib"
-            )
+            table.dfi.export(path, max_rows=-1, max_cols=-1, table_conversion="matplotlib")
 
     @property
     def basename_stem(self) -> str:

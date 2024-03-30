@@ -9,12 +9,14 @@ from typing import List, Literal, Optional
 
 import cv2
 import requests
+import supervisely as sly
 import tqdm
 from dotenv import load_dotenv
 from PIL import Image
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
-import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
@@ -22,8 +24,6 @@ from dataset_tools.repo.sample_project import (
 )
 from dataset_tools.templates import DatasetCategory, License
 from dataset_tools.text.generate_summary import list2sentence
-from supervisely._utils import camel_to_snake
-from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 DOWNLOAD_ARCHIVE_TEAMFILES_DIR = "/tmp/supervisely/export/export-to-supervisely-format/"
 
@@ -448,9 +448,11 @@ class ProjectRepo:
         stats = [
             dtools.ClassBalance(self.project_meta, self.project_stats, stat_cache=stat_cache),
             dtools.ClassCooccurrence(self.project_meta),
+            dtools.ClassCooccurrenceTags(self.project_meta),
             dtools.ClassesPerImage(
                 self.project_meta, self.project_stats, self.datasets, stat_cache=stat_cache
             ),
+            dtools.TagsVals(self.project_meta),
             dtools.ObjectsDistribution(self.project_meta),
             dtools.ObjectSizes(self.project_meta, self.project_stats),
             dtools.ClassSizes(self.project_meta),
@@ -525,9 +527,10 @@ class ProjectRepo:
         sly.logger.info("Saving stats...")
         for stat in stats:
             sly.logger.info(f"Saving {stat.basename_stem}...")
-            if stat.to_json() is not None:
+            result_json = stat.to_json()
+            if result_json is not None:
                 with open(f"./stats/{stat.basename_stem}.json", "w") as f:
-                    json.dump(stat.to_json(), f)
+                    json.dump(result_json, f)
             try:
                 stat.to_image(f"./stats/{stat.basename_stem}.png")
             except TypeError:
