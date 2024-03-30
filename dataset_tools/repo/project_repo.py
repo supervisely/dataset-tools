@@ -444,6 +444,7 @@ class ProjectRepo:
         heatmaps_settings = settings.get("ClassesHeatmaps", {})
         # previews_settings = settings.get("Previews", {})
         cls_prevs_tags = cls_prevs_settings.get("tags", [])
+        sly_tag_split = self.__dict__.get("slytagsplit", {})
 
         stat_cache = {}
         stats = [
@@ -451,7 +452,12 @@ class ProjectRepo:
             dtools.ClassCooccurrence(self.project_meta, cls_prevs_tags),
             dtools.ClassCooccurrenceTags(self.project_meta),
             dtools.ClassesPerImage(
-                self.project_meta, self.project_stats, self.datasets, stat_cache=stat_cache
+                self.project_meta,
+                self.project_stats,
+                self.datasets,
+                cls_prevs_tags,
+                sly_tag_split,
+                stat_cache=stat_cache,
             ),
             dtools.TagsVals(self.project_meta),
             dtools.TagsPerImage(

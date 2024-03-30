@@ -33,6 +33,8 @@ class ClassesPerImage(BaseStats):
         project_meta: sly.ProjectMeta,
         project_stats: dict,
         datasets: List[sly.DatasetInfo] = None,
+        cls_prevs_tags: list = [],
+        sly_tag_split: dict = {},
         force: bool = False,
         stat_cache: dict = None,
     ) -> None:
@@ -42,12 +44,43 @@ class ClassesPerImage(BaseStats):
         self.force = force
         self._stat_cache = stat_cache
 
+        self._cls_prevs_tags = set(cls_prevs_tags)
+        self._sly_tag_split = sly_tag_split
+
+        self._columns = ["Image"]
+
         self._stats = {}
 
         self._dataset_id_to_name = None
         if datasets is not None:
             self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
+            self._columns.append("Split")
 
+        start_columns_len = len(self._columns)
+
+        self._tag_to_position = {}
+        self._sly_tag_split_len = 0
+
+        for curr_split, tag_split_list in self._sly_tag_split.items():
+            if curr_split == "__POSTTEXT__":
+                continue
+
+            for tag in tag_split_list:
+                self._tag_to_position[tag] = self._sly_tag_split_len + start_columns_len
+
+            self._sly_tag_split_len += 1
+
+            intersection_tags = list(set(tag_split_list) & self._cls_prevs_tags)
+            if len(intersection_tags) > 0:
+                raise ValueError(
+                    "Tags {} are located in classes_preview_tags option and in slytagsplit option {}. Check your input data.".format(
+                        intersection_tags, curr_split
+                    )
+                )
+
+            self._columns.append(curr_split)
+
+        self._columns.extend(["Height", "Width", "Unlabeled"])
         self._class_names = ["unlabeled"]
         self._class_indices_colors = [UNLABELED_COLOR]
         self._classname_to_index = {}
@@ -140,6 +173,14 @@ class ClassesPerImage(BaseStats):
 
             if self._dataset_id_to_name is not None:
                 table_row.append(self._dataset_id_to_name[image.dataset_id])
+
+            if self._sly_tag_split_len > 0:
+                table_row.extend([None] * self._sly_tag_split_len)
+                for tag in ann.img_tags:
+                    tag_position = self._tag_to_position.get(tag.name)
+                    if tag_position is not None:
+                        table_row[tag_position] = tag.name
+
             area_unl = stat_area.get(
                 "unlabeled", 0
             )  # if not np.isnan(stat_area["unlabeled"]) else 0
@@ -168,24 +209,28 @@ class ClassesPerImage(BaseStats):
             self._referencesRow.append([image.id])
 
     def to_json(self) -> Dict:
-        if self._dataset_id_to_name is not None:
-            columns = ["Image", "Split", "Height", "Width", "Unlabeled"]
-        else:
-            columns = ["Image", "Height", "Width", "Unlabeled"]
 
-        columns_options = [None] * len(columns)
+        columns_options = [None] * len(self._columns)
 
         if self._dataset_id_to_name is not None:
-            columns_options[columns.index("Split")] = {
+            columns_options[self._columns.index("Split")] = {
                 "subtitle": "folder name",
             }
-        columns_options[columns.index("Height")] = {
+
+        for curr_split in self._sly_tag_split.keys():
+            if curr_split == "__POSTTEXT__":
+                continue
+            columns_options[self._columns.index(curr_split)] = {
+                "subtitle": "split",
+            }
+
+        columns_options[self._columns.index("Height")] = {
             "postfix": "px",
         }
-        columns_options[columns.index("Width")] = {
+        columns_options[self._columns.index("Width")] = {
             "postfix": "px",
         }
-        columns_options[columns.index("Unlabeled")] = {
+        columns_options[self._columns.index("Unlabeled")] = {
             "subtitle": "area",
             "postfix": "%",
         }
@@ -195,11 +240,11 @@ class ClassesPerImage(BaseStats):
                 continue
             columns_options.append({"subtitle": "objects count"})
             columns_options.append({"subtitle": "covered area", "postfix": "%"})
-            columns.extend([class_name] * 2)
+            self._columns.extend([class_name] * 2)
 
         options = {"fixColumns": 1}
         res = {
-            "columns": columns,
+            "columns": self._columns,
             "columnsOptions": columns_options,
             "data": self._stats["data"],
             "options": options,

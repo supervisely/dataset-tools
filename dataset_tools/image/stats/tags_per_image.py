@@ -96,8 +96,14 @@ class TagsPerImage(BaseStats):
             ]
         )
 
+        table_row.extend([None] * len(self._tag_names))
+
         for tag in ann.img_tags:
-            table_row.append(tag.value)
+            tag_index = self._tagname_to_index[tag.name] + 3
+            tag_value = tag.value
+            if tag_value is None:
+                tag_value = "none"
+            table_row[tag_index] = tag_value
 
         self._stats["data"].append(table_row)
         self._referencesRow.append([image.id])
