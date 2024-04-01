@@ -223,7 +223,7 @@ class ClassesPerImage(BaseStats):
             if curr_split == "__POSTTEXT__":
                 continue
             columns_options[self._columns.index(curr_split)] = {
-                "subtitle": "split",
+                "subtitle": "tag split",
             }
 
         columns_options[self._columns.index("Height")] = {
