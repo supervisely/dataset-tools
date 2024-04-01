@@ -1,3 +1,4 @@
+import copy
 import random
 from typing import Dict, List
 
@@ -210,7 +211,8 @@ class ClassesPerImage(BaseStats):
 
     def to_json(self) -> Dict:
 
-        columns_options = [None] * len(self._columns)
+        columns = copy.deepcopy(self._columns)
+        columns_options = [None] * len(columns)
 
         if self._dataset_id_to_name is not None:
             columns_options[self._columns.index("Split")] = {
@@ -240,11 +242,11 @@ class ClassesPerImage(BaseStats):
                 continue
             columns_options.append({"subtitle": "objects count"})
             columns_options.append({"subtitle": "covered area", "postfix": "%"})
-            self._columns.extend([class_name] * 2)
+            columns.extend([class_name] * 2)
 
         options = {"fixColumns": 1}
         res = {
-            "columns": self._columns,
+            "columns": columns,
             "columnsOptions": columns_options,
             "data": self._stats["data"],
             "options": options,
