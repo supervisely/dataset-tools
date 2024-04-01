@@ -89,74 +89,8 @@ class ClassesPerImage(BaseStats):
             self.project_stats,
             self.datasets,
             self.force,
+            self._stat_cache,
         )
-
-    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
-        if len(figures) == 0:
-            pass  # keep unlabeled images
-
-        counts = {class_id: 0 for class_id in self._class_ids}
-        areas = {class_id: 0 for class_id in self._class_ids}
-
-        image_area = float(image.height * image.width)
-
-        row = [
-            image.name,
-            self._splits[image.dataset_id],
-            image.height,
-            image.width,
-        ]
-
-        for figure in figures:
-            counts[figure.class_id] += 1
-            area_percent = float(figure.area) / image_area * 100
-            areas[figure.class_id] += round(area_percent, 2)
-
-        for class_id in self._class_ids:
-            row.extend([counts[class_id], areas[class_id]])
-
-        self._data.append(row)
-        self._references.append([image.id])
-
-    def to_json2(self):
-
-        columns = ["Image", "Split", "Height", "Width"]  # , "Unlabeled"]
-
-        columns_options = [None] * len(columns)
-
-        columns_options[columns.index("Split")] = {
-            "subtitle": "folder name",
-        }
-        # TODO Add slytagsplits and tree-folders
-        # columns_options[columns.index("Split")] = {
-        #     "subtitle": "tag name",
-        # }
-        columns_options[columns.index("Height")] = {
-            "postfix": "px",
-        }
-        columns_options[columns.index("Width")] = {
-            "postfix": "px",
-        }
-        # columns_options[columns.index("Unlabeled")] = {
-        #     "subtitle": "area",
-        #     "postfix": "%",
-        # }
-
-        # TODO добавить алфавитную сортировку по изображениям + сплитам
-        for class_name in self._class_ids.values():
-            columns_options.append({"subtitle": "objects count"})
-            columns_options.append({"subtitle": "covered area", "postfix": "%"})
-            columns.extend([class_name] * 2)
-
-        options = {"fixColumns": 1}
-        res = {
-            "columns": columns,
-            "columnsOptions": columns_options,
-            "data": self._data,
-            "options": options,
-            "referencesRow": self._references,
-        }
-        return res
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         if self.update_freq >= random.random():
@@ -178,9 +112,7 @@ class ClassesPerImage(BaseStats):
                 for cls in cur_class_names[1:]:
                     render_rgb = np.zeros(ann.img_size + (3,), dtype=np.uint8)
 
-                    class_labels = [
-                        label for label in ann.labels if label.obj_class.name == cls
-                    ]
+                    class_labels = [label for label in ann.labels if label.obj_class.name == cls]
                     clann = ann.clone(labels=class_labels)
 
                     clann.draw(render_rgb, [1, 1, 1])
@@ -196,12 +128,9 @@ class ClassesPerImage(BaseStats):
                     total_area = stacked_masks.shape[0] * stacked_masks.shape[1]
                     mask_areas = (np.sum(stacked_masks, axis=(0, 1)) / total_area) * 100
 
-                    mask_areas = np.insert(
-                        mask_areas, 0, self.calc_unlabeled_area_in(masks)
-                    )
+                    mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
                     stat_area = {
-                        cls: area
-                        for cls, area in zip(cur_class_names, mask_areas.tolist())
+                        cls: area for cls, area in zip(cur_class_names, mask_areas.tolist())
                     }
 
                     if self._stat_cache is not None:
@@ -238,15 +167,9 @@ class ClassesPerImage(BaseStats):
                     cur_area = 0
                     cur_count = 0
                 else:
-                    cur_area = (
-                        stat_area[class_name]
-                        if not np.isnan(stat_area[class_name])
-                        else 0
-                    )
+                    cur_area = stat_area[class_name] if not np.isnan(stat_area[class_name]) else 0
                     cur_count = (
-                        stat_count[class_name]
-                        if not np.isnan(stat_count[class_name])
-                        else 0
+                        stat_count[class_name] if not np.isnan(stat_count[class_name]) else 0
                     )
                 table_row.append(cur_count)
                 table_row.append(round(cur_area, 2) if cur_area != 0 else 0)
@@ -300,7 +223,7 @@ class ClassesPerImage(BaseStats):
             dtype=object,
         )
 
-    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = {}):
+    def sew_chunks(self, chunks_dir: str, updated_classes: dict = {}):
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = []
@@ -324,9 +247,7 @@ class ClassesPerImage(BaseStats):
 
         for file in files:
             loaded_data = np.load(file, allow_pickle=True).tolist()
-            if len(loaded_data[0][0][4:]) != (
-                len(labeled_cls) * 2
-            ):  # TODO unlabeled ..[5:]..
+            if len(loaded_data[0][0][4:]) != (len(labeled_cls) * 2):  # TODO unlabeled ..[5:]..
                 loaded_data = update_shape(loaded_data, updated_classes)
 
             for image in loaded_data:

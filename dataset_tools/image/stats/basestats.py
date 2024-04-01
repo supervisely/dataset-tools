@@ -17,10 +17,10 @@ class BaseStats:
     def to_json(self) -> Dict:
         raise NotImplementedError()
 
-    def to_pandas(self) -> pd.DataFrame:
-        try:
+    def to_pandas(self, version2=False) -> pd.DataFrame:
+        if version2:
             json = self.to_json2()
-        except:
+        else:
             json = self.to_json()
         try:
             table = pd.DataFrame(data=json["data"], columns=json["columns"])
@@ -35,9 +35,7 @@ class BaseStats:
         if self.to_pandas() is not None:
             table = self.to_pandas()[:100]  # max rows == 100
             table = table.iloc[:, :100]  # select the first 100 columns
-            table.dfi.export(
-                path, max_rows=-1, max_cols=-1, table_conversion="matplotlib"
-            )
+            table.dfi.export(path, max_rows=-1, max_cols=-1, table_conversion="matplotlib")
 
     @property
     def basename_stem(self) -> str:
@@ -103,7 +101,7 @@ class BaseVisual:
         grid_spacing: int,
         outer_grid_spacing: int,
     ) -> None:
-        pass
+        raise NotImplementedError()
 
     @property
     def basename_stem(self) -> str:

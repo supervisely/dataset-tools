@@ -37,19 +37,18 @@ class ObjectsDistribution(BaseStats):
         self._meta = project_meta
         self.force = force
 
-        # self._obj_classes = project_meta.obj_classes
-        # self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
+        #  !old
+        self._obj_classes = project_meta.obj_classes
+        self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 
         self._images = []
-        # self._anns = []
-        self._figures = {}
+        self._anns = []
 
+        # new
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes}
         self._distribution_dict = {class_id: {0: set()} for class_id in self._class_ids}
         self._max_count = 0
-        self._classes_hex = {
-            item.sly_id: rgb_to_hex(item.color) for item in self._meta.obj_classes
-        }
+        self._classes_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.obj_classes}
 
     def clean(self) -> None:
         self.__init__(self._meta, self.force)
@@ -137,23 +136,17 @@ class ObjectsDistribution(BaseStats):
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         self._images.append(image.id)
 
-        lite_labels = [
-            LiteLabel(obj_class_name=label.obj_class.name) for label in ann.labels
-        ]
+        lite_labels = [LiteLabel(obj_class_name=label.obj_class.name) for label in ann.labels]
         lite_ann = LiteAnnotation(labels=lite_labels)
 
         self._anns.append(lite_ann)
 
     def to_json(self) -> Dict:
         if len(self._images) == 0:
-            sly.logger.warning(
-                "No stats were added in update() method, the result will be None."
-            )
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
 
-        self._stats = defaultdict(
-            lambda: defaultdict(lambda: {"count": 0, "image_ids": []})
-        )
+        self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))
         counters = defaultdict(lambda: {"count": 0, "image_ids": []})
 
         for image_id, ann in zip(self._images, self._anns):
@@ -172,14 +165,10 @@ class ObjectsDistribution(BaseStats):
             for class_title in self._class_titles:
                 count = counters[class_title]["count"]
                 image_ids = counters[class_title]["image_ids"]
-                self._stats[class_title][count]["image_ids"].extend(
-                    list(set(image_ids))
-                )
+                self._stats[class_title][count]["image_ids"].extend(list(set(image_ids)))
                 self._stats[class_title][count]["count"] += 1
 
-        max_column = max(
-            [max(class_data.keys()) for class_data in self._stats.values()]
-        )
+        max_column = max([max(class_data.keys()) for class_data in self._stats.values()])
         columns = [i for i in range(max_column + 1)]
 
         series = list()
@@ -284,13 +273,9 @@ class ObjectsDistribution(BaseStats):
                 for class_id in self._class_ids:
                     for objects_count, images_set in loaded_data[class_id].items():
                         try:
-                            self._distribution_dict[class_id][objects_count].update(
-                                images_set
-                            )
+                            self._distribution_dict[class_id][objects_count].update(images_set)
                         except KeyError:
-                            self._distribution_dict[class_id][
-                                objects_count
-                            ] = images_set
+                            self._distribution_dict[class_id][objects_count] = images_set
                         self._max_count = max(self._max_count, objects_count)
 
         return None

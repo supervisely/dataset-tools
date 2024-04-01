@@ -32,46 +32,52 @@ class ClassBalance(BaseStats):
         self._meta = project_meta
         self._project_stats = project_stats
         self.force = force
-        # self._stat_cache = stat_cache
 
-        # self._stats = {}
-        # self.references_probabilities = {}
-        # for cls in project_stats["images"]["objectClasses"]:
-        #     self.references_probabilities[cls["objectClass"]["name"]] = (
-        #         REFERENCES_LIMIT / cls["total"] if cls["total"] != 0 else 1
-        #     )
+        # ! old
+        self._stat_cache = stat_cache
 
-        # self.class_names = ["unlabeled"]
-        # class_colors = [UNLABELED_COLOR]
-        # class_indices_colors = [UNLABELED_COLOR]
+        self._stats = {}
+        self.references_probabilities = {}
+        for cls in project_stats["images"]["objectClasses"]:
+            self.references_probabilities[cls["objectClass"]["name"]] = (
+                REFERENCES_LIMIT / cls["total"] if cls["total"] != 0 else 1
+            )
 
-        # self._name_to_cls_id = {}
-        # for idx, obj_class in enumerate(self._meta.obj_classes):
-        #     self.class_names.append(obj_class.name)
-        #     class_colors.append(obj_class.color)
-        #     cls_idx = idx + 1
-        #     class_indices_colors.append([cls_idx, cls_idx, cls_idx])
-        #     self._name_to_cls_id[obj_class.name] = cls_idx
+        self.class_names = ["unlabeled"]
+        class_colors = [UNLABELED_COLOR]
+        class_indices_colors = [UNLABELED_COLOR]
 
-        # self.class_indices_colors = class_indices_colors
+        self._name_to_cls_id = {}  # new
+        self._name_to_index = {}
+        for idx, obj_class in enumerate(self._meta.obj_classes):
+            self.class_names.append(obj_class.name)
+            class_colors.append(obj_class.color)
+            cls_idx = idx + 1
+            class_indices_colors.append([cls_idx, cls_idx, cls_idx])
+            self._name_to_index[obj_class.name] = cls_idx
+            self._name_to_cls_id[obj_class.name] = cls_idx  # new
 
-        # self.class_names = ["unlabeled"]
-        self.class_names = []
+        self.class_indices_colors = class_indices_colors
+
+        self.class_names = ["unlabeled"]
+        self._class_names = []  # new
         for obj_class in self._meta.obj_classes:
             self.class_names.append(obj_class.name)
+            self._class_names.append(obj_class.name)  # new
         # # TODO rm later
-        # self.sum_class_area_per_image = [0] * len(self.class_names)
-        # self.objects_count = [0] * len(self.class_names)
-        # self.images_count = [0] * len(self.class_names)
+        self.sum_class_area_per_image = [0] * len(self.class_names)
+        self.objects_count = [0] * len(self.class_names)
+        self.images_count = [0] * len(self.class_names)
 
-        # self.image_counts_filter_by_id = [[] for _ in self.class_names]
-        # # self.dataset_counts_filter_by_id = [{} for _ in self.class_names]
-        # # self.ds_position = [0 for _ in self.class_names]
-        # # self.accum_ids = [set() for _ in self.class_names]
+        self.image_counts_filter_by_id = [[] for _ in self.class_names]
+        # self.dataset_counts_filter_by_id = [{} for _ in self.class_names]
+        # self.ds_position = [0 for _ in self.class_names]
+        # self.accum_ids = [set() for _ in self.class_names]
 
-        # self.avg_nonzero_area = [None] * len(self.class_names)
-        # self.avg_nonzero_count = [None] * len(self.class_names)
+        self.avg_nonzero_area = [None] * len(self.class_names)
+        self.avg_nonzero_count = [None] * len(self.class_names)
 
+        # new
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes}
 
         self._images_set = {class_id: set() for class_id in self._class_ids}
@@ -91,10 +97,10 @@ class ClassBalance(BaseStats):
             self._meta,
             self._project_stats,
             self.force,
+            self._stat_cache,
         )
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
-
 
         if len(figures) == 0:
             return
@@ -112,9 +118,7 @@ class ClassBalance(BaseStats):
             self._images_count[id] = len(self._images_set[id])
             self._objects_count[id] = len(self._objects_set[id])
             try:
-                self._count_on_image[id] = (
-                    self._objects_count[id] / self._images_count[id]
-                )
+                self._count_on_image[id] = self._objects_count[id] / self._images_count[id]
                 self._area_on_image_avg[id] = (
                     self._area_images_percent_sum[id] / self._images_count[id]
                 )
@@ -205,9 +209,7 @@ class ClassBalance(BaseStats):
             for cls in cur_class_names[1:]:
                 render_rgb = np.zeros(ann.img_size + (3,), dtype="int32")
 
-                class_labels = [
-                    label for label in ann.labels if label.obj_class.name == cls
-                ]
+                class_labels = [label for label in ann.labels if label.obj_class.name == cls]
                 clann = ann.clone(labels=class_labels)
 
                 clann.draw(render_rgb, [1, 1, 1])
@@ -222,12 +224,8 @@ class ClassBalance(BaseStats):
                 total_area = stacked_masks.shape[0] * stacked_masks.shape[1]
                 mask_areas = (np.sum(stacked_masks, axis=(0, 1)) / total_area) * 100
 
-                mask_areas = np.insert(
-                    mask_areas, 0, self.calc_unlabeled_area_in(masks)
-                )
-                stat_area = {
-                    cls: area for cls, area in zip(cur_class_names, mask_areas.tolist())
-                }
+                mask_areas = np.insert(mask_areas, 0, self.calc_unlabeled_area_in(masks))
+                stat_area = {cls: area for cls, area in zip(cur_class_names, mask_areas.tolist())}
 
                 if self._stat_cache is not None:
                     if image.id in self._stat_cache:
@@ -261,9 +259,7 @@ class ClassBalance(BaseStats):
                 self.avg_nonzero_area[idx] = (
                     self.sum_class_area_per_image[idx] / self.images_count[idx]
                 )
-                self.avg_nonzero_count[idx] = (
-                    self.objects_count[idx] / self.images_count[idx]
-                )
+                self.avg_nonzero_count[idx] = self.objects_count[idx] / self.images_count[idx]
 
             if class_name in cur_class_names[1:]:
                 if (
@@ -424,10 +420,10 @@ class ClassBalance(BaseStats):
 
         return None
 
-        res = None
-        is_zero_area = None
-        references = None
-        none_chunks_cnt = 0
+        # res = None
+        # is_zero_area = None
+        # references = None
+        # none_chunks_cnt = 0
 
         # def update_shape(
         #     array: np.ndarray, updated_classes, insert_val=0
