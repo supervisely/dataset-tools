@@ -1,10 +1,13 @@
 import random
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 import supervisely as sly
 
 from dataset_tools.image.stats.basestats import BaseStats
+from supervisely.api.image_api import ImageInfo
+from supervisely.api.entity_annotation.figure_api import FigureInfo
+
 
 UNLABELED_COLOR = [0, 0, 0]
 CLASSES_CNT_LIMIT = 100
@@ -32,7 +35,7 @@ class ClassesPerImage(BaseStats):
         self,
         project_meta: sly.ProjectMeta,
         project_stats: dict,
-        datasets: List[sly.DatasetInfo] = None,
+        datasets: List[sly.DatasetInfo],
         force: bool = False,
         stat_cache: dict = None,
     ) -> None:
@@ -64,7 +67,7 @@ class ClassesPerImage(BaseStats):
             self._classname_to_index[obj_class.name] = class_index
 
         self._stats["data"] = []
-        self._referencesRow = []
+        self._references = []
 
         total = self.project_stats["images"]["total"]["imagesInDataset"] * (
             len(self.project_stats["images"]["objectClasses"]) + 5
@@ -72,6 +75,13 @@ class ClassesPerImage(BaseStats):
         self.update_freq = 1
         if total > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
             self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total
+
+        # new
+
+        self._data = []
+        self._splits = {ds.id: ds.name for ds in datasets}
+        self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes}
+        self._references = []
 
     def clean(self):
         self.__init__(
@@ -165,7 +175,7 @@ class ClassesPerImage(BaseStats):
                 table_row.append(round(cur_area, 2) if cur_area != 0 else 0)
 
             self._stats["data"].append(table_row)
-            self._referencesRow.append([image.id])
+            self._references.append([image.id])
 
     def to_json(self) -> Dict:
         if self._dataset_id_to_name is not None:
@@ -203,17 +213,17 @@ class ClassesPerImage(BaseStats):
             "columnsOptions": columns_options,
             "data": self._stats["data"],
             "options": options,
-            "referencesRow": self._referencesRow,
+            "referencesRow": self._references,
         }
         return res
 
     def to_numpy_raw(self):
         return np.array(
-            [[a] + [b] for a, b in zip(self._stats["data"], self._referencesRow)],
+            [[a] + [b] for a, b in zip(self._data, self._references)],
             dtype=object,
         )
 
-    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []):
+    def sew_chunks(self, chunks_dir: str, updated_classes: dict = {}):
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = []
@@ -223,7 +233,8 @@ class ClassesPerImage(BaseStats):
 
         def update_shape(loaded_data: list, updated_classes, insert_val=0) -> list:
             if len(updated_classes) > 0:
-                indices = list(sorted([labeled_cls.index(cls) for cls in updated_classes]))
+                classnames = list(updated_classes.values())
+                indices = list(sorted([labeled_cls.index(cls) for cls in classnames]))
                 for idx, image in enumerate(loaded_data):
                     stat_data, ref_data = image
                     cls_data = stat_data[5:]
@@ -236,7 +247,7 @@ class ClassesPerImage(BaseStats):
 
         for file in files:
             loaded_data = np.load(file, allow_pickle=True).tolist()
-            if len(loaded_data[0][0][5:]) != (len(labeled_cls) * 2):
+            if len(loaded_data[0][0][4:]) != (len(labeled_cls) * 2):  # TODO unlabeled ..[5:]..
                 loaded_data = update_shape(loaded_data, updated_classes)
 
             for image in loaded_data:
@@ -248,6 +259,43 @@ class ClassesPerImage(BaseStats):
             np.save(file, save_data)
 
         self._stats["data"] = res
-        self._referencesRow = references
+
+        self._data = res
+        self._references = references
 
         return np.array(res)
+
+
+# canvas = np.zeros((image.height, image.width), dtype=np.uint8)
+
+# if figures[0].geometry is None:
+#     unlabeled_area = image_area
+#     for figure in figures:
+#         unlabeled_area -= int(figure.area)
+#     unlabeled_percent = round(unlabeled_area / image_area * 100, 2)
+# else:  # TODO: remove later
+#     for figure in figures:
+#         geom = figure.geometry.get(sly.Bitmap.geometry_name())
+#         if geom is not None:
+#             mask = sly.Bitmap.base64_2_data(geom["data"])
+#             canvas = self.project_mask(canvas, mask, geom["origin"])
+#         geom = figure.geometry.get("points")
+#         if geom is not None:
+#             if len(geom["exterior"]) == 2:
+#                 lt, rb = geom["exterior"][0], geom["exterior"][1]
+#                 fig = sly.Rectangle(lt[1], lt[0], rb[1], rb[0])
+#                 mask = fig.get_mask((image.height, image.width))
+#                 canvas = self.project_mask(canvas, mask)
+#             else:
+#                 # _exterior = [[el[1], el[0]] for el in geom["exterior"]]
+#                 # _interior = [[el[1], el[0]] for el in geom["interior"]]
+#                 _exterior = geom["exterior"]
+#                 _interior = geom["interior"]
+#                 fig = sly.Polygon(
+#                     _exterior, _interior
+#                 )  # TODO неправильный unlabeled (площади не матчатся)
+#                 mask = fig.get_mask((image.height, image.width))
+#                 canvas = self.project_mask(canvas, mask)
+
+#     unlabeled = np.count_nonzero(canvas == 0)
+#     unlabeled_percent = round((unlabeled / canvas.size) * 100, 2)
