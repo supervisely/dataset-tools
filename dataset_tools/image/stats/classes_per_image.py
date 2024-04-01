@@ -92,6 +92,73 @@ class ClassesPerImage(BaseStats):
             self._stat_cache,
         )
 
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+        if len(figures) == 0:
+            pass  # keep unlabeled images
+
+        counts = {class_id: 0 for class_id in self._class_ids}
+        areas = {class_id: 0 for class_id in self._class_ids}
+
+        image_area = float(image.height * image.width)
+
+        row = [
+            image.name,
+            self._splits[image.dataset_id],
+            image.height,
+            image.width,
+        ]
+
+        for figure in figures:
+            counts[figure.class_id] += 1
+            area_percent = float(figure.area) / image_area * 100
+            areas[figure.class_id] += round(area_percent, 2)
+
+        for class_id in self._class_ids:
+            row.extend([counts[class_id], areas[class_id]])
+
+        self._data.append(row)
+        self._references.append([image.id])
+
+    def to_json2(self):
+
+        columns = ["Image", "Split", "Height", "Width"]  # , "Unlabeled"]
+
+        columns_options = [None] * len(columns)
+
+        columns_options[columns.index("Split")] = {
+            "subtitle": "folder name",
+        }
+        # TODO Add slytagsplits and tree-folders
+        # columns_options[columns.index("Split")] = {
+        #     "subtitle": "tag name",
+        # }
+        columns_options[columns.index("Height")] = {
+            "postfix": "px",
+        }
+        columns_options[columns.index("Width")] = {
+            "postfix": "px",
+        }
+        # columns_options[columns.index("Unlabeled")] = {
+        #     "subtitle": "area",
+        #     "postfix": "%",
+        # }
+
+        # TODO добавить алфавитную сортировку по изображениям + сплитам
+        for class_name in self._class_ids.values():
+            columns_options.append({"subtitle": "objects count"})
+            columns_options.append({"subtitle": "covered area", "postfix": "%"})
+            columns.extend([class_name] * 2)
+
+        options = {"fixColumns": 1}
+        res = {
+            "columns": columns,
+            "columnsOptions": columns_options,
+            "data": self._data,
+            "options": options,
+            "referencesRow": self._references,
+        }
+        return res
+
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         if self.update_freq >= random.random():
             cur_class_names = ["unlabeled"]
