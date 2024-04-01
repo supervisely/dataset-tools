@@ -28,14 +28,17 @@ class BaseStats:
             table = None
         return table
 
-    def to_image(self, path: str) -> None:
+    def to_image(self, path: str, version2=False) -> None:
         """
         Create an image visualizing the results of statistics from a Pandas DataFrame.
         """
-        if self.to_pandas() is not None:
-            table = self.to_pandas()[:100]  # max rows == 100
+        ptable = self.to_pandas(version2)
+        if ptable is not None:
+            table = ptable[:100]  # max rows == 100
             table = table.iloc[:, :100]  # select the first 100 columns
-            table.dfi.export(path, max_rows=-1, max_cols=-1, table_conversion="matplotlib")
+            table.dfi.export(
+                path, max_rows=-1, max_cols=-1, table_conversion="matplotlib"
+            )
 
     @property
     def basename_stem(self) -> str:
