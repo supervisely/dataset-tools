@@ -10,7 +10,10 @@ from dataset_tools.image.renders.separated_anns_grid import SideAnnotationsGrid
 from dataset_tools.image.renders.vertical_grid import VerticalGrid
 from dataset_tools.image.renders.wrapper import prepare_renders
 from dataset_tools.image.stats.class_balance import ClassBalance
-from dataset_tools.image.stats.class_cooccurrence import ClassCooccurrence
+from dataset_tools.image.stats.class_cooccurrence import (
+    ClassCooccurrence,
+    ClassToTagsCooccurrence,
+)
 from dataset_tools.image.stats.class_cooccurrence_tags import ClassCooccurrenceTags
 from dataset_tools.image.stats.classes_per_image import ClassesPerImage
 from dataset_tools.image.stats.heatmaps_for_classes import ClassesHeatmaps

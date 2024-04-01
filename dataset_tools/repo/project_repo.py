@@ -445,6 +445,7 @@ class ProjectRepo:
         # previews_settings = settings.get("Previews", {})
         cls_prevs_tags = cls_prevs_settings.get("tags", [])
         sly_tag_split = self.__dict__.get("slytagsplit", {})
+        classes_to_tags = settings.get("ClassesToTags", {})
 
         stat_cache = {}
         stats = [
@@ -468,6 +469,12 @@ class ProjectRepo:
             dtools.ClassSizes(self.project_meta),
             dtools.ClassesTreemap(self.project_meta),
         ]
+
+        if len(classes_to_tags) > 0:
+            stats.append(
+                dtools.ClassToTagsCooccurrence(self.project_meta, classes_to_tags),
+            )
+
         heatmaps = dtools.ClassesHeatmaps(self.project_meta, self.project_stats)
 
         if cls_prevs_settings.get("tags") is not None:
