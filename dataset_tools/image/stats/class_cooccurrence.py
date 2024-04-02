@@ -247,51 +247,37 @@ class ClassToTagsCooccurrence(BaseStats):
         self._references = defaultdict(lambda: defaultdict(list))
 
         self._num_classes = len(self._class_names)
-        self._num_columns = 0
-        self.co_occurrence_matrix = np.zeros((self._num_classes, self._num_columns), dtype=int)
+        self.co_occurrence_matrix = np.zeros((self._num_classes, 0), dtype=int)
 
-        self._tag_val_column_index = 1
+        self._tag_val_column_index = 0
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        classes = set()
         for label in ann.labels:
             if label.obj_class.name in self._class_names:
                 for tag in label.tags:
-                    if tag.name in self._tag_names:
+                    if tag.name in self._classes_to_tags[label.obj_class.name]:
                         tag_value = tag.value
                         if tag_value is None:
                             tag_value = "none"
                         curr_column_value = tag.name + ": " + tag_value
-                        self._num_columns += 1
-                        self._column_name_to_index[curr_column_value] = self._tag_val_column_index
-                        self._tag_val_column_index += 1
+
+                        if self._column_name_to_index.get(curr_column_value) is None:
+                            self._column_name_to_index[curr_column_value] = (
+                                self._tag_val_column_index
+                            )
+                            self._tag_val_column_index += 1
+
+                            new_column = np.zeros((self._num_classes, 1), dtype=np.uint64)
+                            self.co_occurrence_matrix = np.append(
+                                self.co_occurrence_matrix, new_column, axis=1
+                            )
+
                         idx_i = self._name_to_index[label.obj_class.name]
                         idx_j = self._column_name_to_index[curr_column_value]
+
                         self.co_occurrence_matrix[idx_i][idx_j] += 1
                         if len(self._references[idx_i][idx_j]) <= REFERENCES_LIMIT:
                             self._references[idx_i][idx_j].append(image.id)
-                        a = 0
-                classes.add(label.obj_class.name)
-
-            for class_ in classes:
-                idx = self._name_to_index[class_]
-                self.co_occurrence_matrix[idx][idx] += 1
-                self._references[idx][idx].append(image.id)
-
-            classes = list(classes)
-            for i in range(len(classes)):
-                for j in range(i + 1, len(classes)):
-                    class_i = classes[i]
-                    class_j = classes[j]
-                    idx_i = self._name_to_index[class_i]
-                    idx_j = self._name_to_index[class_j]
-                    self.co_occurrence_matrix[idx_i][idx_j] += 1
-                    self.co_occurrence_matrix[idx_j][idx_i] += 1
-
-                    if len(self._references[idx_i][idx_j]) <= REFERENCES_LIMIT:
-                        self._references[idx_i][idx_j].append(image.id)
-                    if len(self._references[idx_j][idx_i]) <= REFERENCES_LIMIT:
-                        self._references[idx_j][idx_i].append(image.id)
 
     def clean(self) -> None:
         self.__init__(self._meta, self.force)
@@ -313,7 +299,7 @@ class ClassToTagsCooccurrence(BaseStats):
         ]
 
         res = {
-            "columns": ["Class"] + self._class_names,
+            "columns": ["Class"] + list(self._column_name_to_index.keys()),
             "data": data,
             "referencesCell": self._references,  # row - col
             "options": options,
