@@ -5,12 +5,14 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import supervisely as sly
+from supervisely.api.entity_annotation.figure_api import FigureInfo
+from supervisely.api.image_api import ImageInfo
 
 from dataset_tools.image.stats.basestats import BaseStats
-from supervisely.api.image_api import ImageInfo
-from supervisely.api.entity_annotation.figure_api import FigureInfo
 
 REFERENCES_LIMIT = 500
+IMAGES_TAGS = ["imagesOnly", "all"]
+OBJECTS_TAGS = ["objectsOnly", "all"]
 
 
 class ClassCooccurrence(BaseStats):
@@ -248,7 +250,7 @@ class ClassCooccurrence(BaseStats):
         return res
 
 
-class ClassToTagsCooccurrence(BaseStats):
+class ClassToTagValCooccurrence(BaseStats):
     def __init__(
         self, project_meta: sly.ProjectMeta, classes_to_tags: dict = [], force: bool = False
     ) -> None:
@@ -305,7 +307,7 @@ class ClassToTagsCooccurrence(BaseStats):
                         tag_value = tag.value
                         if tag_value is None:
                             tag_value = "none"
-                        curr_column_value = tag.name + ": " + tag_value
+                        curr_column_value = tag_value + ": " + tag_value
 
                         if self._column_name_to_index.get(curr_column_value) is None:
                             self._column_name_to_index[curr_column_value] = (
@@ -333,7 +335,7 @@ class ClassToTagsCooccurrence(BaseStats):
             "fixColumns": 1,  # not used in Web
             "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
         }
-        colomns_options = [None] * (len(self._class_names) + 1)
+        colomns_options = [None] * (len(self._tag_names) + 1)
         colomns_options[0] = {"type": "class"}  # not used in Web
 
         for idx in range(1, len(colomns_options)):
@@ -346,6 +348,77 @@ class ClassToTagsCooccurrence(BaseStats):
 
         res = {
             "columns": ["Class"] + list(self._column_name_to_index.keys()),
+            "data": data,
+            "referencesCell": self._references,  # row - col
+            "options": options,
+            "colomnsOptions": colomns_options,
+        }
+        return res
+
+
+class ClassToTagCooccurrence(BaseStats):
+    def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
+        self._meta = project_meta
+        self.force = force
+
+        self._class_names = [cls.name for cls in project_meta.obj_classes]
+
+        self._tag_names = [
+            cls.name for cls in project_meta.tag_metas if cls.applicable_to in OBJECTS_TAGS
+        ]
+
+        self._name_to_index = {}
+
+        for idx, obj_class_name in enumerate(self._class_names):
+            self._name_to_index[obj_class_name] = idx
+
+        self._tag_name_to_index = {}
+
+        for idx, tag_name in enumerate(self._tag_names):
+            self._tag_name_to_index[tag_name] = idx
+
+        self._references = defaultdict(lambda: defaultdict(list))
+
+        self._num_classes = len(self._class_names)
+        self._num_tags = len(self._tag_names)
+        self.co_occurrence_matrix = np.zeros((self._num_classes, self._num_tags), dtype=int)
+
+    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
+        for label in ann.labels:
+            for tag in label.tags:
+                tag_name = tag.name
+
+                idx_i = self._name_to_index[label.obj_class.name]
+                idx_j = self._tag_name_to_index[tag_name]
+
+                self.co_occurrence_matrix[idx_i][idx_j] += 1
+                if len(self._references[idx_i][idx_j]) <= REFERENCES_LIMIT:
+                    if image.id not in self._references[idx_i][idx_j]:
+                        self._references[idx_i][idx_j].append(image.id)
+
+    def clean(self) -> None:
+        self.__init__(self._meta, self.force)
+
+    def to_json(self) -> Optional[Dict]:
+        if self._num_classes < 1:
+            return None
+        options = {
+            "fixColumns": 1,  # not used in Web
+            "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
+        }
+        colomns_options = [None] * (len(self._tag_names) + 1)
+        colomns_options[0] = {"type": "class"}  # not used in Web
+
+        for idx in range(1, len(colomns_options)):
+            colomns_options[idx] = {"maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))}
+
+        data = [
+            [value] + sublist
+            for value, sublist in zip(self._class_names, self.co_occurrence_matrix.tolist())
+        ]
+
+        res = {
+            "columns": ["Tag"] + list(self._tag_names),
             "data": data,
             "referencesCell": self._references,  # row - col
             "options": options,

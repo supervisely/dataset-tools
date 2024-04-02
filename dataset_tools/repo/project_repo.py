@@ -453,6 +453,7 @@ class ProjectRepo:
         stats = [
             dtools.ClassBalance(self.project_meta, self.project_stats, stat_cache=stat_cache),
             dtools.ClassCooccurrence(self.project_meta, cls_prevs_tags),
+            dtools.ClassToTagCooccurrence(self.project_meta),
             dtools.CooccurrenceImageTags(self.project_meta),
             dtools.CooccurrenceObjectTags(self.project_meta),
             dtools.ClassesPerImage(
@@ -475,7 +476,7 @@ class ProjectRepo:
 
         if len(classes_to_tags) > 0:
             stats.append(
-                dtools.ClassToTagsCooccurrence(self.project_meta, classes_to_tags),
+                dtools.ClassToTagValCooccurrence(self.project_meta, classes_to_tags),
             )
 
         heatmaps = dtools.ClassesHeatmaps(self.project_meta, self.project_stats)

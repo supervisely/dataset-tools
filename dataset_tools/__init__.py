@@ -12,7 +12,8 @@ from dataset_tools.image.renders.wrapper import prepare_renders
 from dataset_tools.image.stats.class_balance import ClassBalance
 from dataset_tools.image.stats.class_cooccurrence import (
     ClassCooccurrence,
-    ClassToTagsCooccurrence,
+    ClassToTagCooccurrence,
+    ClassToTagValCooccurrence,
 )
 from dataset_tools.image.stats.classes_per_image import ClassesPerImage
 from dataset_tools.image.stats.heatmaps_for_classes import ClassesHeatmaps
