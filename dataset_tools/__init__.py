@@ -30,6 +30,7 @@ from dataset_tools.image.stats.preview_for_classes import (
 from dataset_tools.image.stats.tag_cooccurrence import (
     CooccurrenceImageTags,
     CooccurrenceObjectTags,
+    CooccurrenceTagsOneOfString,
 )
 from dataset_tools.image.stats.tags_per_image import TagsPerImage
 from dataset_tools.image.stats.tags_vals import TagsVals
