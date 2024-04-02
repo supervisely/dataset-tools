@@ -14,7 +14,6 @@ from dataset_tools.image.stats.class_cooccurrence import (
     ClassCooccurrence,
     ClassToTagsCooccurrence,
 )
-from dataset_tools.image.stats.class_cooccurrence_tags import ClassCooccurrenceTags
 from dataset_tools.image.stats.classes_per_image import ClassesPerImage
 from dataset_tools.image.stats.heatmaps_for_classes import ClassesHeatmaps
 from dataset_tools.image.stats.object_and_class_sizes import (
@@ -27,6 +26,7 @@ from dataset_tools.image.stats.preview_for_classes import (
     ClassesPreview,
     ClassesPreviewTags,
 )
+from dataset_tools.image.stats.tag_cooccurrence import CooccurrenceImageTags
 from dataset_tools.image.stats.tags_per_image import TagsPerImage
 from dataset_tools.image.stats.tags_vals import TagsVals
 from dataset_tools.image.stats.wrapper import (  # , initialize
