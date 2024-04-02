@@ -1,14 +1,14 @@
 import random
 from collections import defaultdict, namedtuple
-from typing import Dict, List
-
+from typing import Dict, List, Optional
 import numpy as np
 import supervisely as sly
-
+from supervisely.app.widgets import TreemapChart
+from supervisely.api.entity_annotation.figure_api import FigureInfo
+from supervisely.api.image_api import ImageInfo
 from dataset_tools.image.stats.basestats import BaseStats
 
-# from supervisely.app.widgets import TreemapChart
-
+import math
 
 MAX_SIZE_OBJECT_SIZES_BYTES = 1e7
 SHRINKAGE_COEF = 0.01
@@ -43,7 +43,7 @@ class ObjectSizes(BaseStats):
         datasets: List[sly.DatasetInfo] = None,
         force: bool = False,
     ):
-        self.project_meta = project_meta
+        self._meta = project_meta
         self.project_stats = project_stats
         self.datasets = datasets
         self.force = force
@@ -58,14 +58,59 @@ class ObjectSizes(BaseStats):
         self.update_freq = 1
         if total_objects > MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF:
             self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total_objects
+        self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
 
     def clean(self):
         self.__init__(
-            self.project_meta,
+            self._meta,
             self.project_stats,
             self.datasets,
             self.force,
         )
+
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+        if len(figures) == 0:
+            return
+
+        image_height, image_width = image.height, image.width
+
+        for figure in figures:
+            if figure.geometry_type not in [
+                sly.Bitmap.geometry_name(),
+                sly.Rectangle.geometry_name(),
+                sly.Polygon.geometry_name(),
+            ]:
+                continue
+
+            object_id = self._object_id
+            self._object_id += 1
+
+            object_data = {
+                "object_id": object_id,
+                "class": self._class_ids[figure.class_id],
+                "image_name": image.name,
+            }
+
+            if self._dataset_id_to_name:
+                dataset_name = self._dataset_id_to_name[image.dataset_id]
+                object_data["dataset_name"] = dataset_name
+
+            object_data["image_size_hw"] = f"{image_height} x {image_width}"
+
+            lite_label = LiteLabel(
+                obj_class_name=self._class_ids[figure.class_id],
+                geometry_type=figure.geometry_type,
+                geometry_to_bbox=figure.rectangle,
+                geometry_area=figure.area,
+            )
+            object_data.update(calculate_obj_sizes(lite_label, image_height, image_width))
+
+            object_data = list(object_data.values())
+
+            self._stats.append((object_data, [image.id]))
+
+    def to_json2(self):
+        return self.to_json()
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         if self.update_freq >= random.random():
@@ -205,17 +250,40 @@ class ClassSizes(BaseStats):
     """
 
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False):
-        self.project_meta = project_meta
+        self._meta = project_meta
         self.force = force
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 
         self._data = []
 
+        self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
+
     def clean(self):
         self.__init__(
-            self.project_meta,
+            self._meta,
             self.force,
         )
+
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+        if len(figures) == 0:
+            return
+        lite_labels = []
+
+        for figure in figures:
+            lite_labels.append(
+                LiteLabel(
+                    obj_class_name=self._class_ids[figure.class_id],
+                    geometry_type=figure.geometry_type,
+                    geometry_to_bbox=figure.rectangle,
+                    geometry_area=figure.area,
+                )
+            )
+        lite_ann = LiteAnnotation(labels=lite_labels, img_size=(image.height, image.width))
+
+        self._data.append(lite_ann)
+
+    def to_json2(self) -> Dict:
+        return self.to_json()
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         lite_labels = [
@@ -249,7 +317,11 @@ class ClassSizes(BaseStats):
             image_height, image_width = ann.img_size
             for label in ann.labels:
                 # if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
-                if label.geometry_type not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
+                if label.geometry_type not in [
+                    sly.Bitmap.geometry_name(),
+                    sly.Rectangle.geometry_name(),
+                    sly.Polygon.geometry_name(),
+                ]:
                     continue
 
                 # class_object_counts[label.obj_class.name] += 1
@@ -403,7 +475,7 @@ class ClassSizes(BaseStats):
 
 class ClassesTreemap(BaseStats):
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False):
-        self.project_meta = project_meta
+        self._meta = project_meta
         self.force = force
 
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
@@ -413,11 +485,34 @@ class ClassesTreemap(BaseStats):
 
         self._data = []
 
+        self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
+
     def clean(self):
         self.__init__(
-            self.project_meta,
+            self._meta,
             self.force,
         )
+
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+        if len(figures) == 0:
+            return
+        lite_labels = []
+
+        for figure in figures:
+            lite_labels.append(
+                LiteLabel(
+                    obj_class_name=self._class_ids[figure.class_id],
+                    geometry_type=figure.geometry_type,
+                    geometry_to_bbox=figure.rectangle,
+                    geometry_area=figure.area,
+                )
+            )
+        lite_ann = LiteAnnotation(labels=lite_labels, img_size=(image.height, image.width))
+
+        self._data.append(lite_ann)
+
+    def to_json2(self) -> Dict:
+        return self.to_json()
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         lite_labels = [
@@ -453,7 +548,11 @@ class ClassesTreemap(BaseStats):
             image_height, image_width = ann.img_size
             for label in ann.labels:
                 # if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
-                if label.geometry_type not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
+                if label.geometry_type not in [
+                    sly.Bitmap.geometry_name(),
+                    sly.Rectangle.geometry_name(),
+                    sly.Polygon.geometry_name(),
+                ]:
                     continue
 
                 class_object_counts[label.obj_class_name] += 1
@@ -508,6 +607,8 @@ class ClassesTreemap(BaseStats):
     def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
+        # TODO handle when class has 0 images
+
         for file in files:
             loaded_data = np.load(file, allow_pickle=True)
 
@@ -527,14 +628,16 @@ def calculate_obj_sizes(label: sly.Label, image_height: int, image_width: int) -
     image_area = image_height * image_width
 
     rect_geometry = label.geometry_to_bbox
+    if rect_geometry is not None:
+        height_px = rect_geometry.height
+        width_px = rect_geometry.width
+    else:
+        height_px, width_px = 0, 0
 
-    height_px = rect_geometry.height
     height_pc = round(height_px * 100.0 / image_height, 2)
-
-    width_px = rect_geometry.width
     width_pc = round(width_px * 100.0 / image_width, 2)
 
-    area_px = label.geometry_area
+    area_px = int(label.geometry_area)
     area_pc = round(area_px * 100.0 / image_area, 2)
 
     return {
