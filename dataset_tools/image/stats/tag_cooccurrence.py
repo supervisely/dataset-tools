@@ -297,6 +297,7 @@ class CooccurrenceTagsOneOfString(BaseStats):
 
             curr_res = {
                 "columns": ["Tag"] + tag_val_names,
+                "rows": [tag_name],
                 "data": [data],
                 "referencesCell": {"0": curr_references},  # row - col
                 "options": options,
