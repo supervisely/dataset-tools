@@ -285,6 +285,9 @@ class CooccurrenceTagsOneOfString(BaseStats):
             colomns_options[0] = {"type": "class"}  # not used in Web
 
             curr_co_occurrence_matrix = curr_tag_stat_data[2]
+            all_zeros = not curr_co_occurrence_matrix.any()
+            if all_zeros:
+                continue
             curr_references = curr_tag_stat_data[1]
 
             for idx in range(1, len(colomns_options)):
@@ -301,5 +304,8 @@ class CooccurrenceTagsOneOfString(BaseStats):
             }
 
             res.append(curr_res)
+
+        if len(res) == 0:
+            return None
 
         return res
