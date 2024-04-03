@@ -550,6 +550,15 @@ class ProjectRepo:
         for stat in stats:
             sly.logger.info(f"Saving {stat.basename_stem}...")
             result_json = stat.to_json()
+            if type(result_json) is list and len(result_json) > 0:
+                mkdir(f"./stats/one_of_string_tags/")
+                for curr_result_json in result_json:
+                    tag_name = curr_result_json["data"][0][0].replace("/", " ")
+                    with open(f"./stats/one_of_string_tags/{tag_name}.json", "w") as f:
+                        json.dump(curr_result_json, f)
+
+                result_json = None
+
             if result_json is not None:
                 with open(f"./stats/{stat.basename_stem}.json", "w") as f:
                     json.dump(result_json, f)
