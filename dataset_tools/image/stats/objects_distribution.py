@@ -243,7 +243,7 @@ class ObjectsDistribution(BaseStats):
 
         return np.array(self._distribution_dict, dtype=object)
 
-    @sly.timeit
+    # @sly.timeit
     def sew_chunks(self, chunks_dir: str, updated_classes: dict) -> np.ndarray:
         # if len(updated_classes) > 0:
         #     self._class_ids.update(updated_classes)

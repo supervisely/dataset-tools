@@ -77,7 +77,7 @@ class ClassCooccurrence(BaseStats):
                 if len(self._references[idx_j][idx_i]) <= REFERENCES_LIMIT:
                     self._references[idx_j][idx_i].append(image.id)
 
-    @sly.timeit
+    # @sly.timeit
     def to_json2(self):
         return self.to_json()
 
@@ -162,7 +162,7 @@ class ClassCooccurrence(BaseStats):
             axis=0,
         )
 
-    @sly.timeit
+    # @sly.timeit
     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
         if self._num_classes <= 1:
             return

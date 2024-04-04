@@ -290,7 +290,7 @@ class ClassesPerImage(BaseStats):
             dtype=object,
         )
 
-    @sly.timeit
+    # @sly.timeit
     def sew_chunks(self, chunks_dir: str, updated_classes: dict = {}):
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 

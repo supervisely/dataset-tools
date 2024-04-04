@@ -8,7 +8,8 @@ from supervisely.api.entity_annotation.figure_api import FigureInfo
 from supervisely.api.image_api import ImageInfo
 from dataset_tools.image.stats.basestats import BaseStats
 
-import math
+
+import math, os
 
 MAX_SIZE_OBJECT_SIZES_BYTES = 1e7
 SHRINKAGE_COEF = 0.01
@@ -60,6 +61,11 @@ class ObjectSizes(BaseStats):
             self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total_objects
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
 
+        # new
+        self._stats2 = {}
+        self._stats2["data"] = []
+        self._stats2["refs"] = []
+
     def clean(self):
         self.__init__(
             self._meta,
@@ -107,10 +113,61 @@ class ObjectSizes(BaseStats):
 
             object_data = list(object_data.values())
 
-            self._stats.append((object_data, [image.id]))
+            # self._stats.append((object_data, [image.id]))
+            self._stats2["data"].append(object_data)
+            self._stats2["refs"].append([image.id])
 
     def to_json2(self):
-        return self.to_json()
+        if not self._stats2:
+            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            return
+
+        options = {
+            "sort": {"columnIndex": 0, "order": "asc"},
+        }
+
+        columns = [
+            "Object ID",
+            "Class",
+            "Image name",
+            "Image size",
+            "Height",
+            "Height",
+            "Width",
+            "Width",
+            "Area",
+        ]
+
+        columns_options = [
+            {"tooltip": "ID of the object in instance"},
+            {"type": "class"},
+            {"subtitle": "click row to open"},
+            {"subtitle": "height x width"},
+            {"postfix": "px"},
+            {"postfix": "%"},
+            {"postfix": "px"},
+            {"postfix": "%"},
+            {"postfix": "%"},
+        ]
+
+        if self._dataset_id_to_name:
+            columns.insert(3, "Split")
+            columns_options.insert(
+                3,
+                {
+                    "subtitle": "folder name",
+                },
+            )
+
+        res = {
+            "columns": columns,
+            "columnsOptions": columns_options,
+            "data": self._stats2["data"],
+            "options": options,
+            "referencesRow": self._stats2["refs"],
+        }
+
+        return res
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         if self.update_freq >= random.random():
@@ -202,27 +259,41 @@ class ObjectSizes(BaseStats):
         return res
 
     def to_numpy_raw(self) -> np.ndarray:
-        return np.array(self._stats, dtype=object)
+        return np.array(self._stats2, dtype=object)
+        # return np.array((self._data, self._references))
 
-    @sly.timeit
+    # @sly.timeit
     def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = []
         references = []
 
-        for file in files:
-            loaded_data = np.load(file, allow_pickle=True)
+        def custom_key(path):
+            # Split path and extract dataset ID and chunk ID
+            parts = os.path.basename(path).split("_")
+            return int(parts[2]), int(parts[1])
+
+        # Sort paths by dataset ID and then by chunk ID
+        sorted_files = sorted(files, key=custom_key)
+
+        for file in sorted_files:
+            loaded_data = np.load(file, allow_pickle=True).tolist()
             # stat_data, ref_data = loaded_data[:4, :], loaded_data[4, :]
 
-            for obj in loaded_data.tolist():
-                stat_data, ref_data = obj
-                res.append(stat_data)
-                references.append(ref_data)
+            self._stats2["data"].extend(loaded_data["data"])
+            self._stats2["refs"].extend(loaded_data["refs"])
 
-        self._stats = [(rf, rs) for rf, rs in zip(res, references)]
+            # for obj in loaded_data.tolist():
+            #     stat_data, ref_data = obj
+            #     res.append(stat_data)
+            #     references.append(ref_data)
 
-        return np.array(res, dtype=object)
+        # self._stats = [(rf, rs) for rf, rs in zip(res, references)]
+        # self_
+
+        # return np.array(res, dtype=object)
+        return None
 
 
 class ClassSizes(BaseStats):
@@ -460,7 +531,7 @@ class ClassSizes(BaseStats):
     def to_numpy_raw(self) -> np.ndarray:
         return np.array(self._data, dtype=object)
 
-    @sly.timeit
+    # @sly.timeit
     def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
@@ -606,7 +677,7 @@ class ClassesTreemap(BaseStats):
     def to_numpy_raw(self) -> np.ndarray:
         return np.array(self._data, dtype=object)
 
-    @sly.timeit
+    # @sly.timeit
     def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
