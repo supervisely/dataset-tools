@@ -39,9 +39,7 @@ class ClassCooccurrence(BaseStats):
             (self._num_classes, self._num_classes), dtype=int
         )  # TODO maybe rm numpy sewing at all?
 
-        self._class_ids = {
-            item.sly_id: item.name for item in self._meta.obj_classes.items()
-        }
+        self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
         self._class_to_index = {}
 
         for idx, obj_class in enumerate(self._meta.obj_classes):
@@ -79,6 +77,7 @@ class ClassCooccurrence(BaseStats):
                 if len(self._references[idx_j][idx_i]) <= REFERENCES_LIMIT:
                     self._references[idx_j][idx_i].append(image.id)
 
+    @sly.timeit
     def to_json2(self):
         return self.to_json()
 
@@ -123,15 +122,11 @@ class ClassCooccurrence(BaseStats):
         colomns_options[0] = {"type": "class"}  # not used in Web
 
         for idx in range(1, len(colomns_options)):
-            colomns_options[idx] = {
-                "maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))
-            }
+            colomns_options[idx] = {"maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))}
 
         data = [
             [value] + sublist
-            for value, sublist in zip(
-                self._class_names, self.co_occurrence_matrix.tolist()
-            )
+            for value, sublist in zip(self._class_names, self.co_occurrence_matrix.tolist())
         ]
 
         res = {
@@ -167,9 +162,8 @@ class ClassCooccurrence(BaseStats):
             axis=0,
         )
 
-    def sew_chunks(
-        self, chunks_dir: str, updated_classes: List[str] = []
-    ) -> np.ndarray:
+    @sly.timeit
+    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
         if self._num_classes <= 1:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
@@ -198,9 +192,7 @@ class ClassCooccurrence(BaseStats):
         ) -> Tuple[np.ndarray, np.ndarray]:
             if len(updated_classes) > 0:
                 _updated_classes = list(updated_classes.values())
-                indices = list(
-                    sorted([self._class_names.index(cls) for cls in _updated_classes])
-                )
+                indices = list(sorted([self._class_names.index(cls) for cls in _updated_classes]))
                 sdata = array[0].copy()
                 rdata = array[1].copy().tolist()
 
