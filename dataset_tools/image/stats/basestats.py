@@ -1,5 +1,5 @@
 from typing import Dict, List
-
+import random
 import dataframe_image as dfi
 import numpy as np
 import pandas as pd
@@ -36,9 +36,7 @@ class BaseStats:
         if ptable is not None:
             table = ptable[:100]  # max rows == 100
             table = table.iloc[:, :100]  # select the first 100 columns
-            table.dfi.export(
-                path, max_rows=-1, max_cols=-1, table_conversion="matplotlib"
-            )
+            table.dfi.export(path, max_rows=-1, max_cols=-1, table_conversion="matplotlib")
 
     @property
     def basename_stem(self) -> str:
@@ -91,6 +89,13 @@ class BaseStats:
                 group_id += 1
 
         return [groups[mask.tobytes()] for mask in masks_1channel]
+
+    def _seize_list_to_fixed_size(self, lst, max_elements, seed_value=42):
+        random.seed(seed_value)
+        while len(lst) > max_elements:
+            # Randomly remove an element until the list has the desired number of elements
+            lst.pop(random.randint(0, len(lst) - 1))
+        return lst
 
 
 class BaseVisual:

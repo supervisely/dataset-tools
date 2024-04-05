@@ -72,10 +72,12 @@ class ClassCooccurrence(BaseStats):
                 self.co_occurrence_matrix[idx_i][idx_j] += 1
                 self.co_occurrence_matrix[idx_j][idx_i] += 1
 
-                if len(self._references[idx_i][idx_j]) <= REFERENCES_LIMIT:
-                    self._references[idx_i][idx_j].append(image.id)
-                if len(self._references[idx_j][idx_i]) <= REFERENCES_LIMIT:
-                    self._references[idx_j][idx_i].append(image.id)
+                self._references[idx_i][idx_j].append(image.id)
+                self._references[idx_j][idx_i].append(image.id)
+                # if len(self._references[idx_i][idx_j]) <= REFERENCES_LIMIT:
+                #     self._references[idx_i][idx_j].append(image.id)
+                # if len(self._references[idx_j][idx_i]) <= REFERENCES_LIMIT:
+                #     self._references[idx_j][idx_i].append(image.id)
 
     # @sly.timeit
     def to_json2(self):
@@ -128,6 +130,10 @@ class ClassCooccurrence(BaseStats):
             [value] + sublist
             for value, sublist in zip(self._class_names, self.co_occurrence_matrix.tolist())
         ]
+        for i in range(len(self._references)):
+            for j in range(len(self._references)):
+                if len(self._references[i][j]) > REFERENCES_LIMIT:
+                    self._seize_list_to_fixed_size(self._references[i][j], REFERENCES_LIMIT)
 
         res = {
             "columns": ["Class"] + self._class_names,

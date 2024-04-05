@@ -10,7 +10,7 @@ from supervisely.api.entity_annotation.figure_api import FigureInfo
 
 
 UNLABELED_COLOR = [0, 0, 0]
-CLASSES_CNT_LIMIT = 100
+CLASSES_CNT_LIMIT = 200
 
 MAX_SIZE_OBJECT_SIZES_BYTES = 1e7
 SHRINKAGE_COEF = 0.1
