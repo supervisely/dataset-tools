@@ -11,7 +11,6 @@ from supervisely.api.image_api import ImageInfo
 from dataset_tools.image.stats.basestats import BaseStats
 
 REFERENCES_LIMIT = 500
-IMAGES_TAGS = ["imagesOnly", "all"]
 OBJECTS_TAGS = ["objectsOnly", "all"]
 
 
@@ -250,111 +249,111 @@ class ClassCooccurrence(BaseStats):
         return res
 
 
-class ClassToTagValCooccurrence(BaseStats):
-    def __init__(
-        self, project_meta: sly.ProjectMeta, classes_to_tags: dict = [], force: bool = False
-    ) -> None:
-        self._meta = project_meta
-        self._classes_to_tags = classes_to_tags
-        self.force = force
+# class ClassToTagValCooccurrence(BaseStats):
+#     def __init__(
+#         self, project_meta: sly.ProjectMeta, classes_to_tags: dict = [], force: bool = False
+#     ) -> None:
+#         self._meta = project_meta
+#         self._classes_to_tags = classes_to_tags
+#         self.force = force
 
-        self._all_class_names = [cls.name for cls in project_meta.obj_classes]
+#         self._all_class_names = [cls.name for cls in project_meta.obj_classes]
 
-        self._class_names = list(self._classes_to_tags.keys())
+#         self._class_names = list(self._classes_to_tags.keys())
 
-        diff_classes = list(set(self._class_names) - set(self._all_class_names))
+#         diff_classes = list(set(self._class_names) - set(self._all_class_names))
 
-        if len(diff_classes) != 0:
-            raise ValueError(
-                "Classes {} are not contained in the project. Check your input data.".format(
-                    diff_classes
-                )
-            )
+#         if len(diff_classes) != 0:
+#             raise ValueError(
+#                 "Classes {} are not contained in the project. Check your input data.".format(
+#                     diff_classes
+#                 )
+#             )
 
-        self._all_tag_names = [cls.name for cls in project_meta.tag_metas]
+#         self._all_tag_names = [cls.name for cls in project_meta.tag_metas]
 
-        self._tag_names = []
-        for tags_list in self._classes_to_tags.values():
-            self._tag_names.extend(tags_list)
-        self._tag_names = set(self._tag_names)
+#         self._tag_names = []
+#         for tags_list in self._classes_to_tags.values():
+#             self._tag_names.extend(tags_list)
+#         self._tag_names = set(self._tag_names)
 
-        diff_tags = list(self._tag_names - set(self._all_tag_names))
+#         diff_tags = list(self._tag_names - set(self._all_tag_names))
 
-        if len(diff_tags) != 0:
-            raise ValueError(
-                "Tags {} are not contained in the project. Check your input data.".format(diff_tags)
-            )
+#         if len(diff_tags) != 0:
+#             raise ValueError(
+#                 "Tags {} are not contained in the project. Check your input data.".format(diff_tags)
+#             )
 
-        self._name_to_index = {}
+#         self._name_to_index = {}
 
-        for idx, obj_class_name in enumerate(self._class_names):
-            self._name_to_index[obj_class_name] = idx
+#         for idx, obj_class_name in enumerate(self._class_names):
+#             self._name_to_index[obj_class_name] = idx
 
-        self._column_name_to_index = {}
+#         self._column_name_to_index = {}
 
-        self._references = defaultdict(lambda: defaultdict(list))
+#         self._references = defaultdict(lambda: defaultdict(list))
 
-        self._num_classes = len(self._class_names)
-        self.co_occurrence_matrix = np.zeros((self._num_classes, 0), dtype=int)
+#         self._num_classes = len(self._class_names)
+#         self.co_occurrence_matrix = np.zeros((self._num_classes, 0), dtype=int)
 
-        self._tag_val_column_index = 0
+#         self._tag_val_column_index = 0
 
-    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
-        for label in ann.labels:
-            if label.obj_class.name in self._class_names:
-                for tag in label.tags:
-                    if tag.name in self._classes_to_tags[label.obj_class.name]:
-                        tag_value = tag.value
-                        if tag_value is None:
-                            tag_value = "none"
-                        curr_column_value = tag_value + ": " + tag_value
+#     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
+#         for label in ann.labels:
+#             if label.obj_class.name in self._class_names:
+#                 for tag in label.tags:
+#                     if tag.name in self._classes_to_tags[label.obj_class.name]:
+#                         tag_value = tag.value
+#                         if tag_value is None:
+#                             tag_value = "none"
+#                         curr_column_value = tag_value + ": " + tag_value
 
-                        if self._column_name_to_index.get(curr_column_value) is None:
-                            self._column_name_to_index[curr_column_value] = (
-                                self._tag_val_column_index
-                            )
-                            self._tag_val_column_index += 1
+#                         if self._column_name_to_index.get(curr_column_value) is None:
+#                             self._column_name_to_index[curr_column_value] = (
+#                                 self._tag_val_column_index
+#                             )
+#                             self._tag_val_column_index += 1
 
-                            new_column = np.zeros((self._num_classes, 1), dtype=np.uint64)
-                            self.co_occurrence_matrix = np.append(
-                                self.co_occurrence_matrix, new_column, axis=1
-                            )
+#                             new_column = np.zeros((self._num_classes, 1), dtype=np.uint64)
+#                             self.co_occurrence_matrix = np.append(
+#                                 self.co_occurrence_matrix, new_column, axis=1
+#                             )
 
-                        idx_i = self._name_to_index[label.obj_class.name]
-                        idx_j = self._column_name_to_index[curr_column_value]
+#                         idx_i = self._name_to_index[label.obj_class.name]
+#                         idx_j = self._column_name_to_index[curr_column_value]
 
-                        self.co_occurrence_matrix[idx_i][idx_j] += 1
-                        if len(self._references[idx_i][idx_j]) <= REFERENCES_LIMIT:
-                            self._references[idx_i][idx_j].append(image.id)
+#                         self.co_occurrence_matrix[idx_i][idx_j] += 1
+#                         if len(self._references[idx_i][idx_j]) <= REFERENCES_LIMIT:
+#                             self._references[idx_i][idx_j].append(image.id)
 
-    def clean(self) -> None:
-        self.__init__(self._meta, self.force)
+#     def clean(self) -> None:
+#         self.__init__(self._meta, self.force)
 
-    def to_json(self) -> Optional[Dict]:
-        options = {
-            "fixColumns": 1,  # not used in Web
-            "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
-        }
-        colomns_options = [None] * (len(self._tag_names) + 1)
-        colomns_options[0] = {"type": "class"}  # not used in Web
+#     def to_json(self) -> Optional[Dict]:
+#         options = {
+#             "fixColumns": 1,  # not used in Web
+#             "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
+#         }
+#         colomns_options = [None] * (len(self._tag_names) + 1)
+#         colomns_options[0] = {"type": "class"}  # not used in Web
 
-        for idx in range(1, len(colomns_options)):
-            colomns_options[idx] = {"maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))}
+#         for idx in range(1, len(colomns_options)):
+#             colomns_options[idx] = {"maxValue": int(np.max(self.co_occurrence_matrix[:, idx - 1]))}
 
-        data = [
-            [value] + sublist
-            for value, sublist in zip(self._class_names, self.co_occurrence_matrix.tolist())
-        ]
+#         data = [
+#             [value] + sublist
+#             for value, sublist in zip(self._class_names, self.co_occurrence_matrix.tolist())
+#         ]
 
-        res = {
-            "columns": ["Class"] + list(self._column_name_to_index.keys()),
-            "rows": self._class_names,
-            "data": data,
-            "referencesCell": self._references,  # row - col
-            "options": options,
-            "colomnsOptions": colomns_options,
-        }
-        return res
+#         res = {
+#             "columns": ["Class"] + list(self._column_name_to_index.keys()),
+#             "rows": self._class_names,
+#             "data": data,
+#             "referencesCell": self._references,  # row - col
+#             "options": options,
+#             "colomnsOptions": colomns_options,
+#         }
+#         return res
 
 
 class ClassToTagCooccurrence(BaseStats):
@@ -378,7 +377,7 @@ class ClassToTagCooccurrence(BaseStats):
         for idx, tag_name in enumerate(self._tag_names):
             self._tag_name_to_index[tag_name] = idx
 
-        self._references = defaultdict(lambda: defaultdict(list))
+        self._references = defaultdict(lambda: defaultdict(set))
 
         self._num_classes = len(self._class_names)
         self._num_tags = len(self._tag_names)
@@ -394,8 +393,7 @@ class ClassToTagCooccurrence(BaseStats):
 
                 self.co_occurrence_matrix[idx_i][idx_j] += 1
                 if len(self._references[idx_i][idx_j]) <= REFERENCES_LIMIT:
-                    if image.id not in self._references[idx_i][idx_j]:
-                        self._references[idx_i][idx_j].append(image.id)
+                    self._references[idx_i][idx_j].add(image.id)
 
     def clean(self) -> None:
         self.__init__(self._meta, self.force)
@@ -418,11 +416,16 @@ class ClassToTagCooccurrence(BaseStats):
             for value, sublist in zip(self._class_names, self.co_occurrence_matrix.tolist())
         ]
 
+        references = defaultdict(lambda: defaultdict(list))
+        for rows in self._references:
+            for col in self._references[rows]:
+                references[rows][col].append(list(self._references[rows][col]))
+
         res = {
             "columns": ["Tag"] + list(self._tag_names),
             "rows": self._class_names,
             "data": data,
-            "referencesCell": self._references,  # row - col
+            "referencesCell": references,  # row - col
             "options": options,
             "colomnsOptions": colomns_options,
         }

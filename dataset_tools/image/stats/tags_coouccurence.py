@@ -205,7 +205,7 @@ class CooccurrenceObjectTags(BaseStats):
         return res
 
 
-class CooccurrenceTagsOneOfString(BaseStats):
+class CooccurrenceOneOfStringTags(BaseStats):
     """
     Columns:
         Class
@@ -247,7 +247,7 @@ class CooccurrenceTagsOneOfString(BaseStats):
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
 
         for tag_info in image.tags:
-            tag_name = self._sly_id_to_name[tag_info["tagId"]]
+            tag_name = self._sly_id_to_name.get(tag_info["tagId"])
             if tag_name in self._tag_names:
                 tag_val = tag_info["value"]
                 curr_tag_data = self._name_to_data[tag_name]

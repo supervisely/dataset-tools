@@ -4,11 +4,10 @@ from typing import Dict, List, Optional
 
 import numpy as np
 import supervisely as sly
+from supervisely.api.entity_annotation.figure_api import FigureInfo
+from supervisely.api.image_api import ImageInfo
 
 from dataset_tools.image.stats.basestats import BaseStats
-from supervisely.api.image_api import ImageInfo
-from supervisely.api.entity_annotation.figure_api import FigureInfo
-
 
 UNLABELED_COLOR = [0, 0, 0]
 CLASSES_CNT_LIMIT = 100
@@ -51,40 +50,35 @@ class ClassesPerImage(BaseStats):
         self._cls_prevs_tags = set(cls_prevs_tags)
         self._sly_tag_split = sly_tag_split
 
-        self._columns = ["Image"]
+        # self._columns = ["Image"]
+        self._columns = []
 
         self._stats = {}
 
         self._dataset_id_to_name = None
         if datasets is not None:
             self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
-            self._columns.append("Split")
+            # self._columns.append("Split")
 
-        start_columns_len = len(self._columns)
+        # start_columns_len = len(self._columns)
 
         self._tag_to_position = {}
         self._sly_tag_split_len = 0
 
         for curr_split, tag_split_list in self._sly_tag_split.items():
-            if curr_split == "__POSTTEXT__":
+            if curr_split == "__POSTTEXT__" or curr_split == "__PRETEXT__":
                 continue
 
-            for tag in tag_split_list:
-                self._tag_to_position[tag] = self._sly_tag_split_len + start_columns_len
-
-            self._sly_tag_split_len += 1
-
-            intersection_tags = list(set(tag_split_list) & self._cls_prevs_tags)
-            if len(intersection_tags) > 0:
-                raise ValueError(
-                    "Tags {} are located in classes_preview_tags option and in slytagsplit option {}. Check your input data.".format(
-                        intersection_tags, curr_split
-                    )
-                )
+            intersection_tags = list(set(tag_split_list) - self._cls_prevs_tags)
+            if len(intersection_tags) == 0:
+                continue
 
             self._columns.append(curr_split)
+            self._sly_tag_split_len += 1
 
-        self._columns.extend(["Height", "Width", "Unlabeled"])
+            for tag in tag_split_list:
+                self._tag_to_position[tag] = self._sly_tag_split_len + 1  # + start_columns_len
+
         self._class_names = ["unlabeled"]
         self._class_indices_colors = [UNLABELED_COLOR]
         self._classname_to_index = {}
@@ -288,28 +282,35 @@ class ClassesPerImage(BaseStats):
 
     def to_json(self) -> Dict:
 
-        columns = copy.deepcopy(self._columns)
+        if self._dataset_id_to_name is not None:
+            columns = ["Image", "Split"] + self._columns + ["Height", "Width", "Unlabeled"]
+        else:
+            columns = ["Image"] + self._columns + ["Height", "Width", "Unlabeled"]
+
+        # self._columns.extend(["Height", "Width", "Unlabeled"])
+
+        # columns = copy.deepcopy(self._columns)
         columns_options = [None] * len(columns)
 
         if self._dataset_id_to_name is not None:
-            columns_options[self._columns.index("Split")] = {
+            columns_options[columns.index("Split")] = {
                 "subtitle": "folder name",
             }
 
         for curr_split in self._sly_tag_split.keys():
-            if curr_split == "__POSTTEXT__":
+            if curr_split == "__POSTTEXT__" or curr_split == "__PRETEXT__":
                 continue
-            columns_options[self._columns.index(curr_split)] = {
+            columns_options[columns.index(curr_split)] = {
                 "subtitle": "tag split",
             }
 
-        columns_options[self._columns.index("Height")] = {
+        columns_options[columns.index("Height")] = {
             "postfix": "px",
         }
-        columns_options[self._columns.index("Width")] = {
+        columns_options[columns.index("Width")] = {
             "postfix": "px",
         }
-        columns_options[self._columns.index("Unlabeled")] = {
+        columns_options[columns.index("Unlabeled")] = {
             "subtitle": "area",
             "postfix": "%",
         }
