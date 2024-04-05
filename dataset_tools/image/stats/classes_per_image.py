@@ -111,10 +111,10 @@ class ClassesPerImage(BaseStats):
         for figure in figures:
             counts[figure.class_id] += 1
             area_percent = float(figure.area) / image_area * 100
-            areas[figure.class_id] += round(area_percent, 2)
+            areas[figure.class_id] += area_percent
 
         for class_id in self._class_ids:
-            row.extend([counts[class_id], areas[class_id]])
+            row.extend([counts[class_id], round(areas[class_id], 2)])
 
         self._data.append(row)
         self._references.append([image.id])

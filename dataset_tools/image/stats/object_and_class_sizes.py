@@ -118,7 +118,6 @@ class ObjectSizes(BaseStats):
             self._stats2["refs"].append([image.id])
 
     def to_json2(self):
-        sly.logger.info("tweaked object sizes")
         if not self._stats2:
             sly.logger.warning("No stats were added in update() method, the result will be None.")
             return
