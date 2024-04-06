@@ -33,15 +33,19 @@ class CooccurrenceImageTags(BaseStats):
 
         self._tag_name_to_type = {}
 
-        for idx, tag_meta in enumerate(self._meta.tag_metas):
-            if tag_meta.applicable_to in IMAGES_TAGS:
-                self._name_to_index[tag_meta.name] = idx
-                self._sly_id_to_name[tag_meta.sly_id] = tag_meta.name
-                self._tag_name_to_type[tag_meta.name] = tag_meta.value_type
+        self._images_tags = []
+        self._tag_names = []
 
-        self._tag_names = [
-            cls.name for cls in project_meta.tag_metas if cls.applicable_to in IMAGES_TAGS
-        ]
+        for tag_meta in self._meta.tag_metas:
+            if tag_meta.applicable_to in IMAGES_TAGS:
+                self._images_tags.append(tag_meta)
+
+        for idx, im_tag_meta in enumerate(self._images_tags):
+            self._name_to_index[im_tag_meta.name] = idx
+            self._sly_id_to_name[im_tag_meta.sly_id] = im_tag_meta.name
+            self._tag_name_to_type[im_tag_meta.name] = im_tag_meta.value_type
+            self._tag_names.append(im_tag_meta.name)
+
         self._references = defaultdict(lambda: defaultdict(list))
 
         self._num_tags = len(self._tag_names)
@@ -122,17 +126,20 @@ class CooccurrenceObjectTags(BaseStats):
         self.force = force
 
         self._name_to_index = {}
-
+        self._tag_names = []
         self._tag_name_to_type = {}
 
-        for idx, tag_meta in enumerate(self._meta.tag_metas):
-            if tag_meta.applicable_to in OBJECTS_TAGS:
-                self._name_to_index[tag_meta.name] = idx
-                self._tag_name_to_type[tag_meta.name] = tag_meta.value_type
+        self._object_tags = []
 
-        self._tag_names = [
-            cls.name for cls in project_meta.tag_metas if cls.applicable_to in OBJECTS_TAGS
-        ]
+        for tag_meta in self._meta.tag_metas:
+            if tag_meta.applicable_to in OBJECTS_TAGS:
+                self._object_tags.append(tag_meta)
+
+        for idx, obj_tag_meta in enumerate(self._object_tags):
+            self._name_to_index[obj_tag_meta.name] = idx
+            self._tag_name_to_type[obj_tag_meta.name] = obj_tag_meta.value_type
+            self._tag_names.append(obj_tag_meta.name)
+
         self._references = defaultdict(lambda: defaultdict(list))
 
         self._num_tags = len(self._tag_names)
