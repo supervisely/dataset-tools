@@ -91,10 +91,10 @@ class BaseStats:
         return [groups[mask.tobytes()] for mask in masks_1channel]
 
     def _seize_list_to_fixed_size(self, lst, max_elements, seed_value=42):
-        random.seed(seed_value)
+        rng = random.Random(seed_value)
         while len(lst) > max_elements:
             # Randomly remove an element until the list has the desired number of elements
-            lst.pop(random.randint(0, len(lst) - 1))
+            lst.pop(rng.randint(0, len(lst) - 1))
         return lst
 
 
