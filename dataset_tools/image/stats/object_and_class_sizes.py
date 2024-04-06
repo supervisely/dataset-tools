@@ -1,15 +1,16 @@
+import math
+import os
 import random
 from collections import defaultdict, namedtuple
 from typing import Dict, List, Optional
+
 import numpy as np
 import supervisely as sly
-from supervisely.app.widgets import TreemapChart
 from supervisely.api.entity_annotation.figure_api import FigureInfo
 from supervisely.api.image_api import ImageInfo
+from supervisely.app.widgets import TreemapChart
+
 from dataset_tools.image.stats.basestats import BaseStats
-
-
-import math, os
 
 MAX_SIZE_OBJECT_SIZES_BYTES = 1e7
 SHRINKAGE_COEF = 0.01
@@ -390,9 +391,9 @@ class ClassSizes(BaseStats):
             for label in ann.labels:
                 # if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
                 if label.geometry_type not in [
-                    sly.Bitmap.geometry_name(),
-                    sly.Rectangle.geometry_name(),
-                    sly.Polygon.geometry_name(),
+                    sly.Bitmap,
+                    sly.Rectangle,
+                    sly.Polygon,
                 ]:
                     continue
 
