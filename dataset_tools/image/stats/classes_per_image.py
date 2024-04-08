@@ -10,7 +10,7 @@ from supervisely.api.image_api import ImageInfo
 from dataset_tools.image.stats.basestats import BaseStats
 
 UNLABELED_COLOR = [0, 0, 0]
-CLASSES_CNT_LIMIT = 100
+CLASSES_CNT_LIMIT = 200
 
 MAX_SIZE_OBJECT_SIZES_BYTES = 1e7
 SHRINKAGE_COEF = 0.1
@@ -139,10 +139,10 @@ class ClassesPerImage(BaseStats):
         for figure in figures:
             counts[figure.class_id] += 1
             area_percent = float(figure.area) / image_area * 100
-            areas[figure.class_id] += round(area_percent, 2)
+            areas[figure.class_id] += area_percent
 
         for class_id in self._class_ids:
-            row.extend([counts[class_id], areas[class_id]])
+            row.extend([counts[class_id], round(areas[class_id], 2)])
 
         self._data.append(row)
         self._references.append([image.id])
@@ -338,6 +338,7 @@ class ClassesPerImage(BaseStats):
             dtype=object,
         )
 
+    # @sly.timeit
     def sew_chunks(self, chunks_dir: str, updated_classes: dict = {}):
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 

@@ -13,6 +13,7 @@ from supervisely.imaging.color import random_rgb
 MAX_NUMBER_OF_COLUMNS = 100
 LiteLabel = namedtuple("LiteLabel", ["obj_class_name"])
 LiteAnnotation = namedtuple("LiteAnnotation", ["labels"])
+REFERENCES_LIMIT = 1000
 
 
 def rgb_to_hex(rgb: List[int]) -> str:
@@ -86,7 +87,9 @@ class ObjectsDistribution(BaseStats):
             values = [0 for _ in range(self._max_count + 1)]
             for objects_count, images_set in class_ditrib.items():
                 values[objects_count] = len(images_set)
-                reference[objects_count] = list(images_set)
+
+                seized_refs = self._seize_list_to_fixed_size(list(images_set), REFERENCES_LIMIT)
+                reference[objects_count] = seized_refs
                 references.setdefault(class_name, {}).update(reference)
 
             row = {
@@ -243,6 +246,7 @@ class ObjectsDistribution(BaseStats):
 
         return np.array(self._distribution_dict, dtype=object)
 
+    # @sly.timeit
     def sew_chunks(self, chunks_dir: str, updated_classes: dict) -> np.ndarray:
         # if len(updated_classes) > 0:
         #     self._class_ids.update(updated_classes)

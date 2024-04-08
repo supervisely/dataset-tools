@@ -1,6 +1,6 @@
 from typing import Dict, List
-
-# import dataframe_image as dfi
+import random
+import dataframe_image as dfi
 import numpy as np
 import pandas as pd
 import supervisely as sly
@@ -89,6 +89,13 @@ class BaseStats:
                 group_id += 1
 
         return [groups[mask.tobytes()] for mask in masks_1channel]
+
+    def _seize_list_to_fixed_size(self, lst, max_elements, seed_value=42):
+        rng = random.Random(seed_value)
+        while len(lst) > max_elements:
+            # Randomly remove an element until the list has the desired number of elements
+            lst.pop(rng.randint(0, len(lst) - 1))
+        return lst
 
 
 class BaseVisual:

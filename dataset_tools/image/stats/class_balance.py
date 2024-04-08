@@ -148,7 +148,10 @@ class ClassBalance(BaseStats):
                     area_on_image_avg,
                 ]
             )
-            refs.append(list(self._images_set[id]))
+            seized_refs = self._seize_list_to_fixed_size(
+                list(self._images_set[id]), REFERENCES_LIMIT
+            )
+            refs.append(seized_refs)
             max_images_count = max(max_images_count, self._images_count[id])
             max_objects_count = max(max_objects_count, self._objects_count[id])
             max_count_on_image = max(max_count_on_image, count_on_image_avg)
@@ -377,7 +380,6 @@ class ClassBalance(BaseStats):
         #     self._area_images_percent_sum[figure.class_id] += int(figure.area) / (
         #         image.width * image.height
         #     )
-        # %%
         images_set = np.array(self._images_set, dtype=object)
         objects_set = np.array(self._objects_set, dtype=object)
         area_images_percent = np.array(self._area_images_percent_sum, dtype=object)
@@ -390,6 +392,7 @@ class ClassBalance(BaseStats):
             axis=0,
         )
 
+    # @sly.timeit
     def sew_chunks(self, chunks_dir: str, updated_classes: dict = {}) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
         for file in files:

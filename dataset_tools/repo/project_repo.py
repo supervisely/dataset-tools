@@ -107,12 +107,25 @@ class ProjectRepo:
 
             return False
 
+        def _has_actual_preview(preview_id: int) -> bool:
+            for dataset in self.datasets:
+                for image in api.image.get_list(dataset.id):
+                    if preview_id == image.id:
+                        return True
+            return False
+
         for key, value in settings.items():
             str_val = str(value)
             if _has_cyrillic(value):
                 raise TypeError(f"Cyrillic characters contained in the value of key '{key}'.")
             if "<class" in str_val:
                 raise TypeError(f"The settings.py file contains non-instances objects.")
+
+        preview_id = settings.get("preview_image_id")
+        if preview_id is None:
+            raise ValueError("Please fill the following field in main.py: 'PREVIEW_ID'")
+        if not _has_actual_preview(preview_id):
+            raise ValueError(f"The provided image with ID={preview_id} ")
 
         self.__dict__.update(settings)
 
