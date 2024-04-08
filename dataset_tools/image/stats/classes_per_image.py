@@ -1,13 +1,13 @@
+import copy
 import random
 from typing import Dict, List, Optional
 
 import numpy as np
 import supervisely as sly
+from supervisely.api.entity_annotation.figure_api import FigureInfo
+from supervisely.api.image_api import ImageInfo
 
 from dataset_tools.image.stats.basestats import BaseStats
-from supervisely.api.image_api import ImageInfo
-from supervisely.api.entity_annotation.figure_api import FigureInfo
-
 
 UNLABELED_COLOR = [0, 0, 0]
 CLASSES_CNT_LIMIT = 200
@@ -35,7 +35,9 @@ class ClassesPerImage(BaseStats):
         self,
         project_meta: sly.ProjectMeta,
         project_stats: dict,
-        datasets: List[sly.DatasetInfo],
+        datasets: List[sly.DatasetInfo] = None,
+        cls_prevs_tags: list = [],
+        sly_tag_split: dict = {},
         force: bool = False,
         stat_cache: dict = None,
     ) -> None:
@@ -45,11 +47,37 @@ class ClassesPerImage(BaseStats):
         self.force = force
         self._stat_cache = stat_cache
 
+        self._cls_prevs_tags = set(cls_prevs_tags)
+        self._sly_tag_split = sly_tag_split
+
+        # self._columns = ["Image"]
+        self._columns = []
+
         self._stats = {}
 
         self._dataset_id_to_name = None
         if datasets is not None:
             self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
+            # self._columns.append("Split")
+
+        # start_columns_len = len(self._columns)
+
+        self._tag_to_position = {}
+        self._sly_tag_split_len = 0
+
+        for curr_split, tag_split_list in self._sly_tag_split.items():
+            if curr_split == "__POSTTEXT__" or curr_split == "__PRETEXT__":
+                continue
+
+            intersection_tags = list(set(tag_split_list) - self._cls_prevs_tags)
+            if len(intersection_tags) == 0:
+                continue
+
+            self._columns.append(curr_split)
+            self._sly_tag_split_len += 1
+
+            for tag in tag_split_list:
+                self._tag_to_position[tag] = self._sly_tag_split_len + 1  # + start_columns_len
 
         self._class_names = ["unlabeled"]
         self._class_indices_colors = [UNLABELED_COLOR]
@@ -217,6 +245,14 @@ class ClassesPerImage(BaseStats):
 
             if self._dataset_id_to_name is not None:
                 table_row.append(self._dataset_id_to_name[image.dataset_id])
+
+            if self._sly_tag_split_len > 0:
+                table_row.extend([None] * self._sly_tag_split_len)
+                for tag in ann.img_tags:
+                    tag_position = self._tag_to_position.get(tag.name)
+                    if tag_position is not None:
+                        table_row[tag_position] = tag.name
+
             area_unl = stat_area.get(
                 "unlabeled", 0
             )  # if not np.isnan(stat_area["unlabeled"]) else 0
@@ -245,17 +281,29 @@ class ClassesPerImage(BaseStats):
             self._references.append([image.id])
 
     def to_json(self) -> Dict:
-        if self._dataset_id_to_name is not None:
-            columns = ["Image", "Split", "Height", "Width", "Unlabeled"]
-        else:
-            columns = ["Image", "Height", "Width", "Unlabeled"]
 
+        if self._dataset_id_to_name is not None:
+            columns = ["Image", "Split"] + self._columns + ["Height", "Width", "Unlabeled"]
+        else:
+            columns = ["Image"] + self._columns + ["Height", "Width", "Unlabeled"]
+
+        # self._columns.extend(["Height", "Width", "Unlabeled"])
+
+        # columns = copy.deepcopy(self._columns)
         columns_options = [None] * len(columns)
 
         if self._dataset_id_to_name is not None:
             columns_options[columns.index("Split")] = {
                 "subtitle": "folder name",
             }
+
+        for curr_split in self._sly_tag_split.keys():
+            if curr_split == "__POSTTEXT__" or curr_split == "__PRETEXT__":
+                continue
+            columns_options[columns.index(curr_split)] = {
+                "subtitle": "tag split",
+            }
+
         columns_options[columns.index("Height")] = {
             "postfix": "px",
         }

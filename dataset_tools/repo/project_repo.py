@@ -9,12 +9,14 @@ from typing import List, Literal, Optional
 
 import cv2
 import requests
+import supervisely as sly
 import tqdm
 from dotenv import load_dotenv
 from PIL import Image
+from supervisely._utils import camel_to_snake
+from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
-import supervisely as sly
 from dataset_tools.repo import download
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
@@ -22,8 +24,6 @@ from dataset_tools.repo.sample_project import (
 )
 from dataset_tools.templates import DatasetCategory, License
 from dataset_tools.text.generate_summary import list2sentence
-from supervisely._utils import camel_to_snake
-from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 DOWNLOAD_ARCHIVE_TEAMFILES_DIR = "/tmp/supervisely/export/export-to-supervisely-format/"
 
@@ -133,6 +133,7 @@ class ProjectRepo:
         self.buttons = self.__dict__.get("buttons", None)
         self.explore_datasets = self.__dict__.get("explore_datasets", None)
         self.tags = self.__dict__.get("tags", [])
+        self.sly_tag_split = self.__dict__.get("slytagsplit", {})
         self.blog = self.__dict__.get("blog", None)
         self.repository = self.__dict__.get("repository", None)
         self.authors_contacts = self.__dict__.get("authors_contacts", None)
@@ -458,19 +459,36 @@ class ProjectRepo:
         cls_prevs_settings = settings.get("ClassesPreview", {})
         heatmaps_settings = settings.get("ClassesHeatmaps", {})
         # previews_settings = settings.get("Previews", {})
+        cls_prevs_tags = cls_prevs_settings.get("tags", [])
+        # classes_to_tags = settings.get("ClassesToTags", {})
 
         stat_cache = {}
         stats = [
             dtools.ClassBalance(self.project_meta, self.project_stats, stat_cache=stat_cache),
-            dtools.ClassCooccurrence(self.project_meta),
+            dtools.ClassCooccurrence(self.project_meta, cls_prevs_tags),
+            dtools.ClassToTagCooccurrence(self.project_meta),
+            dtools.CooccurrenceOneOfStringTags(self.project_meta),
+            dtools.CooccurrenceImageTags(self.project_meta),
+            dtools.CooccurrenceObjectTags(self.project_meta),
             dtools.ClassesPerImage(
-                self.project_meta, self.project_stats, self.datasets, stat_cache=stat_cache
+                self.project_meta,
+                self.project_stats,
+                self.datasets,
+                cls_prevs_tags,
+                self.sly_tag_split,
+                stat_cache=stat_cache,
             ),
             dtools.ObjectsDistribution(self.project_meta),
             dtools.ObjectSizes(self.project_meta, self.project_stats),
             dtools.ClassSizes(self.project_meta),
             dtools.ClassesTreemap(self.project_meta),
         ]
+
+        # if len(classes_to_tags) > 0:
+        #     stats.append(
+        #         dtools.ClassToTagValCooccurrence(self.project_meta, classes_to_tags),
+        #     )
+
         heatmaps = dtools.ClassesHeatmaps(self.project_meta, self.project_stats)
 
         if cls_prevs_settings.get("tags") is not None:
@@ -492,7 +510,7 @@ class ProjectRepo:
                 stat.force = True
             if (
                 isinstance(stat, dtools.ClassCooccurrence)
-                and len(self.project_meta.obj_classes.items()) == 1
+                and len(self.project_meta.obj_classes.items() + cls_prevs_tags) == 1
             ):
                 stat.force = False
         stats = [stat for stat in stats if stat.force]
@@ -540,9 +558,19 @@ class ProjectRepo:
         sly.logger.info("Saving stats...")
         for stat in stats:
             sly.logger.info(f"Saving {stat.basename_stem}...")
-            if stat.to_json() is not None:
+            result_json = stat.to_json()
+            if type(result_json) is list and len(result_json) > 0:
+                mkdir(f"./stats/one_of_string_tags/")
+                for curr_result_json in result_json:
+                    tag_name = curr_result_json["data"][0][0].replace("/", " ")
+                    with open(f"./stats/one_of_string_tags/{tag_name}.json", "w") as f:
+                        json.dump(curr_result_json, f)
+
+                result_json = None
+
+            if result_json is not None:
                 with open(f"./stats/{stat.basename_stem}.json", "w") as f:
-                    json.dump(stat.to_json(), f)
+                    json.dump(result_json, f)
             try:
                 stat.to_image(f"./stats/{stat.basename_stem}.png")
             except TypeError:

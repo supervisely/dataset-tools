@@ -2,12 +2,10 @@ import gc
 import multiprocessing
 import os
 import random
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 import supervisely as sly
 import tqdm
-from memory_profiler import profile
-
 from supervisely import ImageInfo, ProjectMeta
 
 from dataset_tools import (
@@ -16,6 +14,9 @@ from dataset_tools import (
     ClassesPerImage,
     ObjectsDistribution,
 )
+
+# from memory_profiler import profile
+
 
 CLASSES_TO_OPTIMIZE = [
     ClassBalance,
