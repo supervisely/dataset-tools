@@ -121,7 +121,7 @@ class ClassCooccurrence(BaseStats):
                     self._references[idx_j][idx_i].append(image.id)
 
     def clean(self) -> None:
-        self.__init__(self._meta, self.force)
+        self.__init__(self._meta, self._cls_prevs_tags, self.force)
 
     def to_json(self) -> Optional[Dict]:
         if self._num_classes <= 1:

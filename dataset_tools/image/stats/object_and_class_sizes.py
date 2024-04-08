@@ -62,6 +62,11 @@ class ObjectSizes(BaseStats):
             self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total_objects
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
 
+        # new
+        self._stats2 = {}
+        self._stats2["data"] = []
+        self._stats2["refs"] = []
+
     def clean(self):
         self.__init__(
             self._meta,
@@ -386,9 +391,9 @@ class ClassSizes(BaseStats):
             for label in ann.labels:
                 # if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
                 if label.geometry_type not in [
-                    sly.Bitmap,
-                    sly.Rectangle,
-                    sly.Polygon,
+                    sly.Bitmap.geometry_name(),
+                    sly.Rectangle.geometry_name(),
+                    sly.Polygon.geometry_name(),
                 ]:
                     continue
 

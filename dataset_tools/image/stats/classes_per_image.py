@@ -116,6 +116,8 @@ class ClassesPerImage(BaseStats):
             self._meta,
             self.project_stats,
             self.datasets,
+            self._cls_prevs_tags,
+            self._sly_tag_split,
             self.force,
             self._stat_cache,
         )
