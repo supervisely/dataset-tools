@@ -107,7 +107,7 @@ class ObjectSizes(BaseStats):
             lite_label = LiteLabel(
                 obj_class_name=self._class_ids[figure.class_id],
                 geometry_type=figure.geometry_type,
-                geometry_to_bbox=figure.rectangle,
+                geometry_to_bbox=figure.bbox,
                 geometry_area=figure.area,
             )
             object_data.update(calculate_obj_sizes(lite_label, image_height, image_width))
@@ -347,7 +347,7 @@ class ClassSizes(BaseStats):
                 LiteLabel(
                     obj_class_name=self._class_ids[figure.class_id],
                     geometry_type=figure.geometry_type,
-                    geometry_to_bbox=figure.rectangle,
+                    geometry_to_bbox=figure.bbox,
                     geometry_area=figure.area,
                 )
             )
@@ -577,7 +577,7 @@ class ClassesTreemap(BaseStats):
                 LiteLabel(
                     obj_class_name=self._class_ids[figure.class_id],
                     geometry_type=figure.geometry_type,
-                    geometry_to_bbox=figure.rectangle,
+                    geometry_to_bbox=figure.bbox,
                     geometry_area=figure.area,
                 )
             )
