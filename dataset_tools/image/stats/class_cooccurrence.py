@@ -427,7 +427,7 @@ class ClassToTagCooccurrence(BaseStats):
         references = defaultdict(lambda: defaultdict(list))
         for rows in self._references:
             for col in self._references[rows]:
-                references[rows][col].append(list(self._references[rows][col]))
+                references[rows][col].extend(list(self._references[rows][col]))
 
         res = {
             "columns": ["Tag"] + list(self._tag_names),
