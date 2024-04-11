@@ -280,18 +280,12 @@ class ObjectSizes(BaseStats):
 
         for file in sorted_files:
             loaded_data = np.load(file, allow_pickle=True).tolist()
-            # stat_data, ref_data = loaded_data[:4, :], loaded_data[4, :]
 
             self._stats2["data"].extend(loaded_data["data"])
             self._stats2["refs"].extend(loaded_data["refs"])
 
-            # for obj in loaded_data.tolist():
-            #     stat_data, ref_data = obj
-            #     res.append(stat_data)
-            #     references.append(ref_data)
-
-        # self._stats = [(rf, rs) for rf, rs in zip(res, references)]
-        # self_
+        for idx, obj in enumerate(self._stats2["data"], 1):
+            obj[0] = idx
 
         # return np.array(res, dtype=object)
         return None

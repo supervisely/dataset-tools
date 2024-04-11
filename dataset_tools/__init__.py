@@ -26,7 +26,7 @@ from dataset_tools.image.stats.preview_for_classes import (
     ClassesPreview,
     ClassesPreviewTags,
 )
-from dataset_tools.image.stats.tags_coouccurence import (
+from dataset_tools.image.stats.tags_cooccurrence import (
     CooccurrenceImageTags,
     CooccurrenceObjectTags,
     CooccurrenceOneOfStringTags,
