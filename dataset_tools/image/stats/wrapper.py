@@ -213,20 +213,8 @@ def count_stats(
                 else:
                     anns = [dataset.get_ann(name, project_meta) for name in image_names]
 
-                # resized_anns = [resize_ann_with_aspect_ratio(ann) for ann in anns]
-                # FIXME: optimization is broken (resize labels area 0 px)
-
-                # TODO multiprocessing
-                # if isinstance(stat, ClassBalance):
-                #     stat.parallel_update(batch, anns, NUM_PROCESSING)
-                #     pbar.update(len(batch))
-
                 for img, ann in zip(batch, anns):
-                    # pbar.set_postfix_str(img.name) #? for debug
                     for stat in stats:
-                        # if stat.__class__ in CLASSES_TO_OPTIMIZE:
-                        #     stat.update(img, resized_anns)
-                        # else:
                         stat.update(img, ann)
                     pbar.update(1)
 
