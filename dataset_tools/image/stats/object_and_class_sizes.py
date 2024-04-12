@@ -86,6 +86,7 @@ class ObjectSizes(BaseStats):
                 sly.Bitmap.geometry_name(),
                 sly.Rectangle.geometry_name(),
                 sly.Polygon.geometry_name(),
+                sly.GraphNodes.geometry_name(),
             ]:
                 continue
 
@@ -388,6 +389,7 @@ class ClassSizes(BaseStats):
                     sly.Bitmap.geometry_name(),
                     sly.Rectangle.geometry_name(),
                     sly.Polygon.geometry_name(),
+                    sly.GraphNodes.geometry_name(),
                 ]:
                     continue
 
