@@ -83,10 +83,11 @@ class ObjectSizes(BaseStats):
 
         for figure in figures:
             if figure.geometry_type not in [
-                sly.Bitmap.geometry_name(),
-                sly.Rectangle.geometry_name(),
-                sly.Polygon.geometry_name(),
-                sly.GraphNodes.geometry_name(),
+                sly.Bitmap.name(),
+                sly.Rectangle.name(),
+                sly.Polygon.name(),
+                sly.GraphNodes.name(),
+                sly.Point.name(),
             ]:
                 continue
 
@@ -386,10 +387,11 @@ class ClassSizes(BaseStats):
             for label in ann.labels:
                 # if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
                 if label.geometry_type not in [
-                    sly.Bitmap.geometry_name(),
-                    sly.Rectangle.geometry_name(),
-                    sly.Polygon.geometry_name(),
-                    sly.GraphNodes.geometry_name(),
+                    sly.Bitmap.name(),
+                    sly.Rectangle.name(),
+                    sly.Polygon.name(),
+                    sly.GraphNodes.name(),
+                    sly.Point.name(),
                 ]:
                     continue
 
