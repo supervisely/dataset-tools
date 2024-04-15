@@ -1,15 +1,17 @@
 import math
 import os
 from typing import Union
+from supervisely.annotation.json_geometries_map import GET_GEOMETRY_FROM_STR
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
-
+from typing import List, Dict
 import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseVisual
+from supervisely import FigureInfo, ImageInfo
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
@@ -20,7 +22,13 @@ class ClassesHeatmaps(BaseVisual):
     Get heatmaps of visual density of aggregated annotations for every class in the dataset
     """
 
-    def __init__(self, project_meta: sly.ProjectMeta, project_stats:dict, heatmap_img_size: tuple = None, force=False):
+    def __init__(
+        self,
+        project_meta: sly.ProjectMeta,
+        project_stats: dict,
+        heatmap_img_size: tuple = None,
+        force=False,
+    ):
         self.force = force
         self._meta = project_meta
         self._project_stats = project_stats
@@ -37,8 +45,11 @@ class ClassesHeatmaps(BaseVisual):
 
         # TODO remove later
         self._shortlist_cls = None
-        if len(self._project_stats['images']['objectClasses']) > 500:
-            totals = [(cls['objectClass']['name'], cls['total'] ) for cls in self._project_stats['images']['objectClasses']]
+        if len(self._project_stats["images"]["objectClasses"]) > 500:
+            totals = [
+                (cls["objectClass"]["name"], cls["total"])
+                for cls in self._project_stats["images"]["objectClasses"]
+            ]
             self._shortlist_cls = [x[0] for x in totals if x[1] > 50]
 
         if self._shortlist_cls is None:
@@ -50,9 +61,37 @@ class ClassesHeatmaps(BaseVisual):
             for obj_class_name in self._shortlist_cls:
                 self.classname_heatmap[obj_class_name] = np.zeros(
                     self._heatmap_img_size + (3,), dtype=np.float32
-                )        
+                )
 
-        
+        # new
+        self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes}
+        self.supported_geometry_types = [
+            sly.Polygon.name(),
+            sly.Rectangle.name(),
+            sly.Bitmap.name(),
+            sly.Point.name(),
+        ]
+
+    def from_figures(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
+        img_shape = (image.height, image.width)
+        self._ds_image_sizes.append(img_shape)
+
+        for figure in figures:
+            if self._shortlist_cls is not None:
+                if self._class_ids[figure.class_id] not in self._shortlist_cls:
+                    continue
+
+            shape = GET_GEOMETRY_FROM_STR(figure.geometry_type)
+            geometry = shape.from_json(figure.geometry)
+
+            temp_canvas = np.zeros(img_shape + (3,), dtype=np.uint8)
+            if figure.geometry_type in self.supported_geometry_types:
+                if figure.geometry_type == sly.Point.name():
+                    geometry.draw(temp_canvas, color=(1, 1, 1), thickness=5)
+                else:
+                    geometry.draw(temp_canvas, color=(1, 1, 1))
+                temp_canvas = cv2.resize(temp_canvas, self._heatmap_img_size[::-1])
+                self.classname_heatmap[self._class_ids[figure.class_id]] += temp_canvas
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         image_height, image_width = ann.img_size
