@@ -72,7 +72,10 @@ class ClassesHeatmaps(BaseVisual):
             sly.Point.name(),
         ]
 
-    def from_figures(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
+    def clean(self):
+        return self.__init__(self._meta, self._project_stats, self._heatmap_img_size, self.force)
+
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
         img_shape = (image.height, image.width)
         self._ds_image_sizes.append(img_shape)
 
