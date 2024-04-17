@@ -124,10 +124,10 @@ class ClassCooccurrence(BaseStats):
         self.__init__(self._meta, self._cls_prevs_tags, self.force)
 
     def to_json(self) -> Optional[Dict]:
-        if self._num_classes <= 1:
-            return None
-        if self.co_occurrence_matrix is None:
-            return None
+        # if self._num_classes <= 1:
+        #     return None
+        # if self.co_occurrence_matrix is None:
+        #     return None
         options = {
             "fixColumns": 1,  # not used in Web
             "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
@@ -186,7 +186,8 @@ class ClassCooccurrence(BaseStats):
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
-        res = None
+        # res = None
+        res = np.zeros((self._num_classes, self._num_classes), dtype=int)
         is_zero_area = None
         references = []
 
