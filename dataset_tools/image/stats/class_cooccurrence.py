@@ -126,6 +126,8 @@ class ClassCooccurrence(BaseStats):
     def to_json(self) -> Optional[Dict]:
         if self._num_classes <= 1:
             return None
+        if self.co_occurrence_matrix is None:
+            return None
         options = {
             "fixColumns": 1,  # not used in Web
             "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
@@ -186,7 +188,7 @@ class ClassCooccurrence(BaseStats):
 
         res = None
         is_zero_area = None
-        references = None
+        references = []
 
         def merge_elements(a, b):
             if a is None:

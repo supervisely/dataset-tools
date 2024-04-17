@@ -146,7 +146,9 @@ class ObjectsDistribution(BaseStats):
 
     def to_json(self) -> Dict:
         if len(self._images) == 0:
-            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            sly.logger.warning(
+                "ObjectDistribution: No stats were added in update() method, the result will be None."
+            )
             return
 
         self._stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "image_ids": []}))

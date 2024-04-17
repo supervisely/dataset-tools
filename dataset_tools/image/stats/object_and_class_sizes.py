@@ -121,8 +121,10 @@ class ObjectSizes(BaseStats):
             self._stats2["refs"].append([image.id])
 
     def to_json2(self):
-        if not self._stats2:
-            sly.logger.warning("No stats were added in update() method, the result will be None.")
+        if not self._stats2["data"]:
+            sly.logger.warning(
+                "ObjectSizes: No stats were added in update() method, the result will be None."
+            )
             return
 
         options = {
@@ -209,7 +211,9 @@ class ObjectSizes(BaseStats):
 
     def to_json(self) -> Dict:
         if not self._stats:
-            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            sly.logger.warning(
+                "ObjectSizes: No stats were added in update() method, the result will be None."
+            )
             return
 
         options = {
@@ -369,9 +373,11 @@ class ClassSizes(BaseStats):
         self._data.append(lite_ann)
 
     def to_json(self) -> Dict:
-        if not self._data:
-            sly.logger.warning("No stats were added in update() method, the result will be None.")
-            return
+        # if not self._data:
+        #     sly.logger.warning(
+        #         "ClassSizes: No stats were added in update() method, the result will be None."
+        #     )
+        #     return
 
         stats = []
 
@@ -407,42 +413,41 @@ class ClassSizes(BaseStats):
                 class_areas_pc[label.obj_class_name].append(obj_sizes["area_pc"])
 
         for class_title in self._class_titles:
-            object_count = class_object_counts[class_title]
+            object_count = class_object_counts.get(class_title, 0)
 
-            if object_count < 1:
-                continue
+            cls_area = class_areas_pc[class_title]
+            avg_area_pc = 0 if len(cls_area) == 0 else sum(cls_area) / len(cls_area)
+
+            cls_hts_px = class_heights_px[class_title]
+            avg_height_px = 0 if len(cls_hts_px) == 0 else sum(cls_hts_px) / len(cls_hts_px)
+
+            cls_hts_pc = class_heights_pc[class_title]
+            avg_height_pc = 0 if len(cls_hts_pc) == 0 else sum(cls_hts_pc) / len(cls_hts_pc)
+
+            cls_wdt_px = class_widths_px[class_title]
+            avg_width_px = 0 if len(cls_wdt_px) == 0 else sum(cls_wdt_px) / len(cls_wdt_px)
+
+            cls_wdt_pc = class_widths_pc[class_title]
+            avg_width_pc = 0 if len(cls_wdt_pc) == 0 else sum(cls_wdt_pc) / len(cls_wdt_pc)
 
             class_data = {
                 "class_name": class_title,
                 "object_count": object_count,
-                "avg_area_pc": round(
-                    sum(class_areas_pc[class_title]) / len(class_areas_pc[class_title]),
-                    2,
-                ),
-                "max_area_pc": max(class_areas_pc[class_title]),
-                "min_area_pc": min(class_areas_pc[class_title]),
-                "min_height_px": min(class_heights_px[class_title]),
-                "min_height_pc": min(class_heights_pc[class_title]),
-                "max_height_px": max(class_heights_px[class_title]),
-                "max_height_pc": max(class_heights_pc[class_title]),
-                "avg_height_px": round(
-                    sum(class_heights_px[class_title]) / len(class_heights_px[class_title]),
-                ),
-                "avg_height_pc": round(
-                    sum(class_heights_pc[class_title]) / len(class_heights_pc[class_title]),
-                    2,
-                ),
-                "min_width_px": min(class_widths_px[class_title]),
-                "min_width_pc": min(class_widths_pc[class_title]),
-                "max_width_px": max(class_widths_px[class_title]),
-                "max_width_pc": max(class_widths_pc[class_title]),
-                "avg_width_px": round(
-                    sum(class_widths_px[class_title]) / len(class_widths_px[class_title]),
-                ),
-                "avg_width_pc": round(
-                    sum(class_widths_pc[class_title]) / len(class_widths_pc[class_title]),
-                    2,
-                ),
+                "avg_area_pc": round(avg_area_pc, 2),
+                "max_area_pc": max(cls_area, default=0),
+                "min_area_pc": min(cls_area, default=0),
+                "min_height_px": min(cls_hts_px, default=0),
+                "min_height_pc": min(cls_hts_pc, default=0),
+                "max_height_px": max(cls_hts_px, default=0),
+                "max_height_pc": max(cls_hts_pc, default=0),
+                "avg_height_px": round(avg_height_px, 2),
+                "avg_height_pc": round(avg_height_pc, 2),
+                "min_width_px": min(class_widths_px[class_title], default=0),
+                "min_width_pc": min(class_widths_pc[class_title], default=0),
+                "max_width_px": max(class_widths_px[class_title], default=0),
+                "max_width_pc": max(class_widths_pc[class_title], default=0),
+                "avg_width_px": round(avg_width_px, 2),
+                "avg_width_pc": round(avg_width_pc, 2),
             }
 
             class_data = list(class_data.values())
@@ -602,7 +607,9 @@ class ClassesTreemap(BaseStats):
 
     def to_json(self) -> Dict:
         if not self._data:
-            sly.logger.warning("No stats were added in update() method, the result will be None.")
+            sly.logger.warning(
+                "ClassesTreemap: No stats were added in update() method, the result will be None."
+            )
             return
 
         tooltip = "Average area of class objects on image is {y}%"
