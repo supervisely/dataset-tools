@@ -56,8 +56,6 @@ class ClassCooccurrence(BaseStats):
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
             return
-        if self._num_classes == 1:
-            return
 
         classes = set()
         for f in figures:
@@ -174,7 +172,7 @@ class ClassCooccurrence(BaseStats):
         )
 
     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
-        if self._num_classes <= 1:
+        if self._num_classes == 0:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
@@ -492,7 +490,7 @@ class ClassToTagCooccurrence(BaseStats):
         )
 
     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
-        if self._num_classes <= 1:
+        if self._num_classes == 0:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 

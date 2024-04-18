@@ -2,6 +2,8 @@ import json
 import os
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
+from supervisely.api.entity_annotation.figure_api import FigureInfo
+from supervisely.api.image_api import ImageInfo
 
 import numpy as np
 import supervisely as sly
@@ -12,6 +14,99 @@ REFERENCES_LIMIT = 1000
 IMAGES_TAGS = ["imagesOnly", "all"]
 OBJECTS_TAGS = ["objectsOnly", "all"]
 ONEOF_STRING = "oneof_string"
+
+
+class TagsCooccurrence(BaseStats):
+
+    def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
+        self._meta = project_meta
+        self._stats = {}
+        self.force = force
+
+        self._name_to_index = {}
+        self._sly_id_to_name = {}
+
+        self._tag_name_to_type = {}
+
+        self._images_tags = []
+        self._tag_names = []
+
+        for tag_meta in self._meta.tag_metas:
+            self._images_tags.append(tag_meta)
+
+        for idx, im_tag_meta in enumerate(self._images_tags):
+            self._name_to_index[im_tag_meta.name] = idx
+            self._sly_id_to_name[im_tag_meta.sly_id] = im_tag_meta.name
+            self._tag_name_to_type[im_tag_meta.name] = im_tag_meta.value_type
+            self._tag_names.append(im_tag_meta.name)
+
+        self._references = defaultdict(lambda: defaultdict(list))
+
+        self._num_tags = len(self._tag_names)
+        self.co_occurrence_matrix = np.zeros((self._num_tags, self._num_tags), dtype=int)
+
+        self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
+
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
+        if len(figures) == 0:
+            return
+
+        image_tags = []
+        for tag in image.tags:
+            tag_name = self._tag_ids[tag["tagId"]]
+            image_tags.append(tag_name)
+
+        object_tags = []
+        for figure in figures:
+            for tag in figure.tags:
+                tag_name = self._tag_ids[tag["tagId"]]
+                object_tags.append(tag_name)
+
+        tags = image_tags + object_tags
+        for i in range(len(tags)):
+            for j in range(i + 1, len(tags)):
+                tag_i = tags[i]
+                tag_j = tags[j]
+                idx_i = self._name_to_index[tag_i]
+                idx_j = self._name_to_index[tag_j]
+                self.co_occurrence_matrix[idx_i][idx_j] += 1
+                self.co_occurrence_matrix[idx_j][idx_i] += 1
+
+                self._references[idx_i][idx_j].append(image.id)
+                self._references[idx_j][idx_i].append(image.id)
+
+    def clean(self) -> None:
+        self.__init__(self._meta, self.force)
+
+    def to_json2(self) -> Optional[Dict]:
+        if self._num_tags == 0:
+            return None
+
+        options = {
+            "fixColumns": 1,  # not used in Web
+            "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
+        }
+        colomns_options = [None] * (len(self._tag_names) + 1)
+        colomns_options[0] = {"type": "class"}  # not used in Web
+
+        for idx in range(len(colomns_options) - 1):
+            colomns_options[idx + 1] = {
+                "subtitle": self._tag_name_to_type[self._tag_names[idx]],
+            }
+
+        data = [
+            [value] + sublist
+            for value, sublist in zip(self._tag_names, self.co_occurrence_matrix.tolist())
+        ]
+
+        res = {
+            "columns": ["Tag"] + self._tag_names,
+            "data": data,
+            "referencesCell": self._references,  # row - col
+            "options": options,
+            "colomnsOptions": colomns_options,
+        }
+        return res
 
 
 class CooccurrenceImageTags(BaseStats):
@@ -112,13 +207,6 @@ class CooccurrenceImageTags(BaseStats):
 
 
 class CooccurrenceObjectTags(BaseStats):
-    """
-    Columns:
-        Class
-        class 1
-        class 2
-        etc.
-    """
 
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
         self._meta = project_meta
