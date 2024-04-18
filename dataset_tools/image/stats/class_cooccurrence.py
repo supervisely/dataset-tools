@@ -182,13 +182,12 @@ class ClassCooccurrence(BaseStats):
 
     # @sly.timeit
     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
-        if self._num_classes <= 1:
+        if self._num_classes == 0:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         # res = None
         res = np.zeros((self._num_classes, self._num_classes), dtype=int)
-        is_zero_area = None
         references = []
 
         def merge_elements(a, b):
@@ -242,7 +241,7 @@ class ClassCooccurrence(BaseStats):
                 res = np.zeros((self._num_classes, self._num_classes), dtype="int32")
             res = np.add(stat_data, res)
 
-            if references is None:
+            if len(references) == 0:
                 references = np.empty_like(res).tolist()
 
             references = [
