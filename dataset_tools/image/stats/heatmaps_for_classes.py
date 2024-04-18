@@ -75,7 +75,9 @@ class ClassesHeatmaps(BaseVisual):
     def clean(self):
         return self.__init__(self._meta, self._project_stats, self._heatmap_img_size, self.force)
 
-    def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
+    def update2(
+        self, image: ImageInfo, figures: List[FigureInfo], skip_broken_geometry=False
+    ) -> None:
         img_shape = (image.height, image.width)
         self._ds_image_sizes.append(img_shape)
 
@@ -85,7 +87,13 @@ class ClassesHeatmaps(BaseVisual):
                     continue
 
             shape = GET_GEOMETRY_FROM_STR(figure.geometry_type)
-            geometry = shape.from_json(figure.geometry)
+            try:
+                geometry = shape.from_json(figure.geometry)
+            except:
+                if skip_broken_geometry:
+                    continue  # skip after failed validation
+                else:
+                    raise
 
             temp_canvas = np.zeros(img_shape + (3,), dtype=np.uint8)
             if figure.geometry_type in self.supported_geometry_types:
