@@ -56,6 +56,8 @@ class ClassCooccurrence(BaseStats):
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
             return
+        if self._num_classes == 0:
+            return
 
         classes = set()
         for f in figures:
