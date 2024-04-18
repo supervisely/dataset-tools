@@ -163,7 +163,6 @@ class ClassCooccurrence(BaseStats):
                 ref_list[i][j] = set(self._references[i][j])
 
         references = np.array(ref_list, dtype=object)
-
         return np.stack([matrix, references], axis=0)
 
     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
