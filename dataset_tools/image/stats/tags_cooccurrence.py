@@ -51,24 +51,26 @@ class TagsCooccurrence(BaseStats):
         if len(figures) == 0:
             return
 
-        image_tags = []
+        tags = set()
         for tag in image.tags:
             tag_name = self._tag_ids[tag["tagId"]]
-            image_tags.append(tag_name)
-
-        object_tags = []
+            tags.add(tag_name)
         for figure in figures:
             for tag in figure.tags:
                 tag_name = self._tag_ids[tag["tagId"]]
-                object_tags.append(tag_name)
+                tags.add(tag_name)
 
-        tags = image_tags + object_tags
-        for i in range(len(tags)):
-            for j in range(i + 1, len(tags)):
-                tag_i = tags[i]
-                tag_j = tags[j]
-                idx_i = self._name_to_index[tag_i]
-                idx_j = self._name_to_index[tag_j]
+        for tag_name in tags:
+            idx = self._name_to_index[tag_name]
+            self.co_occurrence_matrix[idx][idx] += 1
+            self._references[idx][idx].append(image.id)
+
+        tags = list(tags)
+        n = len(tags)
+        for i in range(n):
+            for j in range(i + 1, n):
+                idx_i = self._name_to_index[tags[i]]
+                idx_j = self._name_to_index[tags[j]]
                 self.co_occurrence_matrix[idx_i][idx_j] += 1
                 self.co_occurrence_matrix[idx_j][idx_i] += 1
 
@@ -112,8 +114,8 @@ class TagsCooccurrence(BaseStats):
         # if self._num_classes <= 1:
         #     return
         #  if unlabeled
-        if np.sum(self.co_occurrence_matrix) == 0:
-            return
+        # if np.sum(self.co_occurrence_matrix) == 0:
+        #     return
         stats = {}
         stats["data"] = self.co_occurrence_matrix
         stats["refs"] = self._references
@@ -121,11 +123,10 @@ class TagsCooccurrence(BaseStats):
         # return np.array(stats)
 
         matrix = np.array(self.co_occurrence_matrix, dtype="int32")
-        c = self._num_classes
-        t = self._num_tags
-        ref_list = [[None for _ in range(t)] for _ in range(c)]
-        for i in range(c):
-            for j in range(t):
+        n = self._num_tags
+        ref_list = [[None for _ in range(n)] for _ in range(n)]
+        for i in range(n):
+            for j in range(n):
                 ref_list[i][j] = set(self._references[i][j])
 
         references = np.array(ref_list, dtype=object)
@@ -139,11 +140,11 @@ class TagsCooccurrence(BaseStats):
         )
 
     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
-        if self._num_classes == 0:
+        if self._num_tags == 0:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
-        res = None
+        res = np.zeros((self._num_tags, self._num_tags), dtype="int32")
         is_zero_area = None
         references = []
 
@@ -194,8 +195,6 @@ class TagsCooccurrence(BaseStats):
             if loaded_data.shape[1] != self._num_tags:
                 stat_data, ref_data = update_shape(loaded_data, updated_classes)
 
-            if res is None:
-                res = np.zeros((self._num_tags, self._num_tags), dtype="int32")
             res = np.add(stat_data, res)
 
             if len(references) == 0:
@@ -407,14 +406,7 @@ class TagsCooccurrence(BaseStats):
 #         return res
 
 
-class CooccurrenceOneOfStringTags(BaseStats):
-    """
-    Columns:
-        Class
-        class 1
-        class 2
-        etc.
-    """
+class OneOfTagsDistribution(BaseStats):
 
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
         self._meta = project_meta
@@ -446,7 +438,7 @@ class CooccurrenceOneOfStringTags(BaseStats):
                 self._sly_id_to_name[tag_meta.sly_id] = tag_meta.name
         self._num_tags = len(list(self._name_to_data.keys()))
 
-    def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
+    def update2(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
 
         for tag_info in image.tags:
             tag_name = self._sly_id_to_name.get(tag_info["tagId"])
@@ -471,7 +463,7 @@ class CooccurrenceOneOfStringTags(BaseStats):
     def clean(self) -> None:
         self.__init__(self._meta, self.force)
 
-    def to_json(self) -> Optional[Dict]:
+    def to_json2(self) -> Optional[Dict]:
         if self._num_tags < 1:
             return None
         options = {

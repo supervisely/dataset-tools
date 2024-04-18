@@ -67,12 +67,11 @@ class ClassCooccurrence(BaseStats):
             self._references[idx][idx].append(image.id)
 
         classes = list(classes)
-        for i in range(len(classes)):
-            for j in range(i + 1, len(classes)):
-                class_i = classes[i]
-                class_j = classes[j]
-                idx_i = self._class_to_index[class_i]
-                idx_j = self._class_to_index[class_j]
+        n = len(classes)
+        for i in range(n):
+            for j in range(i + 1, n):
+                idx_i = self._class_to_index[classes[i]]
+                idx_j = self._class_to_index[classes[j]]
                 self.co_occurrence_matrix[idx_i][idx_j] += 1
                 self.co_occurrence_matrix[idx_j][idx_i] += 1
 
@@ -117,8 +116,8 @@ class ClassCooccurrence(BaseStats):
         self.__init__(self._meta, self._cls_prevs_tags, self.force)
 
     def to_json(self) -> Optional[Dict]:
-        # if self._num_classes <= 1:
-        #     return None
+        if self._num_classes == 0:
+            return
         # if self.co_occurrence_matrix is None:
         #     return None
         options = {
@@ -150,11 +149,11 @@ class ClassCooccurrence(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        if self._num_classes <= 1:
+        if self._num_classes == 0:
             return
         #  if unlabeled
-        if np.sum(self.co_occurrence_matrix) == 0:
-            return
+        # if np.sum(self.co_occurrence_matrix) == 0:
+        #     return
         matrix = np.array(self.co_occurrence_matrix, dtype="int32")
 
         n = self._num_classes
@@ -165,21 +164,15 @@ class ClassCooccurrence(BaseStats):
 
         references = np.array(ref_list, dtype=object)
 
-        return np.stack(
-            [
-                matrix,
-                references,
-            ],
-            axis=0,
-        )
+        return np.stack([matrix, references], axis=0)
 
     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
         if self._num_classes == 0:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
-        # res = None
-        res = np.zeros((self._num_classes, self._num_classes), dtype=int)
+        res = None
+        # res = np.zeros((self._num_classes, self._num_classes), dtype=int)
         references = []
 
         def merge_elements(a, b):
@@ -242,6 +235,9 @@ class ClassCooccurrence(BaseStats):
             ]
 
             np.save(file, np.stack([stat_data, ref_data]))
+
+        if res is None:
+            np.zeros((self._num_classes, self._num_classes), dtype=int)
 
         self.co_occurrence_matrix = res
         for i, sublist in enumerate(references):
@@ -394,7 +390,7 @@ class ClassToTagCooccurrence(BaseStats):
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
             return
-        if self._num_classes == 1:
+        if self._num_classes == 0:
             return
 
         for figure in figures:
@@ -427,10 +423,10 @@ class ClassToTagCooccurrence(BaseStats):
         return self.to_json()
 
     def to_json(self) -> Optional[Dict]:
-        if self._num_classes < 1:
-            return None
+        if self._num_classes == 0:
+            return
         if self._num_tags == 0:
-            return None
+            return
         options = {
             "fixColumns": 1,  # not used in Web
             "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
@@ -462,9 +458,11 @@ class ClassToTagCooccurrence(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        # if self._num_classes <= 1:
-        #     return
-        #  if unlabeled
+        if self._num_classes == 0:
+            return
+        if self._num_tags == 0:
+            return
+
         if np.sum(self.co_occurrence_matrix) == 0:
             return
         stats = {}
@@ -493,6 +491,8 @@ class ClassToTagCooccurrence(BaseStats):
 
     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
         if self._num_classes == 0:
+            return
+        if self._num_tags == 0:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
