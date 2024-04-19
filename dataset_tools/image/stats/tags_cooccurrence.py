@@ -40,6 +40,7 @@ class TagsCooccurrence(BaseStats):
         self._sly_id_to_name = {}
 
         self._tag_name_to_type = {}
+        self._tag_name_to_applicable = {}
 
         self._images_tags = []
         self._tag_names = []
@@ -51,6 +52,7 @@ class TagsCooccurrence(BaseStats):
             self._name_to_index[im_tag_meta.name] = idx
             self._sly_id_to_name[im_tag_meta.sly_id] = im_tag_meta.name
             self._tag_name_to_type[im_tag_meta.name] = im_tag_meta.value_type
+            self._tag_name_to_applicable[im_tag_meta.name] = im_tag_meta.applicable_to
             self._tag_names.append(im_tag_meta.name)
 
         self._references = defaultdict(lambda: defaultdict(list))
@@ -99,14 +101,15 @@ class TagsCooccurrence(BaseStats):
 
         options = {
             "fixColumns": 1,  # not used in Web
-            "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
+            "cellTooltip": "Click to preview {tagType} tag applicable to {applicableTo}. {currentCell} images have objects of both tags {firstCell} and {currentColumn} at the same time",
         }
         colomns_options = [None] * (len(self._tag_names) + 1)
-        colomns_options[0] = {"type": "class"}  # not used in Web
+        colomns_options[0] = {"type": "tag"}  # not used in Web
 
         for idx in range(len(colomns_options) - 1):
             colomns_options[idx + 1] = {
-                "subtitle": self._tag_name_to_type[self._tag_names[idx]],
+                "tagType": self._tag_name_to_type[self._tag_names[idx]],
+                "applicableTo": self._tag_name_to_applicable[self._tag_names[idx]],
             }
 
         data = [
