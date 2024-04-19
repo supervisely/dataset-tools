@@ -124,16 +124,8 @@ class TagsCooccurrence(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        # if self._num_classes <= 1:
-        #     return
-        #  if unlabeled
-        # if np.sum(self.co_occurrence_matrix) == 0:
-        #     return
-        stats = {}
-        stats["data"] = self.co_occurrence_matrix
-        stats["refs"] = self._references
-
-        # return np.array(stats)
+        if self._num_tags == 0:
+            return
 
         matrix = np.array(self.co_occurrence_matrix, dtype="int32")
         n = self._num_tags
@@ -144,13 +136,7 @@ class TagsCooccurrence(BaseStats):
 
         references = np.array(ref_list, dtype=object)
 
-        return np.stack(
-            [
-                matrix,
-                references,
-            ],
-            axis=0,
-        )
+        return np.stack([matrix, references], axis=0)
 
     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
         if self._num_tags == 0:

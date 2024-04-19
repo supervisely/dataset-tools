@@ -1,3 +1,10 @@
+import pkg_resources  # isort: skip
+
+try:
+    __version__ = pkg_resources.require("dataset-tools")[0].version
+except TypeError as e:
+    __version__ = "development"
+
 from dataset_tools.image.renders.convert import (
     compress_mp4,
     compress_png,
