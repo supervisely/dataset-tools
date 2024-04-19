@@ -101,7 +101,7 @@ class TagsCooccurrence(BaseStats):
 
         options = {
             "fixColumns": 1,  # not used in Web
-            "cellTooltip": "Click to preview {tagType} tag applicable to {applicableTo}. {currentCell} images have objects of both tags {firstCell} and {currentColumn} at the same time",
+            "cellTooltip": "Click to preview {tagType} tag applicable to {applicableTo}. {currentCell} images have instances of both tags {firstCell} and {currentColumn} at the same time",
         }
         colomns_options = [None] * (len(self._tag_names) + 1)
         colomns_options[0] = {"type": "tag"}  # not used in Web
@@ -464,7 +464,7 @@ class OneOfTagsDistribution(BaseStats):
         # }
         self._num_tags = len(list(self._tag_ids))
 
-        # self._distribution_dict = {class_id: {0: set()} for class_id in self._tag_ids}
+        self._distribution_dict = {tag_id: {0: set()} for tag_id in self._tag_ids}
         self._max_count = 0
         self._classes_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.obj_classes}
 
