@@ -172,8 +172,8 @@ class ClassCooccurrence(BaseStats):
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
-        res = None
-        # res = np.zeros((self._num_classes, self._num_classes), dtype=int)
+        # res = None
+        res = np.zeros((self._num_classes, self._num_classes), dtype=int)
         references = []
 
         def merge_elements(a, b):
@@ -223,8 +223,8 @@ class ClassCooccurrence(BaseStats):
             if loaded_data.shape[1] != self._num_classes:
                 stat_data, ref_data = update_shape(loaded_data, updated_classes)
 
-            if res is None:
-                res = np.zeros((self._num_classes, self._num_classes), dtype="int32")
+            # if res is None:
+            #     res = np.zeros((self._num_classes, self._num_classes), dtype="int32")
             res = np.add(stat_data, res)
 
             if len(references) == 0:
@@ -237,8 +237,8 @@ class ClassCooccurrence(BaseStats):
 
             np.save(file, np.stack([stat_data, ref_data]))
 
-        if res is None:
-            np.zeros((self._num_classes, self._num_classes), dtype=int)
+        # if res is None:
+        #     np.zeros((self._num_classes, self._num_classes), dtype=int)
 
         self.co_occurrence_matrix = res
         for i, sublist in enumerate(references):
@@ -495,11 +495,11 @@ class ClassToTagCooccurrence(BaseStats):
             return
         if self._num_tags == 0:
             return
+        if self.
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
-        res = None
-        is_zero_area = None
-        references = None
+        res = np.zeros((self._num_classes, self._num_tags), dtype=int)
+        references = []
 
         def merge_elements(a, b):
             if a is None:
@@ -548,11 +548,11 @@ class ClassToTagCooccurrence(BaseStats):
             if loaded_data.shape[1] != self._num_classes:
                 stat_data, ref_data = update_shape(loaded_data, updated_classes)
 
-            if res is None:
-                res = np.zeros((self._num_classes, self._num_tags), dtype="int32")
+            # if res is None:
+            #     res = np.zeros((self._num_classes, self._num_tags), dtype="int32")
             res = np.add(stat_data, res)
 
-            if references is None:
+            if len(references) == 0:
                 references = np.empty_like(res).tolist()
 
             references = [
