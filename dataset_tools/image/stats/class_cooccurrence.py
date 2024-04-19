@@ -495,7 +495,6 @@ class ClassToTagCooccurrence(BaseStats):
             return
         if self._num_tags == 0:
             return
-        if self.
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = np.zeros((self._num_classes, self._num_tags), dtype=int)
