@@ -348,8 +348,8 @@ class ClassToTagCooccurrence(BaseStats):
         res = {
             "columns": ["Tag"] + list(self._tag_names),
             "rows": self._class_names,
-            "data": data,
-            "referencesCellCount": references_count_data,
+            "data": references_count_data,
+            # "referencesCellCount": references_count_data,
             "referencesCell": references,  # row - col
             "options": options,
             "colomnsOptions": colomns_options,

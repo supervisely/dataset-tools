@@ -29,7 +29,7 @@ def rgb_to_hex(rgb: List[int]) -> str:
     return "#{:02x}{:02x}{:02x}".format(*rgb)
 
 
-class TagsCooccurrence(BaseStats):
+class TagsImagesCooccurrence(BaseStats):
 
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
         self._meta = project_meta
@@ -46,7 +46,8 @@ class TagsCooccurrence(BaseStats):
         self._tag_names = []
 
         for tag_meta in self._meta.tag_metas:
-            self._images_tags.append(tag_meta)
+            if tag_meta.applicable_to in IMAGES_TAGS:
+                self._images_tags.append(tag_meta)
 
         for idx, im_tag_meta in enumerate(self._images_tags):
             self._name_to_index[im_tag_meta.name] = idx
@@ -70,6 +71,189 @@ class TagsCooccurrence(BaseStats):
         for tag in image.tags:
             tag_name = self._tag_ids[tag["tagId"]]
             tags.add(tag_name)
+
+        for tag_name in tags:
+            idx = self._name_to_index[tag_name]
+            self.co_occurrence_matrix[idx][idx] += 1
+            self._references[idx][idx].append(image.id)
+
+        tags = list(tags)
+        n = len(tags)
+        for i in range(n):
+            for j in range(i + 1, n):
+                idx_i = self._name_to_index[tags[i]]
+                idx_j = self._name_to_index[tags[j]]
+                self.co_occurrence_matrix[idx_i][idx_j] += 1
+                self.co_occurrence_matrix[idx_j][idx_i] += 1
+
+                self._references[idx_i][idx_j].append(image.id)
+                self._references[idx_j][idx_i].append(image.id)
+
+    def clean(self) -> None:
+        self.__init__(self._meta, self.force)
+
+    def to_json2(self) -> Optional[Dict]:
+        if self._num_tags == 0:
+            return None
+
+        options = {
+            "fixColumns": 1,  # not used in Web
+            "cellTooltip": "Click to preview. {currentCell} images have both images tags {firstCell} and {currentColumn} at the same time",
+        }
+        colomns_options = [None] * (len(self._tag_names) + 1)
+        colomns_options[0] = {"type": "tag"}  # not used in Web
+
+        for idx in range(len(colomns_options) - 1):
+            colomns_options[idx + 1] = {
+                "tagType": self._tag_name_to_type[self._tag_names[idx]],
+                "applicableTo": self._tag_name_to_applicable[self._tag_names[idx]],
+            }
+
+        data = [
+            [value] + sublist
+            for value, sublist in zip(self._tag_names, self.co_occurrence_matrix.tolist())
+        ]
+
+        res = {
+            "columns": ["Tag"] + self._tag_names,
+            "data": data,
+            "referencesCell": self._references,  # row - col
+            "options": options,
+            "colomnsOptions": colomns_options,
+        }
+        return res
+
+    def to_numpy_raw(self):
+        if self._num_tags == 0:
+            return
+
+        matrix = np.array(self.co_occurrence_matrix, dtype="int32")
+        n = self._num_tags
+        ref_list = [[None for _ in range(n)] for _ in range(n)]
+        for i in range(n):
+            for j in range(n):
+                ref_list[i][j] = set(self._references[i][j])
+
+        references = np.array(ref_list, dtype=object)
+
+        return np.stack([matrix, references], axis=0)
+
+    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
+        if self._num_tags == 0:
+            return
+        files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
+
+        res = np.zeros((self._num_tags, self._num_tags), dtype="int32")
+        is_zero_area = None
+        references = []
+
+        def merge_elements(a, b):
+            if a is None:
+                return b
+            elif b is None:
+                return a
+            else:
+                return [
+                    (
+                        elem1 + list(elem2)
+                        if elem1 is not None and elem2 is not None
+                        else elem1 or list(elem2)
+                    )
+                    for elem1, elem2 in zip(a, b)
+                ]
+
+        def update_shape(
+            array: np.ndarray, updated_classes: dict, insert_val=0
+        ) -> Tuple[np.ndarray, np.ndarray]:
+            if len(updated_classes) > 0:
+                _updated_classes = list(updated_classes.values())
+                indices = list(sorted([self._tag_names.index(cls) for cls in _updated_classes]))
+                sdata = array[0].copy()
+                rdata = array[1].copy().tolist()
+
+                for ind in indices:
+                    for axis in range(2):
+                        sdata = np.apply_along_axis(
+                            lambda line: np.insert(line, [ind], [insert_val]),
+                            axis=axis,
+                            arr=sdata,
+                        )
+                    empty_line = [[] for _ in range(len(rdata))]
+                    rdata.insert(ind, empty_line)
+                    rdata = [sublist[:ind] + [[]] + sublist[ind:] for sublist in rdata]
+
+                return sdata, np.array(rdata, dtype=object)
+            return array[0], array[1]
+
+        for file in files:
+            loaded_data = np.load(file, allow_pickle=True)
+            if np.any(loaded_data == None):
+                continue
+
+            stat_data, ref_data = loaded_data[0], loaded_data[1]
+            if loaded_data.shape[1] != self._num_tags:
+                stat_data, ref_data = update_shape(loaded_data, updated_classes)
+
+            res = np.add(stat_data, res)
+
+            if len(references) == 0:
+                references = np.empty_like(res).tolist()
+
+            references = [
+                merge_elements(sublist1, sublist2)
+                for sublist1, sublist2 in zip(references, ref_data.tolist())
+            ]
+
+            np.save(file, np.stack([stat_data, ref_data]))
+
+        self.co_occurrence_matrix = res
+        for i, sublist in enumerate(references):
+            for j, inner_list in enumerate(sublist):
+                self._references[i][j] = list(inner_list)
+
+        return res
+
+
+class TagsObjectsCooccurrence(BaseStats):
+
+    def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
+        self._meta = project_meta
+        self._stats = {}
+        self.force = force
+
+        self._name_to_index = {}
+        self._sly_id_to_name = {}
+
+        self._tag_name_to_type = {}
+        self._tag_name_to_applicable = {}
+
+        self._images_tags = []
+        self._tag_names = []
+
+        for tag_meta in self._meta.tag_metas:
+            if tag_meta.applicable_to in OBJECTS_TAGS:
+                self._images_tags.append(tag_meta)
+
+        for idx, im_tag_meta in enumerate(self._images_tags):
+            self._name_to_index[im_tag_meta.name] = idx
+            self._sly_id_to_name[im_tag_meta.sly_id] = im_tag_meta.name
+            self._tag_name_to_type[im_tag_meta.name] = im_tag_meta.value_type
+            self._tag_name_to_applicable[im_tag_meta.name] = im_tag_meta.applicable_to
+            self._tag_names.append(im_tag_meta.name)
+
+        self._references = defaultdict(lambda: defaultdict(list))
+
+        self._num_tags = len(self._tag_names)
+        self.co_occurrence_matrix = np.zeros((self._num_tags, self._num_tags), dtype=int)
+
+        self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
+
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
+        if len(figures) == 0:
+            return
+
+        tags = set()
+
         for figure in figures:
             for tag in figure.tags:
                 tag_name = self._tag_ids[tag["tagId"]]
@@ -101,7 +285,7 @@ class TagsCooccurrence(BaseStats):
 
         options = {
             "fixColumns": 1,  # not used in Web
-            "cellTooltip": "Click to preview {tagType} tag applicable to {applicableTo}. {currentCell} images have instances of both tags {firstCell} and {currentColumn} at the same time",
+            "cellTooltip": "Click to preview. {currentCell} images have both objects tags {firstCell} and {currentColumn} at the same time",
         }
         colomns_options = [None] * (len(self._tag_names) + 1)
         colomns_options[0] = {"type": "tag"}  # not used in Web
@@ -408,7 +592,7 @@ class TagsCooccurrence(BaseStats):
 #         return res
 
 
-class OneOfTagsDistribution(BaseStats):
+class TagsOneOfDistribution(BaseStats):
 
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
         self._meta = project_meta
@@ -615,3 +799,191 @@ class OneOfTagsDistribution(BaseStats):
     #         return None
 
     #     return res
+
+
+# class TagsCooccurrence(BaseStats):
+
+#     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
+#         self._meta = project_meta
+#         self._stats = {}
+#         self.force = force
+
+#         self._name_to_index = {}
+#         self._sly_id_to_name = {}
+
+#         self._tag_name_to_type = {}
+#         self._tag_name_to_applicable = {}
+
+#         self._images_tags = []
+#         self._tag_names = []
+
+#         for tag_meta in self._meta.tag_metas:
+#             self._images_tags.append(tag_meta)
+
+#         for idx, im_tag_meta in enumerate(self._images_tags):
+#             self._name_to_index[im_tag_meta.name] = idx
+#             self._sly_id_to_name[im_tag_meta.sly_id] = im_tag_meta.name
+#             self._tag_name_to_type[im_tag_meta.name] = im_tag_meta.value_type
+#             self._tag_name_to_applicable[im_tag_meta.name] = im_tag_meta.applicable_to
+#             self._tag_names.append(im_tag_meta.name)
+
+#         self._references = defaultdict(lambda: defaultdict(list))
+
+#         self._num_tags = len(self._tag_names)
+#         self.co_occurrence_matrix = np.zeros((self._num_tags, self._num_tags), dtype=int)
+
+#         self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
+
+#     def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
+#         if len(figures) == 0:
+#             return
+
+#         tags = set()
+#         for tag in image.tags:
+#             tag_name = self._tag_ids[tag["tagId"]]
+#             tags.add(tag_name)
+#         for figure in figures:
+#             for tag in figure.tags:
+#                 tag_name = self._tag_ids[tag["tagId"]]
+#                 tags.add(tag_name)
+
+#         for tag_name in tags:
+#             idx = self._name_to_index[tag_name]
+#             self.co_occurrence_matrix[idx][idx] += 1
+#             self._references[idx][idx].append(image.id)
+
+#         tags = list(tags)
+#         n = len(tags)
+#         for i in range(n):
+#             for j in range(i + 1, n):
+#                 idx_i = self._name_to_index[tags[i]]
+#                 idx_j = self._name_to_index[tags[j]]
+#                 self.co_occurrence_matrix[idx_i][idx_j] += 1
+#                 self.co_occurrence_matrix[idx_j][idx_i] += 1
+
+#                 self._references[idx_i][idx_j].append(image.id)
+#                 self._references[idx_j][idx_i].append(image.id)
+
+#     def clean(self) -> None:
+#         self.__init__(self._meta, self.force)
+
+#     def to_json2(self) -> Optional[Dict]:
+#         if self._num_tags == 0:
+#             return None
+
+#         options = {
+#             "fixColumns": 1,  # not used in Web
+#             "cellTooltip": "Click to preview {tagType} tag applicable to {applicableTo}. {currentCell} images have instances of both tags {firstCell} and {currentColumn} at the same time",
+#         }
+#         colomns_options = [None] * (len(self._tag_names) + 1)
+#         colomns_options[0] = {"type": "tag"}  # not used in Web
+
+#         for idx in range(len(colomns_options) - 1):
+#             colomns_options[idx + 1] = {
+#                 "tagType": self._tag_name_to_type[self._tag_names[idx]],
+#                 "applicableTo": self._tag_name_to_applicable[self._tag_names[idx]],
+#             }
+
+#         data = [
+#             [value] + sublist
+#             for value, sublist in zip(self._tag_names, self.co_occurrence_matrix.tolist())
+#         ]
+
+#         res = {
+#             "columns": ["Tag"] + self._tag_names,
+#             "data": data,
+#             "referencesCell": self._references,  # row - col
+#             "options": options,
+#             "colomnsOptions": colomns_options,
+#         }
+#         return res
+
+#     def to_numpy_raw(self):
+#         if self._num_tags == 0:
+#             return
+
+#         matrix = np.array(self.co_occurrence_matrix, dtype="int32")
+#         n = self._num_tags
+#         ref_list = [[None for _ in range(n)] for _ in range(n)]
+#         for i in range(n):
+#             for j in range(n):
+#                 ref_list[i][j] = set(self._references[i][j])
+
+#         references = np.array(ref_list, dtype=object)
+
+#         return np.stack([matrix, references], axis=0)
+
+#     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
+#         if self._num_tags == 0:
+#             return
+#         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
+
+#         res = np.zeros((self._num_tags, self._num_tags), dtype="int32")
+#         is_zero_area = None
+#         references = []
+
+#         def merge_elements(a, b):
+#             if a is None:
+#                 return b
+#             elif b is None:
+#                 return a
+#             else:
+#                 return [
+#                     (
+#                         elem1 + list(elem2)
+#                         if elem1 is not None and elem2 is not None
+#                         else elem1 or list(elem2)
+#                     )
+#                     for elem1, elem2 in zip(a, b)
+#                 ]
+
+#         def update_shape(
+#             array: np.ndarray, updated_classes: dict, insert_val=0
+#         ) -> Tuple[np.ndarray, np.ndarray]:
+#             if len(updated_classes) > 0:
+#                 _updated_classes = list(updated_classes.values())
+#                 indices = list(sorted([self._tag_names.index(cls) for cls in _updated_classes]))
+#                 sdata = array[0].copy()
+#                 rdata = array[1].copy().tolist()
+
+#                 for ind in indices:
+#                     for axis in range(2):
+#                         sdata = np.apply_along_axis(
+#                             lambda line: np.insert(line, [ind], [insert_val]),
+#                             axis=axis,
+#                             arr=sdata,
+#                         )
+#                     empty_line = [[] for _ in range(len(rdata))]
+#                     rdata.insert(ind, empty_line)
+#                     rdata = [sublist[:ind] + [[]] + sublist[ind:] for sublist in rdata]
+
+#                 return sdata, np.array(rdata, dtype=object)
+#             return array[0], array[1]
+
+#         for file in files:
+#             loaded_data = np.load(file, allow_pickle=True)
+#             if np.any(loaded_data == None):
+#                 continue
+
+#             stat_data, ref_data = loaded_data[0], loaded_data[1]
+#             if loaded_data.shape[1] != self._num_tags:
+#                 stat_data, ref_data = update_shape(loaded_data, updated_classes)
+
+#             res = np.add(stat_data, res)
+
+#             if len(references) == 0:
+#                 references = np.empty_like(res).tolist()
+
+#             references = [
+#                 merge_elements(sublist1, sublist2)
+#                 for sublist1, sublist2 in zip(references, ref_data.tolist())
+#             ]
+
+#             np.save(file, np.stack([stat_data, ref_data]))
+
+#         self.co_occurrence_matrix = res
+#         for i, sublist in enumerate(references):
+#             for j, inner_list in enumerate(sublist):
+#                 self._references[i][j] = list(inner_list)
+
+#         return res
