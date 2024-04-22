@@ -241,7 +241,11 @@ class TagsObjectsCooccurrence(BaseStats):
             self._tag_name_to_applicable[im_tag_meta.name] = im_tag_meta.applicable_to
             self._tag_names.append(im_tag_meta.name)
 
-        self._references = defaultdict(lambda: defaultdict(list))
+        self._tag_name_to_index = {}
+        for idx, tag_name in enumerate(self._tag_names):
+            self._tag_name_to_index[tag_name] = idx
+
+        self._references = defaultdict(lambda: defaultdict(set))
 
         self._num_tags = len(self._tag_names)
         self.co_occurrence_matrix = np.zeros((self._num_tags, self._num_tags), dtype=int)
@@ -252,29 +256,24 @@ class TagsObjectsCooccurrence(BaseStats):
         if len(figures) == 0:
             return
 
-        tags = set()
-
         for figure in figures:
-            for tag in figure.tags:
-                tag_name = self._tag_ids[tag["tagId"]]
-                tags.add(tag_name)
+            tag_names = [self._tag_ids[tag["tagId"]] for tag in figure.tags]
+            for tag_name in tag_names:
+                idx = self._name_to_index[tag_name]
+                self.co_occurrence_matrix[idx][idx] += 1
+                self._references[idx][idx].add(image.id)
 
-        for tag_name in tags:
-            idx = self._name_to_index[tag_name]
-            self.co_occurrence_matrix[idx][idx] += 1
-            self._references[idx][idx].append(image.id)
+            n = len(tag_names)
+            for i in range(n):
+                for j in range(i + 1, n):
+                    idx_i = self._name_to_index[tag_names[i]]
+                    idx_j = self._name_to_index[tag_names[j]]
 
-        tags = list(tags)
-        n = len(tags)
-        for i in range(n):
-            for j in range(i + 1, n):
-                idx_i = self._name_to_index[tags[i]]
-                idx_j = self._name_to_index[tags[j]]
-                self.co_occurrence_matrix[idx_i][idx_j] += 1
-                self.co_occurrence_matrix[idx_j][idx_i] += 1
+                    self.co_occurrence_matrix[idx_i][idx_j] += 1
+                    self.co_occurrence_matrix[idx_j][idx_i] += 1
 
-                self._references[idx_i][idx_j].append(image.id)
-                self._references[idx_j][idx_i].append(image.id)
+                    self._references[idx_i][idx_j].add(image.id)
+                    self._references[idx_j][idx_i].add(image.id)
 
     def clean(self) -> None:
         self.__init__(self._meta, self.force)
@@ -300,10 +299,20 @@ class TagsObjectsCooccurrence(BaseStats):
             [value] + sublist
             for value, sublist in zip(self._tag_names, self.co_occurrence_matrix.tolist())
         ]
+        # references = defaultdict(lambda: defaultdict(list))
+        references_count = np.zeros((self._num_tags, self._num_tags), dtype=int)
+        for rows in self._references:
+            for col in self._references[rows]:
+                references_count[rows][col] = len(self._references[rows][col])
+
+        references_count_data = [
+            [value] + sublist for value, sublist in zip(self._tag_names, references_count.tolist())
+        ]
 
         res = {
             "columns": ["Tag"] + self._tag_names,
             "data": data,
+            "referencesCellCount": references_count_data,
             "referencesCell": self._references,  # row - col
             "options": options,
             "colomnsOptions": colomns_options,
