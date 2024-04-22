@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 from supervisely.api.entity_annotation.figure_api import FigureInfo
 from supervisely.api.image_api import ImageInfo
-from supervisely.app.widgets import HeatmapChart
+from supervisely.app.widgets import HeatmapChart, Apexchart
 from collections import defaultdict, namedtuple
 from typing import Dict, List, Optional
 from itertools import groupby
@@ -635,137 +635,160 @@ class TagsOneOfDistribution(BaseStats):
 
         # new
         self._tag_ids = defaultdict(str)
+        self._tag_vals = defaultdict(list)
         self._id_to_data = {}
 
         for idx, tag_meta in enumerate(self._meta.tag_metas):
             if tag_meta.value_type == ONEOF_STRING:
                 self._tag_ids[tag_meta.sly_id] = tag_meta.name
-                curr_val_to_index = {}
-                for idx, possible_val in enumerate(tag_meta.possible_values):
-                    curr_val_to_index[possible_val] = idx
-                    curr_references = defaultdict(list)
-                    curr_co_occurrence_matrix = np.zeros((len(tag_meta.possible_values)), dtype=int)
+                self._tag_vals[tag_meta.sly_id] = tag_meta.possible_values
 
-                self._id_to_data[tag_meta.sly_id] = (
-                    curr_val_to_index,
-                    curr_references,
-                    curr_co_occurrence_matrix,
-                )
+                # curr_val_to_index = {}
+                # for idx, possible_val in enumerate(tag_meta.possible_values):
+                #     curr_val_to_index[possible_val] = idx
+                #     curr_references = defaultdict(list)
+                #     curr_co_occurrence_matrix = np.zeros((len(tag_meta.possible_values)), dtype=int)
+
+                # self._id_to_data[tag_meta.sly_id] = (
+                #     curr_val_to_index,
+                #     curr_references,
+                #     curr_co_occurrence_matrix,
+                # )
                 # self._sly_id_to_name[tag_meta.sly_id] = tag_meta.name
         # self._tag_ids = {
         #     item.sly_id: item.name for item in self._meta.tag_metas if item.name in self._tag_names
         # }
         self._num_tags = len(list(self._tag_ids))
 
-        self._distribution_dict = {tag_id: {0: set()} for tag_id in self._tag_ids}
+        self._objects_cnt_dict = defaultdict(lambda: defaultdict(int))
+        self._references_dict = defaultdict(lambda: defaultdict(set))
+
+        # self._distribution_dict = {tag_id: {0: set()} for tag_id in self._tag_ids}
         self._max_count = 0
-        self._classes_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.obj_classes}
+        self._tags_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.tag_metas}
 
-    # def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+        _tags_oneof = []
+        for tag in image.tags:
+            if tag["tagId"] in self._tag_ids:
+                _tags_oneof.append((tag["tagId"], tag["value"]))
+                self._max_count = max(len(tag["value"]), self._max_count)
 
-    #     for tag in image.tags:
-    #         if tag["tagId"] in self._tag_ids:
-    #             tag_val = tag["value"]
-    #             curr_tag_data = self._id_to_data[tag["tagId"]]
-    #             idx = curr_tag_data[0][tag_val]
-    #             curr_tag_data[2][idx] += 1
-    #             if image.id not in curr_tag_data[1][idx]:
-    #                 curr_tag_data[1][idx].append(image.id)
+        for figure in figures:
+            for tag in figure.tags:
+                if tag["tagId"] in self._tag_ids:
+                    _tags_oneof.append((tag["tagId"], tag["value"]))
+                    self._max_count = max(len(tag["value"]), self._max_count)
 
-    #     for figure in figures:
-    #         for tag in figure.tags:
-    #             if tag.name in self._tag_names:
-    #                 tag_val = tag.value
-    #                 curr_tag_data = self._name_to_data[tag.name]
-    #                 idx = curr_tag_data[0][tag_val]
-    #                 curr_tag_data[2][idx] += 1
-    #                 if image.id not in curr_tag_data[1][idx]:
-    #                     curr_tag_data[1][idx].append(image.id)
+        for tag_id, val in _tags_oneof:
+            self._objects_cnt_dict[tag_id][val] += 1
+            self._references_dict[tag_id][val].add(image.id)
 
-    # def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
+    def clean(self) -> None:
+        self.__init__(self._meta, self.force)
 
-    #     for tag_info in image.tags:
-    #         tag_name = self._sly_id_to_name.get(tag_info["tagId"])
-    #         if tag_name in self._tag_names:
-    #             tag_val = tag_info["value"]
-    #             curr_tag_data = self._name_to_data[tag_name]
-    #             idx = curr_tag_data[0][tag_val]
-    #             curr_tag_data[2][idx] += 1
-    #             if image.id not in curr_tag_data[1][idx]:
-    #                 curr_tag_data[1][idx].append(image.id)
+    def to_json2(self) -> Dict:
+        if len(self._tag_ids) == 0:
+            return
+        series, colors = [], []
+        references = defaultdict(dict)
+        axis = [i for i in range(self._max_count + 1)]
+        for tag_id, tag_name in self._tag_ids.items():
+            values = [x for x in self._objects_cnt_dict[tag_id].values()]
+            reference = {x: [] for x in axis}
+            if len(values) < len(axis):
+                values += [0] * (len(axis) - len(values))
 
-    #     for label in ann.labels:
-    #         for tag in label.tags:
-    #             if tag.name in self._tag_names:
-    #                 tag_val = tag.value
-    #                 curr_tag_data = self._name_to_data[tag.name]
-    #                 idx = curr_tag_data[0][tag_val]
-    #                 curr_tag_data[2][idx] += 1
-    #                 if image.id not in curr_tag_data[1][idx]:
-    #                     curr_tag_data[1][idx].append(image.id)
+            for idx, images in enumerate(self._references_dict[tag_id].values()):
+                reference[idx] = list(images)
+                tag_name = self._tag_ids[tag_id]
+                references.setdefault(tag_name, {}).update(reference)
 
-    # def clean(self) -> None:
-    #     self.__init__(self._meta, self.force)
+            row = {
+                "name": tag_name,
+                "y": values,
+                "x": axis,
+            }
 
-    # def to_json2(self) -> Dict:
-    #     series, colors = [], []
-    #     references = defaultdict(dict)
-    #     axis = [i for i in range(self._max_count + 1)]
-    #     for class_id, class_name in self._class_ids.items():
-    #         class_ditrib = self._distribution_dict[class_id]
-    #         reference = {x: [] for x in axis}
+            series.append(row)
+            colors.append(self._tags_hex[tag_id])
 
-    #         values = [0 for _ in range(self._max_count + 1)]
-    #         for objects_count, images_set in class_ditrib.items():
-    #             values[objects_count] = len(images_set)
+        hmp = HeatmapChart(
+            title="Title",
+            color_range="row",
+            tooltip="Click to preview {y} images with {x} objects of tag {series_name}",
+        )
+        hmp.add_series_batch(series)
 
-    #             seized_refs = self._seize_list_to_fixed_size(list(images_set), REFERENCES_LIMIT)
-    #             reference[objects_count] = seized_refs
-    #             references.setdefault(class_name, {}).update(reference)
+        number_of_rows = len(series)
+        max_widget_height = 10000
+        if number_of_rows < 5:
+            row_height = 70
+        elif number_of_rows < 20:
+            row_height = 50
+        else:
+            row_height = 30
 
-    #         row = {
-    #             "name": class_name,
-    #             "y": values,
-    #             "x": axis,
-    #         }
+        res = hmp.get_json_data()
+        number_of_columns = len(axis)
+        calculated_height = number_of_rows * row_height
+        height = min(calculated_height, max_widget_height) + 150
+        res["referencesCell"] = references
+        res["options"]["chart"]["height"] = height
+        res["options"]["colors"] = colors
+        res["options"]["xaxis"]["axisTicks"] = {"show": False}
 
-    #         series.append(row)
-    #         colors.append(self._classes_hex[class_id])
+        # Disabling labels and ticks for x-axis if there are too many columns.
+        if MAX_NUMBER_OF_COLUMNS > number_of_columns > 40:
+            res["options"]["xaxis"]["labels"] = {"show": False}
+            res["options"]["xaxis"]["axisTicks"] = {"show": False}
+            res["options"]["dataLabels"] = {"enabled": False}
+        elif number_of_columns >= MAX_NUMBER_OF_COLUMNS:
+            return
 
-    #     hmp = HeatmapChart(
-    #         title="Objects on images - distribution for every class",
-    #         xaxis_title="Number of objects on image",
-    #         color_range="row",
-    #         tooltip="Click to preview {y} images with {x} objects of class {series_name}",
-    #     )
-    #     hmp.add_series_batch(series)
+        return res
 
-    #     number_of_rows = len(series)
-    #     max_widget_height = 10000
-    #     if number_of_rows < 5:
-    #         row_height = 70
-    #     elif number_of_rows < 20:
-    #         row_height = 50
-    #     else:
-    #         row_height = 30
+    def to_numpy_raw(self):
+        tmp = {"tags": dict(self._objects_cnt_dict), "refs": dict(self._references_dict)}
+        return np.array(tmp, dtype=object)
 
-    #     res = hmp.get_json_data()
-    #     number_of_columns = len(axis)
-    #     calculated_height = number_of_rows * row_height
-    #     height = min(calculated_height, max_widget_height) + 150
-    #     res["referencesCell"] = references
-    #     res["options"]["chart"]["height"] = height
-    #     res["options"]["colors"] = colors
+    # @sly.timeit
+    def sew_chunks(self, chunks_dir: str, updated_classes: dict) -> np.ndarray:
 
-    #     # Disabling labels and ticks for x-axis if there are too many columns.
-    #     if MAX_NUMBER_OF_COLUMNS > number_of_columns > 40:
-    #         res["options"]["xaxis"]["labels"] = {"show": False}
-    #         res["options"]["xaxis"]["axisTicks"] = {"show": False}
-    #         res["options"]["dataLabels"] = {"enabled": False}
-    #     elif number_of_columns >= MAX_NUMBER_OF_COLUMNS:
-    #         return
+        files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
-    #     return res
+        for file in files:
+            loaded_data = np.load(file, allow_pickle=True).tolist()
+            if loaded_data is not None:
+                loaded_tags = loaded_data["tags"]
+                loaded_refs = loaded_data["refs"]
+                # loaded_tags = set([tag_id for tag_id in loaded_tags])
+                # true_tags = set(self._tag_ids)
+
+                # added = true_tags - loaded_tags  # TODO
+                # for tag_id in list(added):
+                #     if loaded_data.get(tag_id) is None:
+                #         loaded_data[tag_id] = {0: set()}
+                #     for other_class in loaded_data:
+                #         for images_set in loaded_data[other_class].values():
+                #             loaded_data[tag_id][0].update(images_set)
+
+                # removed = loaded_tags - true_tags
+                # for tag_id in list(removed):
+                #     loaded_data.pop(tag_id)
+                #     loaded_refs.pop(tag_id)
+
+                save_data = np.array(loaded_data, dtype=object)
+                np.save(file, save_data)
+
+                for tag_id in self._tag_ids:
+                    vals = self._tag_vals[tag_id]
+                    self._max_count = max(self._max_count, len(vals))
+                    for val in vals:
+                        self._objects_cnt_dict[tag_id][val] += loaded_tags[tag_id][val]
+                        self._references_dict[tag_id][val].update(loaded_refs[tag_id][val])
+
+        return None
 
     # def to_json(self) -> Optional[Dict]:
     #     if self._num_tags < 1:
