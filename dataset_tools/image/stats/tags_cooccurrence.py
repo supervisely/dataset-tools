@@ -716,7 +716,7 @@ class TagsOneOfDistribution(BaseStats):
         hmp = HeatmapChart(
             title="Title",
             color_range="row",
-            tooltip="Click to preview {y} images with {x} objects of tag {series_name}",
+            tooltip="Click to preview {y} images with tag {series_name} and value {tag_value}",
         )
         hmp.add_series_batch(series)
 

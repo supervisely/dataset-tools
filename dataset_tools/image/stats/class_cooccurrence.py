@@ -320,7 +320,7 @@ class ClassToTagCooccurrence(BaseStats):
             return
         options = {
             "fixColumns": 1,  # not used in Web
-            "cellTooltip": "Click to preview. Class {RowCell} has {currentCell} instances of tag {currentColumn}",
+            "cellTooltip": "Click to preview. Class {RowCell} has {currentCell} objects of tag {currentColumn}",
         }
         colomns_options = [None] * (len(self._tag_names) + 1)
         colomns_options[0] = {"type": "tag"}  # not used in Web
