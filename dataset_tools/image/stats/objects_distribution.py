@@ -206,7 +206,8 @@ class ObjectsDistribution(BaseStats):
                     references[class_title] = reference
 
         hmp = HeatmapChart(
-            title="Objects on images - distribution for every class",
+            # title="Objects on images - distribution for every class",
+            title="",
             xaxis_title="Number of objects on image",
             color_range="row",
             tooltip="Click to preview {y} images with {x} objects of class {series_name}",

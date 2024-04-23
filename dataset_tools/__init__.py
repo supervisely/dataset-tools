@@ -33,7 +33,8 @@ from dataset_tools.image.stats.preview_for_classes import (
 from dataset_tools.image.stats.tags_cooccurrence import (
     TagsImagesCooccurrence,
     TagsObjectsCooccurrence,
-    TagsOneOfDistribution,
+    TagsImagesOneOfDistribution,
+    TagsObjectsOneOfDistribution,
 )
 from dataset_tools.image.stats.wrapper import (  # , initialize
     count_images_stats,

@@ -467,7 +467,7 @@ class ProjectRepo:
             dtools.ClassBalance(self.project_meta, self.project_stats, stat_cache=stat_cache),
             dtools.ClassCooccurrence(self.project_meta, cls_prevs_tags),
             dtools.ClassToTagCooccurrence(self.project_meta),
-            dtools.TagsOneOfDistribution(self.project_meta),
+            dtools.TagsImagesOneOfDistribution(self.project_meta),
             dtools.TagsImagesCooccurrence(self.project_meta),
             dtools.TagsObjectsCooccurrence(self.project_meta),
             dtools.ClassesPerImage(
