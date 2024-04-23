@@ -98,7 +98,7 @@ class TagsImagesCooccurrence(BaseStats):
 
         options = {
             "fixColumns": 1,  # not used in Web
-            "cellTooltip": "Click to preview. {currentCell} images have both images tags {firstCell} and {currentColumn} at the same time",
+            "cellTooltip": "Click to preview. {currentCell} images have both tags {firstCell} and {currentColumn} at same time",
         }
         colomns_options = [None] * (len(self._tag_names) + 1)
         colomns_options[0] = {"type": "tag"}  # not used in Web
@@ -284,7 +284,7 @@ class TagsObjectsCooccurrence(BaseStats):
 
         options = {
             "fixColumns": 1,  # not used in Web
-            "cellTooltip": "Click to preview. {currentCell} images have both objects tags {firstCell} and {currentColumn} at the same time",
+            "cellTooltip": "Click to preview. {currentCell} objects have both tags {firstCell} and {currentColumn} at same time",
         }
         colomns_options = [None] * (len(self._tag_names) + 1)
         colomns_options[0] = {"type": "tag"}  # not used in Web
@@ -730,13 +730,25 @@ class TagsOneOfDistribution(BaseStats):
             row_height = 30
 
         res = hmp.get_json_data()
+        _tags = self._objects_cnt_dict.values()
+        for series, _t in zip(res["series"], _tags):
+
+            if len(_t) < len(series["data"]):
+                delta = len(series["data"]) - len(_t)
+                expand_t = list(dict(_t)) + [""] * delta
+
+            for data, title in zip(series["data"], expand_t):
+                data["title"] = title
+
         number_of_columns = len(axis)
         calculated_height = number_of_rows * row_height
         height = min(calculated_height, max_widget_height) + 150
         res["referencesCell"] = references
         res["options"]["chart"]["height"] = height
         res["options"]["colors"] = colors
+
         res["options"]["xaxis"]["axisTicks"] = {"show": False}
+        res["options"]["xaxis"]["hideXaxis"] = {"hide": True}
 
         # Disabling labels and ticks for x-axis if there are too many columns.
         if MAX_NUMBER_OF_COLUMNS > number_of_columns > 40:

@@ -124,7 +124,7 @@ class ClassCooccurrence(BaseStats):
         #     return None
         options = {
             "fixColumns": 1,  # not used in Web
-            "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at the same time",
+            "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at same time",
         }
         colomns_options = [None] * (len(self._class_names) + 1)
         colomns_options[0] = {"type": "class"}  # not used in Web
@@ -320,7 +320,7 @@ class ClassToTagCooccurrence(BaseStats):
             return
         options = {
             "fixColumns": 1,  # not used in Web
-            "cellTooltip": "Click to preview. The class {RowCell} has the {currentCell} instances of the tag {currentColumn}",
+            "cellTooltip": "Click to preview. Class {RowCell} has {currentCell} instances of tag {currentColumn}",
         }
         colomns_options = [None] * (len(self._tag_names) + 1)
         colomns_options[0] = {"type": "tag"}  # not used in Web
