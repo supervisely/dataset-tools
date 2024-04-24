@@ -429,10 +429,13 @@ class TagsImagesOneOfDistribution(BaseStats):
 
         self._num_tags = len(list(self._tag_ids))
 
+        self._max_count = 0
+        for vals in self._tag_vals.values():
+            self._max_count = max(self._max_count, len(vals))
+
         self._objects_cnt_dict = defaultdict(lambda: defaultdict(int))
         self._references_dict = defaultdict(lambda: defaultdict(set))
 
-        self._max_count = 0
         self._tags_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
@@ -440,13 +443,6 @@ class TagsImagesOneOfDistribution(BaseStats):
         for tag in image.tags:
             if tag["tagId"] in self._tag_ids:
                 _tags_oneof.append((tag["tagId"], tag["value"]))
-                self._max_count = max(len(tag["value"]), self._max_count)
-
-        # for figure in figures:
-        #     for tag in figure.tags:
-        #         if tag["tagId"] in self._tag_ids:
-        #             _tags_oneof.append((tag["tagId"], tag["value"]))
-        #             self._max_count = max(len(tag["value"]), self._max_count)
 
         for tag_id, val in _tags_oneof:
             self._objects_cnt_dict[tag_id][val] += 1
@@ -469,7 +465,6 @@ class TagsImagesOneOfDistribution(BaseStats):
 
             for idx, images in enumerate(self._references_dict[tag_id].values()):
                 reference[idx] = list(images)
-                tag_name = self._tag_ids[tag_id]
                 references.setdefault(tag_name, {}).update(reference)
 
             row = {
@@ -549,23 +544,20 @@ class TagsImagesOneOfDistribution(BaseStats):
                 loaded_tags = set([tag_id for tag_id in loaded_data])
                 true_tags = set(self._tag_ids)
 
-                # added = true_tags - loaded_tags
-                # for tag_id in list(added):
-                #     if loaded_data.get(tag_id) is None:
-                #         for val in self._tag_vals[tag_id]:
-                #             loaded_data[tag_id][val] = [0, set()]
-                #     for other_class in loaded_data:
-                #         for vals in loaded_data[other_class].values():
-                #             for val in self._tag_vals[other_class]:
-                #                 loaded_data[tag_id][val][0]
-                #                 loaded_data[tag_id][val][1].update(images_set)
+                added = true_tags - loaded_tags
+                for tag_id in list(added):
+                    vals = self._tag_vals[tag_id]
+                    if loaded_data.get(tag_id) is None:
+                        loaded_data[tag_id] = {}
+                        for val in vals:
+                            loaded_data[tag_id][val] = [0, set()]
+                    for val in vals:
+                        if loaded_data[tag_id].get(val) is None:
+                            loaded_data[tag_id][val] = [0, set()]
 
-                #             # for images_set in loaded_data[other_class].values():
-                #             #     loaded_data[tag_id][0].update(images_set)
-
-                # removed = loaded_tags - true_tags
-                # for tag_id in list(removed):
-                #     loaded_data.pop(tag_id)
+                removed = loaded_tags - true_tags
+                for tag_id in list(removed):
+                    loaded_data.pop(tag_id)
 
                 save_data = np.array(loaded_data, dtype=object)
                 np.save(file, save_data)
@@ -581,7 +573,6 @@ class TagsImagesOneOfDistribution(BaseStats):
                         if loaded_data[tag_id].get(val) is None:
                             loaded_data[tag_id][val] = [0, set()]
 
-                    self._max_count = max(self._max_count, len(vals))
                     for val in vals:
                         obj_cnt = loaded_data[tag_id][val][0]
                         self._objects_cnt_dict[tag_id][val] += obj_cnt
@@ -614,20 +605,17 @@ class TagsObjectsOneOfDistribution(BaseStats):
         self._references_dict = defaultdict(lambda: defaultdict(set))
 
         self._max_count = 0
+        for vals in self._tag_vals.values():
+            self._max_count = max(self._max_count, len(vals))
         self._tags_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         _tags_oneof = []
-        # for tag in image.tags:
-        #     if tag["tagId"] in self._tag_ids:
-        #         _tags_oneof.append((tag["tagId"], tag["value"]))
-        #         self._max_count = max(len(tag["value"]), self._max_count)
 
         for figure in figures:
             for tag in figure.tags:
                 if tag["tagId"] in self._tag_ids:
                     _tags_oneof.append((tag["tagId"], tag["value"]))
-                    self._max_count = max(len(tag["value"]), self._max_count)
 
         for tag_id, val in _tags_oneof:
             self._objects_cnt_dict[tag_id][val] += 1
@@ -730,18 +718,20 @@ class TagsObjectsOneOfDistribution(BaseStats):
                 loaded_tags = set([tag_id for tag_id in loaded_data])
                 true_tags = set(self._tag_ids)
 
-                # added = true_tags - loaded_tags
-                # for tag_id in list(added):
-                #     if loaded_data.get(tag_id) is None:
-                #         for val in self._tag_vals[tag_id]:
-                #             loaded_data[tag_id] = [{val: 0}, {val: set()}]
-                #             for other_class in loaded_data:
-                #                 for images_set in loaded_data[other_class][1][val].values():
-                #                     loaded_data[tag_id][1][val].update(images_set)
+                added = true_tags - loaded_tags
+                for tag_id in list(added):
+                    vals = self._tag_vals[tag_id]
+                    if loaded_data.get(tag_id) is None:
+                        loaded_data[tag_id] = {}
+                        for val in vals:
+                            loaded_data[tag_id][val] = [0, set()]
+                    for val in vals:
+                        if loaded_data[tag_id].get(val) is None:
+                            loaded_data[tag_id][val] = [0, set()]
 
-                # removed = loaded_tags - true_tags
-                # for tag_id in list(removed):
-                #     loaded_data.pop(tag_id)
+                removed = loaded_tags - true_tags
+                for tag_id in list(removed):
+                    loaded_data.pop(tag_id)
 
                 save_data = np.array(loaded_data, dtype=object)
                 np.save(file, save_data)
@@ -757,7 +747,6 @@ class TagsObjectsOneOfDistribution(BaseStats):
                         if loaded_data[tag_id].get(val) is None:
                             loaded_data[tag_id][val] = [0, set()]
 
-                    self._max_count = max(self._max_count, len(vals))
                     for val in vals:
                         obj_cnt = loaded_data[tag_id][val][0]
                         self._objects_cnt_dict[tag_id][val] += obj_cnt
