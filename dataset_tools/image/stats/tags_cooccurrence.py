@@ -442,11 +442,11 @@ class TagsImagesOneOfDistribution(BaseStats):
                 _tags_oneof.append((tag["tagId"], tag["value"]))
                 self._max_count = max(len(tag["value"]), self._max_count)
 
-        for figure in figures:
-            for tag in figure.tags:
-                if tag["tagId"] in self._tag_ids:
-                    _tags_oneof.append((tag["tagId"], tag["value"]))
-                    self._max_count = max(len(tag["value"]), self._max_count)
+        # for figure in figures:
+        #     for tag in figure.tags:
+        #         if tag["tagId"] in self._tag_ids:
+        #             _tags_oneof.append((tag["tagId"], tag["value"]))
+        #             self._max_count = max(len(tag["value"]), self._max_count)
 
         for tag_id, val in _tags_oneof:
             self._objects_cnt_dict[tag_id][val] += 1
@@ -484,7 +484,7 @@ class TagsImagesOneOfDistribution(BaseStats):
         hmp = HeatmapChart(
             title="",
             color_range="row",
-            tooltip="Click to preview {y} images and objects with tag {series_name} and value {tag_value}",
+            tooltip="Click to preview {y} images with tag {series_name} and value {tag_value}",
         )
         hmp.add_series_batch(series)
 
@@ -500,10 +500,10 @@ class TagsImagesOneOfDistribution(BaseStats):
         res = hmp.get_json_data()
         _tags = self._objects_cnt_dict.values()
         for series, _t in zip(res["series"], _tags):
-            expand_t = []
+            expand_t = list(dict(_t))
             if len(_t) < len(series["data"]):
                 delta = len(series["data"]) - len(_t)
-                expand_t = list(dict(_t)) + [""] * delta
+                expand_t += [""] * delta
 
             for data, title in zip(series["data"], expand_t):
                 data["title"] = title
@@ -529,8 +529,12 @@ class TagsImagesOneOfDistribution(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        tmp = {"tags": dict(self._objects_cnt_dict), "refs": dict(self._references_dict)}
-        return np.array(tmp, dtype=object)
+        _data = dict(self._objects_cnt_dict)
+        _refs = dict(self._references_dict)
+        for k, v in _data.items():
+            _data[k] = [dict(v), dict(_refs[k])]
+
+        return np.array(_data, dtype=object)
 
     # @sly.timeit
     def sew_chunks(self, chunks_dir: str, updated_classes: dict) -> np.ndarray:
@@ -539,13 +543,13 @@ class TagsImagesOneOfDistribution(BaseStats):
 
         for file in files:
             loaded_data = np.load(file, allow_pickle=True).tolist()
-            if loaded_data is not None:
-                loaded_tags = loaded_data["tags"]
-                loaded_refs = loaded_data["refs"]
-                # loaded_tags = set([tag_id for tag_id in loaded_tags])
-                # true_tags = set(self._tag_ids)
+            if loaded_data:
+                # loaded_tags = loaded_data["tags"]
+                # loaded_refs = loaded_data["refs"]
+                loaded_tags = set([tag_id for tag_id in loaded_data])
+                true_tags = set(self._tag_ids)
 
-                # added = true_tags - loaded_tags  # TODO
+                # added = true_tags - loaded_tags
                 # for tag_id in list(added):
                 #     if loaded_data.get(tag_id) is None:
                 #         loaded_data[tag_id] = {0: set()}
@@ -556,17 +560,21 @@ class TagsImagesOneOfDistribution(BaseStats):
                 # removed = loaded_tags - true_tags
                 # for tag_id in list(removed):
                 #     loaded_data.pop(tag_id)
-                #     loaded_refs.pop(tag_id)
 
                 save_data = np.array(loaded_data, dtype=object)
                 np.save(file, save_data)
 
                 for tag_id in self._tag_ids:
-                    vals = self._tag_vals[tag_id]
-                    self._max_count = max(self._max_count, len(vals))
-                    for val in vals:
-                        self._objects_cnt_dict[tag_id][val] += loaded_tags[tag_id][val]
-                        self._references_dict[tag_id][val].update(loaded_refs[tag_id][val])
+                    if tag_id in loaded_data:
+                        vals = self._tag_vals[tag_id]
+                        self._max_count = max(self._max_count, len(vals))
+                        for val in vals:
+                            self._objects_cnt_dict[tag_id][val] += loaded_data[tag_id][0].get(
+                                val, 0
+                            )
+                            self._references_dict[tag_id][val].update(
+                                loaded_data[tag_id][1].get(val, set())
+                            )
 
         return None
 
@@ -598,10 +606,10 @@ class TagsObjectsOneOfDistribution(BaseStats):
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         _tags_oneof = []
-        for tag in image.tags:
-            if tag["tagId"] in self._tag_ids:
-                _tags_oneof.append((tag["tagId"], tag["value"]))
-                self._max_count = max(len(tag["value"]), self._max_count)
+        # for tag in image.tags:
+        #     if tag["tagId"] in self._tag_ids:
+        #         _tags_oneof.append((tag["tagId"], tag["value"]))
+        #         self._max_count = max(len(tag["value"]), self._max_count)
 
         for figure in figures:
             for tag in figure.tags:
@@ -645,7 +653,7 @@ class TagsObjectsOneOfDistribution(BaseStats):
         hmp = HeatmapChart(
             title="Title",
             color_range="row",
-            tooltip="Click to preview {y} images and objects with tag {series_name} and value {tag_value}",
+            tooltip="Click to preview {y} objects with tag {series_name} and value {tag_value}",
         )
         hmp.add_series_batch(series)
 
@@ -661,10 +669,10 @@ class TagsObjectsOneOfDistribution(BaseStats):
         res = hmp.get_json_data()
         _tags = self._objects_cnt_dict.values()
         for series, _t in zip(res["series"], _tags):
-            expand_t = []
+            expand_t = list(dict(_t))
             if len(_t) < len(series["data"]):
                 delta = len(series["data"]) - len(_t)
-                expand_t = list(dict(_t)) + [""] * delta
+                expand_t += [""] * delta
 
             for data, title in zip(series["data"], expand_t):
                 data["title"] = title
@@ -690,8 +698,12 @@ class TagsObjectsOneOfDistribution(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        tmp = {"tags": dict(self._objects_cnt_dict), "refs": dict(self._references_dict)}
-        return np.array(tmp, dtype=object)
+        _data = dict(self._objects_cnt_dict)
+        _refs = dict(self._references_dict)
+        for k, v in _data.items():
+            _data[k] = [dict(v), dict(_refs[k])]
+
+        return np.array(_data, dtype=object)
 
     # @sly.timeit
     def sew_chunks(self, chunks_dir: str, updated_classes: dict) -> np.ndarray:
@@ -700,33 +712,36 @@ class TagsObjectsOneOfDistribution(BaseStats):
 
         for file in files:
             loaded_data = np.load(file, allow_pickle=True).tolist()
-            if loaded_data is not None:
-                loaded_tags = loaded_data["tags"]
-                loaded_refs = loaded_data["refs"]
-                # loaded_tags = set([tag_id for tag_id in loaded_tags])
-                # true_tags = set(self._tag_ids)
+            if loaded_data:
+                loaded_tags = set([tag_id for tag_id in loaded_data])
+                true_tags = set(self._tag_ids)
 
-                # added = true_tags - loaded_tags  # TODO
+                # added = true_tags - loaded_tags
                 # for tag_id in list(added):
                 #     if loaded_data.get(tag_id) is None:
-                #         loaded_data[tag_id] = {0: set()}
-                #     for other_class in loaded_data:
-                #         for images_set in loaded_data[other_class].values():
-                #             loaded_data[tag_id][0].update(images_set)
+                #         for val in self._tag_vals[tag_id]:
+                #             loaded_data[tag_id] = [{val: 0}, {val: set()}]
+                #             for other_class in loaded_data:
+                #                 for images_set in loaded_data[other_class][1][val].values():
+                #                     loaded_data[tag_id][1][val].update(images_set)
 
                 # removed = loaded_tags - true_tags
                 # for tag_id in list(removed):
                 #     loaded_data.pop(tag_id)
-                #     loaded_refs.pop(tag_id)
 
                 save_data = np.array(loaded_data, dtype=object)
                 np.save(file, save_data)
 
                 for tag_id in self._tag_ids:
-                    vals = self._tag_vals[tag_id]
-                    self._max_count = max(self._max_count, len(vals))
-                    for val in vals:
-                        self._objects_cnt_dict[tag_id][val] += loaded_tags[tag_id][val]
-                        self._references_dict[tag_id][val].update(loaded_refs[tag_id][val])
+                    if tag_id in loaded_data:
+                        vals = self._tag_vals[tag_id]
+                        self._max_count = max(self._max_count, len(vals))
+                        for val in vals:
+                            self._objects_cnt_dict[tag_id][val] += loaded_data[tag_id][0].get(
+                                val, 0
+                            )
+                            self._references_dict[tag_id][val].update(
+                                loaded_data[tag_id][1].get(val, set())
+                            )
 
         return None
