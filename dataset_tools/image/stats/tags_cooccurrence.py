@@ -482,7 +482,7 @@ class TagsImagesOneOfDistribution(BaseStats):
             colors.append(self._tags_hex[tag_id])
 
         hmp = HeatmapChart(
-            title="",
+            title="Images",
             color_range="row",
             tooltip="Click to preview {y} images with tag {series_name} and value {tag_value}",
         )
@@ -663,7 +663,7 @@ class TagsObjectsOneOfDistribution(BaseStats):
             colors.append(self._tags_hex[tag_id])
 
         hmp = HeatmapChart(
-            title="Title",
+            title="Objects",
             color_range="row",
             tooltip="Click to preview {y} images with tag {series_name} and value {tag_value}",
         )
