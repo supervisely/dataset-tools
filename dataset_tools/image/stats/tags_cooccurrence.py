@@ -498,7 +498,7 @@ class TagsImagesOneOfDistribution(BaseStats):
             row_height = 30
 
         res = hmp.get_json_data()
-        _tags = self._objects_cnt_dict.values()
+        _tags = dict(self._objects_cnt_dict).values()
         for series, _t in zip(res["series"], _tags):
             expand_t = list(dict(_t))
             if len(_t) < len(series["data"]):
@@ -531,8 +531,10 @@ class TagsImagesOneOfDistribution(BaseStats):
     def to_numpy_raw(self):
         _data = dict(self._objects_cnt_dict)
         _refs = dict(self._references_dict)
-        for k, v in _data.items():
-            _data[k] = [dict(v), dict(_refs[k])]
+        for tag_id, vals in dict(_data).items():
+            _data[tag_id] = dict(vals)
+            for val, obj_cnt in dict(vals).items():
+                _data[tag_id][val] = [obj_cnt, _refs[tag_id][val]]
 
         return np.array(_data, dtype=object)
 
@@ -544,18 +546,22 @@ class TagsImagesOneOfDistribution(BaseStats):
         for file in files:
             loaded_data = np.load(file, allow_pickle=True).tolist()
             if loaded_data:
-                # loaded_tags = loaded_data["tags"]
-                # loaded_refs = loaded_data["refs"]
                 loaded_tags = set([tag_id for tag_id in loaded_data])
                 true_tags = set(self._tag_ids)
 
                 # added = true_tags - loaded_tags
                 # for tag_id in list(added):
                 #     if loaded_data.get(tag_id) is None:
-                #         loaded_data[tag_id] = {0: set()}
+                #         for val in self._tag_vals[tag_id]:
+                #             loaded_data[tag_id][val] = [0, set()]
                 #     for other_class in loaded_data:
-                #         for images_set in loaded_data[other_class].values():
-                #             loaded_data[tag_id][0].update(images_set)
+                #         for vals in loaded_data[other_class].values():
+                #             for val in self._tag_vals[other_class]:
+                #                 loaded_data[tag_id][val][0]
+                #                 loaded_data[tag_id][val][1].update(images_set)
+
+                #             # for images_set in loaded_data[other_class].values():
+                #             #     loaded_data[tag_id][0].update(images_set)
 
                 # removed = loaded_tags - true_tags
                 # for tag_id in list(removed):
@@ -565,16 +571,22 @@ class TagsImagesOneOfDistribution(BaseStats):
                 np.save(file, save_data)
 
                 for tag_id in self._tag_ids:
-                    if tag_id in loaded_data:
-                        vals = self._tag_vals[tag_id]
-                        self._max_count = max(self._max_count, len(vals))
+                    vals = self._tag_vals[tag_id]
+
+                    if loaded_data.get(tag_id) is None:
+                        loaded_data[tag_id] = {}
                         for val in vals:
-                            self._objects_cnt_dict[tag_id][val] += loaded_data[tag_id][0].get(
-                                val, 0
-                            )
-                            self._references_dict[tag_id][val].update(
-                                loaded_data[tag_id][1].get(val, set())
-                            )
+                            loaded_data[tag_id][val] = [0, set()]
+                    for val in vals:
+                        if loaded_data[tag_id].get(val) is None:
+                            loaded_data[tag_id][val] = [0, set()]
+
+                    self._max_count = max(self._max_count, len(vals))
+                    for val in vals:
+                        obj_cnt = loaded_data[tag_id][val][0]
+                        self._objects_cnt_dict[tag_id][val] += obj_cnt
+                        images_set = loaded_data[tag_id][val][1]
+                        self._references_dict[tag_id][val].update(images_set)
 
         return None
 
@@ -653,7 +665,7 @@ class TagsObjectsOneOfDistribution(BaseStats):
         hmp = HeatmapChart(
             title="Title",
             color_range="row",
-            tooltip="Click to preview {y} objects with tag {series_name} and value {tag_value}",
+            tooltip="Click to preview {y} images with tag {series_name} and value {tag_value}",
         )
         hmp.add_series_batch(series)
 
@@ -667,7 +679,7 @@ class TagsObjectsOneOfDistribution(BaseStats):
             row_height = 30
 
         res = hmp.get_json_data()
-        _tags = self._objects_cnt_dict.values()
+        _tags = dict(self._objects_cnt_dict).values()
         for series, _t in zip(res["series"], _tags):
             expand_t = list(dict(_t))
             if len(_t) < len(series["data"]):
@@ -700,8 +712,10 @@ class TagsObjectsOneOfDistribution(BaseStats):
     def to_numpy_raw(self):
         _data = dict(self._objects_cnt_dict)
         _refs = dict(self._references_dict)
-        for k, v in _data.items():
-            _data[k] = [dict(v), dict(_refs[k])]
+        for tag_id, vals in dict(_data).items():
+            _data[tag_id] = dict(vals)
+            for val, obj_cnt in dict(vals).items():
+                _data[tag_id][val] = [obj_cnt, _refs[tag_id][val]]
 
         return np.array(_data, dtype=object)
 
@@ -733,15 +747,21 @@ class TagsObjectsOneOfDistribution(BaseStats):
                 np.save(file, save_data)
 
                 for tag_id in self._tag_ids:
-                    if tag_id in loaded_data:
-                        vals = self._tag_vals[tag_id]
-                        self._max_count = max(self._max_count, len(vals))
+                    vals = self._tag_vals[tag_id]
+
+                    if loaded_data.get(tag_id) is None:
+                        loaded_data[tag_id] = {}
                         for val in vals:
-                            self._objects_cnt_dict[tag_id][val] += loaded_data[tag_id][0].get(
-                                val, 0
-                            )
-                            self._references_dict[tag_id][val].update(
-                                loaded_data[tag_id][1].get(val, set())
-                            )
+                            loaded_data[tag_id][val] = [0, set()]
+                    for val in vals:
+                        if loaded_data[tag_id].get(val) is None:
+                            loaded_data[tag_id][val] = [0, set()]
+
+                    self._max_count = max(self._max_count, len(vals))
+                    for val in vals:
+                        obj_cnt = loaded_data[tag_id][val][0]
+                        self._objects_cnt_dict[tag_id][val] += obj_cnt
+                        images_set = loaded_data[tag_id][val][1]
+                        self._references_dict[tag_id][val].update(images_set)
 
         return None
