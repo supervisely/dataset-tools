@@ -513,6 +513,11 @@ class TagsImagesOneOfDistribution(BaseStats):
         res["options"]["xaxis"]["axisTicks"] = {"show": False}
         res["options"]["xaxis"]["hideXaxis"] = {"hide": True}
 
+        res["options"]["plotOptions"]["heatmap"]["colorScale"]["ranges"][0]["color"] = "#A5A5A5"
+        res["options"]["plotOptions"]["heatmap"]["colorScale"]["ranges"].append(
+            {"from": -1, "to": -1, "name": "", "color": "#FFFFFF"}
+        )
+
         # Disabling labels and ticks for x-axis if there are too many columns.
         if MAX_NUMBER_OF_COLUMNS > number_of_columns > 40:
             res["options"]["xaxis"]["labels"] = {"show": False}
@@ -686,6 +691,11 @@ class TagsObjectsOneOfDistribution(BaseStats):
 
         res["options"]["xaxis"]["axisTicks"] = {"show": False}
         res["options"]["xaxis"]["hideXaxis"] = {"hide": True}
+
+        res["options"]["plotOptions"]["heatmap"]["colorScale"]["ranges"][0]["color"] = "#A5A5A5"
+        res["options"]["plotOptions"]["heatmap"]["colorScale"]["ranges"].append(
+            {"from": -1, "to": -1, "name": "", "color": "#FFFFFF"}
+        )
 
         # Disabling labels and ticks for x-axis if there are too many columns.
         if MAX_NUMBER_OF_COLUMNS > number_of_columns > 40:
