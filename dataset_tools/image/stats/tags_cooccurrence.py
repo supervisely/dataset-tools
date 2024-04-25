@@ -428,6 +428,7 @@ class TagsImagesOneOfDistribution(BaseStats):
                 self._tag_vals[tag_meta.sly_id] = tag_meta.possible_values
 
         self._num_tags = len(list(self._tag_ids))
+        self._tag_ids = dict(sorted(self._tag_ids.items(), key=lambda item: item[1]))
 
         self._max_count = 0
         for vals in self._tag_vals.values():
@@ -502,6 +503,9 @@ class TagsImagesOneOfDistribution(BaseStats):
 
             for data, title in zip(series["data"], expand_t):
                 data["title"] = title
+
+        for item in res["series"]:
+            item["data"] = sorted(item["data"], key=lambda x: x["y"], reverse=True)
 
         number_of_columns = len(axis)
         calculated_height = number_of_rows * row_height
@@ -605,6 +609,7 @@ class TagsObjectsOneOfDistribution(BaseStats):
                 self._tag_vals[tag_meta.sly_id] = tag_meta.possible_values
 
         self._num_tags = len(list(self._tag_ids))
+        self._tag_ids = dict(sorted(self._tag_ids.items(), key=lambda item: item[1]))
 
         self._objects_cnt_dict = defaultdict(lambda: defaultdict(int))
         self._references_dict = defaultdict(lambda: defaultdict(set))
@@ -681,6 +686,9 @@ class TagsObjectsOneOfDistribution(BaseStats):
 
             for data, title in zip(series["data"], expand_t):
                 data["title"] = title
+
+        for item in res["series"]:
+            item["data"] = sorted(item["data"], key=lambda x: x["y"], reverse=True)
 
         number_of_columns = len(axis)
         calculated_height = number_of_rows * row_height

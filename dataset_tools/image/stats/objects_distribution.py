@@ -47,6 +47,8 @@ class ObjectsDistribution(BaseStats):
 
         # new
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes}
+        self._class_ids = dict(sorted(self._class_ids.items(), key=lambda item: item[1]))
+
         self._distribution_dict = {class_id: {0: set()} for class_id in self._class_ids}
         self._max_count = 0
         self._classes_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.obj_classes}
