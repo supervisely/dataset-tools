@@ -461,7 +461,7 @@ class TagsImagesOneOfDistribution(BaseStats):
             values = [x for x in self._objects_cnt_dict[tag_id].values()]
             reference = {x: [] for x in axis}
             if len(values) < len(axis):
-                values += [0] * (len(axis) - len(values))
+                values += [-1] * (len(axis) - len(values))
 
             for idx, images in enumerate(self._references_dict[tag_id].values()):
                 reference[idx] = list(images)
@@ -634,7 +634,7 @@ class TagsObjectsOneOfDistribution(BaseStats):
             values = [x for x in self._objects_cnt_dict[tag_id].values()]
             reference = {x: [] for x in axis}
             if len(values) < len(axis):
-                values += [0] * (len(axis) - len(values))
+                values += [-1] * (len(axis) - len(values))
 
             for idx, images in enumerate(self._references_dict[tag_id].values()):
                 reference[idx] = list(images)
