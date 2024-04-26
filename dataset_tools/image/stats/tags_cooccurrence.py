@@ -437,6 +437,11 @@ class TagsImagesOneOfDistribution(BaseStats):
         self._objects_cnt_dict = defaultdict(lambda: defaultdict(int))
         self._references_dict = defaultdict(lambda: defaultdict(set))
 
+        for tag_id in self._tag_ids:
+            for val in self._tag_vals[tag_id]:
+                self._objects_cnt_dict[tag_id][val] = 0
+                self._references_dict[tag_id][val] = set()
+
         self._tags_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
@@ -613,6 +618,11 @@ class TagsObjectsOneOfDistribution(BaseStats):
 
         self._objects_cnt_dict = defaultdict(lambda: defaultdict(int))
         self._references_dict = defaultdict(lambda: defaultdict(set))
+
+        for tag_id in self._tag_ids:
+            for val in self._tag_vals[tag_id]:
+                self._objects_cnt_dict[tag_id][val] = 0
+                self._references_dict[tag_id][val] = set()
 
         self._max_count = 0
         for vals in self._tag_vals.values():
