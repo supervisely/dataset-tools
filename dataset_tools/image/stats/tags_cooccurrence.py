@@ -44,10 +44,12 @@ class TagsImagesCooccurrence(BaseStats):
 
         self._images_tags = []
         self._tag_names = []
+        self._tag_ids = {}
 
         for tag_meta in self._meta.tag_metas:
             if tag_meta.applicable_to in IMAGES_TAGS:
                 self._images_tags.append(tag_meta)
+                self._tag_ids[tag_meta.sly_id] = tag_meta.name
 
         for idx, im_tag_meta in enumerate(self._images_tags):
             self._name_to_index[im_tag_meta.name] = idx
@@ -61,7 +63,7 @@ class TagsImagesCooccurrence(BaseStats):
         self._num_tags = len(self._tag_names)
         self.co_occurrence_matrix = np.zeros((self._num_tags, self._num_tags), dtype=int)
 
-        self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
+        # self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
         if len(figures) == 0:
@@ -230,9 +232,12 @@ class TagsObjectsCooccurrence(BaseStats):
         self._images_tags = []
         self._tag_names = []
 
+        self._tag_ids = {}  # item.sly_id: item.name for item in self._meta.tag_metas}
+
         for tag_meta in self._meta.tag_metas:
             if tag_meta.applicable_to in OBJECTS_TAGS:
                 self._images_tags.append(tag_meta)
+                self._tag_ids[tag_meta.sly_id] = tag_meta.name
 
         for idx, im_tag_meta in enumerate(self._images_tags):
             self._name_to_index[im_tag_meta.name] = idx
@@ -250,7 +255,7 @@ class TagsObjectsCooccurrence(BaseStats):
         self._num_tags = len(self._tag_names)
         self.co_occurrence_matrix = np.zeros((self._num_tags, self._num_tags), dtype=int)
 
-        self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
+        # self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
         if len(figures) == 0:
@@ -597,7 +602,6 @@ class TagsImagesOneOfDistribution(BaseStats):
 
 
 class TagsObjectsOneOfDistribution(BaseStats):
-
     def __init__(self, project_meta: sly.ProjectMeta, force: bool = False) -> None:
         self._meta = project_meta
         self._stats = {}
