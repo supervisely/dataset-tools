@@ -82,14 +82,14 @@ class ObjectSizes(BaseStats):
         image_height, image_width = image.height, image.width
 
         for figure in figures:
-            if figure.geometry_type not in [
-                sly.Bitmap.name(),
-                sly.Rectangle.name(),
-                sly.Polygon.name(),
-                sly.GraphNodes.name(),
-                sly.Point.name(),
-            ]:
-                continue
+            # if figure.geometry_type not in [
+            #     sly.Bitmap.name(),
+            #     sly.Rectangle.name(),
+            #     sly.Polygon.name(),
+            #     sly.GraphNodes.name(),
+            #     sly.Point.name(),
+            # ]:
+            #     continue
 
             object_id = self._object_id
             self._object_id += 1
@@ -392,14 +392,15 @@ class ClassSizes(BaseStats):
             image_height, image_width = ann.img_size
             for label in ann.labels:
                 # if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
-                if label.geometry_type not in [
-                    sly.Bitmap.name(),
-                    sly.Rectangle.name(),
-                    sly.Polygon.name(),
-                    sly.GraphNodes.name(),
-                    sly.Point.name(),
-                ]:
-                    continue
+                # if label.geometry_type not in [
+                #     sly.Bitmap.name(),
+                #     sly.Rectangle.name(),
+                #     sly.Polygon.name(),
+                #     sly.GraphNodes.name(),
+                #     sly.Point.name(),
+                #     sly.Polyline.name()
+                # ]:
+                #     continue
 
                 # class_object_counts[label.obj_class.name] += 1
                 class_object_counts[label.obj_class_name] += 1
