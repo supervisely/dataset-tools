@@ -504,15 +504,19 @@ class TagsImagesOneOfDistribution(BaseStats):
             row_height = 30
 
         res = hmp.get_json_data()
-        _tags = dict(self._objects_cnt_dict).values()
-        for series, _t in zip(res["series"], _tags):
-            expand_t = list(dict(_t))
-            if len(_t) < len(series["data"]):
-                delta = len(series["data"]) - len(_t)
-                expand_t += [""] * delta
+        _tags_objcnt = dict(self._objects_cnt_dict).values()
+        _tags_refscnt = dict(self._references_dict).values()
+        for series, _objcnt, _refscnt in zip(res["series"], _tags_objcnt, _tags_refscnt):
+            expand_obj = list(_objcnt)
+            expand_ref = [len(x) for x in _refscnt.values()]
+            if len(_objcnt) < len(series["data"]):
+                delta = len(series["data"]) - len(_objcnt)
+                expand_obj += [""] * delta
+                expand_ref += [""] * delta
 
-            for data, title in zip(series["data"], expand_t):
+            for data, title, ref_len in zip(series["data"], expand_obj, expand_ref):
                 data["title"] = title
+                data["referencesCount"] = ref_len
 
         for item in res["series"]:
             item["data"] = sorted(item["data"], key=lambda x: x["y"], reverse=True)
@@ -662,7 +666,6 @@ class TagsObjectsOneOfDistribution(BaseStats):
 
             for idx, images in enumerate(self._references_dict[tag_id].values()):
                 reference[idx] = list(images)
-                tag_name = self._tag_ids[tag_id]
                 references.setdefault(tag_name, {}).update(reference)
 
             row = {
@@ -691,15 +694,19 @@ class TagsObjectsOneOfDistribution(BaseStats):
             row_height = 30
 
         res = hmp.get_json_data()
-        _tags = dict(self._objects_cnt_dict).values()
-        for series, _t in zip(res["series"], _tags):
-            expand_t = list(dict(_t))
-            if len(_t) < len(series["data"]):
-                delta = len(series["data"]) - len(_t)
-                expand_t += [""] * delta
+        _tags_objcnt = dict(self._objects_cnt_dict).values()
+        _tags_refscnt = dict(self._references_dict).values()
+        for series, _objcnt, _refscnt in zip(res["series"], _tags_objcnt, _tags_refscnt):
+            expand_obj = list(_objcnt)
+            expand_ref = [len(x) for x in _refscnt.values()]
+            if len(_objcnt) < len(series["data"]):
+                delta = len(series["data"]) - len(_objcnt)
+                expand_obj += [""] * delta
+                expand_ref += [""] * delta
 
-            for data, title in zip(series["data"], expand_t):
+            for data, title, ref_len in zip(series["data"], expand_obj, expand_ref):
                 data["title"] = title
+                data["referencesCount"] = ref_len
 
         for item in res["series"]:
             item["data"] = sorted(item["data"], key=lambda x: x["y"], reverse=True)
