@@ -332,10 +332,7 @@ class ClassSizes(BaseStats):
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
 
     def clean(self):
-        self.__init__(
-            self._meta,
-            self.force,
-        )
+        self.__init__(self._meta, self.force)
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
@@ -566,10 +563,7 @@ class ClassesTreemap(BaseStats):
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
 
     def clean(self):
-        self.__init__(
-            self._meta,
-            self.force,
-        )
+        self.__init__(self._meta, self.force)
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:

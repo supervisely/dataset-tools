@@ -66,7 +66,7 @@ class TagsImagesCooccurrence(BaseStats):
         # self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
-        if len(figures) == 0:
+        if len(image.tags) == 0:
             return
 
         tags = set()
@@ -450,6 +450,9 @@ class TagsImagesOneOfDistribution(BaseStats):
         self._tags_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+        if len(image.tags) == 0:
+            return
+
         _tags_oneof = []
         for tag in image.tags:
             if tag["tagId"] in self._tag_ids:
@@ -638,6 +641,9 @@ class TagsObjectsOneOfDistribution(BaseStats):
         self._tags_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+        if len(figures) == 0:
+            return
+
         _tags_oneof = []
 
         for figure in figures:
