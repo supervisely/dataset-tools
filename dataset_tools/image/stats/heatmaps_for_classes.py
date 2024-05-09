@@ -294,8 +294,8 @@ class ClassesHeatmaps(BaseVisual):
         for heatmap_name, heatmap in self.classname_heatmap.items():
             raw_array_path = f"{heatmaps_dir}/{heatmap_name}.npy"
             font_size = self._get_optimal_font_size(heatmap_name)
-            x_pos_center = int(resized_image.shape[1] * 0.5)
-            y_pos_percent = int((resized_image.shape[0] - font_size) * 0.95)
+            x_pos_center = int(self._heatmap_img_size[1] * 0.5)
+            y_pos_percent = int((self._heatmap_img_size[0] - font_size) * 0.95)
             if sly.fs.file_exists(raw_array_path):
                 resized_image = np.load(raw_array_path, allow_pickle=True)
             else:
@@ -303,20 +303,9 @@ class ClassesHeatmaps(BaseVisual):
                 np.save(raw_array_path, resized_image)
 
             image_path = f"{heatmaps_dir}/{heatmap_name}.png"
-
             plt.imsave(image_path, resized_image[:, :, 0])
             image = Image.open(image_path)
-            # image = Image.fromarray(resized_image.astype("uint8"))
-            draw = ImageDraw.Draw(image)
-            font = self._font.font_variant(size=font_size)
-            text = f"{heatmap_name}"
-            text_color = (255, 255, 255)
-            text_width, _ = draw.textsize(text, font=font)
-            text_position = (x_pos_center - int(text_width / 2), y_pos_percent)
-            draw.text(text_position, text, font=font, fill=text_color)
-
             image.save(image_path)
-
             self.heatmap_image_paths.append(image_path)
             # del self.classname_heatmap[heatmap_name]
 
