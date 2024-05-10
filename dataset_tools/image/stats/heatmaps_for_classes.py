@@ -305,6 +305,12 @@ class ClassesHeatmaps(BaseVisual):
             image_path = f"{heatmaps_dir}/{heatmap_name}.png"
             plt.imsave(image_path, resized_image[:, :, 0])
             image = Image.open(image_path)
+            draw = ImageDraw.Draw(image)
+            font = self._font.font_variant(size=font_size)
+            text_color = (255, 255, 255)
+            text_width, _ = draw.textsize(heatmap_name, font=font)
+            text_position = (x_pos_center - int(text_width / 2), y_pos_percent)
+            draw.text(text_position, heatmap_name, font=font, fill=text_color)
             image.save(image_path)
             self.heatmap_image_paths.append(image_path)
             # del self.classname_heatmap[heatmap_name]
