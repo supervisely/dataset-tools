@@ -383,6 +383,13 @@ class ClassesPerImage(BaseStats):
 
         return np.array(res)
 
+    def _count_unlabeled_area(self, canvas, bounding_boxes):
+        for bbox in bounding_boxes:
+            sly.Rectangle(*bbox)
+            y_min, x_min, y_max, x_max = bbox
+            canvas[y_min:y_max, x_min:x_max] = 1
+        return np.sum(canvas == 0) / canvas.size
+
 
 # canvas = np.zeros((image.height, image.width), dtype=np.uint8)
 
