@@ -128,8 +128,7 @@ class ClassesPerImage(BaseStats):
 
         counts = {class_id: 0 for class_id in self._class_ids}
         areas = {class_id: 0 for class_id in self._class_ids}
-
-        image_area = float(image.height * image.width)
+        bboxes = {class_id: [] for class_id in self._class_ids}
 
         row = [
             image.name,
@@ -140,10 +139,14 @@ class ClassesPerImage(BaseStats):
 
         for figure in figures:
             counts[figure.class_id] += 1
-            area_percent = float(figure.area) / image_area * 100
-            areas[figure.class_id] += area_percent
+            # area_percent = float(figure.area) / image_area * 100
+            # areas[figure.class_id] += area_percent
+            bboxes[figure.class_id].append(figure.geometry_meta["bbox"])
 
         for class_id in self._class_ids:
+            canvas = np.zeros((image.height, image.width), dtype=int)
+            unlabeled_cls_area = self._count_unlabeled_area(canvas, bboxes[class_id])
+            areas[class_id] = (1 - unlabeled_cls_area) * 100
             row.extend([counts[class_id], round(areas[class_id], 2)])
 
         self._data.append(row)
@@ -382,6 +385,13 @@ class ClassesPerImage(BaseStats):
         self._references = references
 
         return np.array(res)
+
+    def _count_unlabeled_area(self, canvas, bounding_boxes):
+        for bbox in bounding_boxes:
+            sly.Rectangle(*bbox)
+            y_min, x_min, y_max, x_max = bbox
+            canvas[y_min:y_max, x_min:x_max] = 1
+        return np.sum(canvas == 0) / canvas.size
 
 
 # canvas = np.zeros((image.height, image.width), dtype=np.uint8)
