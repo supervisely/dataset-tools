@@ -128,7 +128,7 @@ class ClassesPerImage(BaseStats):
 
         counts = {class_id: 0 for class_id in self._class_ids}
         areas = {class_id: 0 for class_id in self._class_ids}
-        bboxes = {class_id: [] for class_id in self._class_ids}
+        # bboxes = {class_id: [] for class_id in self._class_ids}
 
         row = [
             image.name,
@@ -137,16 +137,18 @@ class ClassesPerImage(BaseStats):
             image.width,
         ]
 
+        image_area = image.width * image.height
+
         for figure in figures:
             counts[figure.class_id] += 1
-            # area_percent = float(figure.area) / image_area * 100
-            # areas[figure.class_id] += area_percent
-            bboxes[figure.class_id].append(figure.geometry_meta["bbox"])
+            area_percent = float(figure.area) / image_area * 100
+            areas[figure.class_id] += area_percent
+            # bboxes[figure.class_id].append(figure.geometry_meta["bbox"])
 
         for class_id in self._class_ids:
-            canvas = np.zeros((image.height, image.width), dtype=int)
-            unlabeled_cls_area = self._count_unlabeled_area(canvas, bboxes[class_id])
-            areas[class_id] = (1 - unlabeled_cls_area) * 100
+            # canvas = np.zeros((image.height, image.width), dtype=int)
+            # unlabeled_cls_area = self._count_unlabeled_area(canvas, bboxes[class_id])
+            # areas[class_id] = (1 - unlabeled_cls_area) * 100
             row.extend([counts[class_id], round(areas[class_id], 2)])
 
         self._data.append(row)
