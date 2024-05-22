@@ -71,8 +71,9 @@ class TagsImagesCooccurrence(BaseStats):
 
         tags = set()
         for tag in image.tags:
-            tag_name = self._tag_ids[tag["tagId"]]
-            tags.add(tag_name)
+            if self._tag_ids.get(tag["tagId"]) is not None:  # TODO remove later
+                tag_name = self._tag_ids[tag["tagId"]]
+                tags.add(tag_name)
 
         for tag_name in tags:
             idx = self._name_to_index[tag_name]
