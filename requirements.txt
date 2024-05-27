@@ -1,4 +1,5 @@
-supervisely
+bot_check_tags
+#supervisely
 #dataframe_image
 #inflect
 #matplotlib
