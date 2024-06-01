@@ -36,7 +36,8 @@ def list2sentence(
 
     anytail = " " + anytail if anytail != "" else anytail
     if len(lst) == 0:
-        raise ValueError("Provided list is empty")
+        sly.logger.warning("Provided list is empty")
+        return
 
     if url is not None:
         new_lst = []
