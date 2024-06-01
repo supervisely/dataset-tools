@@ -37,7 +37,7 @@ class ClassesPerImage(BaseStats):
         project_stats: dict,
         datasets: List[sly.DatasetInfo] = None,
         cls_prevs_tags: list = [],
-        sly_tag_split: dict = {},
+        sly_tag_split: Optional[dict] = None,
         force: bool = False,
         stat_cache: dict = None,
     ) -> None:
@@ -48,7 +48,7 @@ class ClassesPerImage(BaseStats):
         self._stat_cache = stat_cache
 
         self._cls_prevs_tags = set(cls_prevs_tags)
-        self._sly_tag_split = sly_tag_split
+        self._sly_tag_split = {} if sly_tag_split is None else sly_tag_split
 
         # self._columns = ["Image"]
         self._columns = []
