@@ -4,6 +4,7 @@ import random
 import re
 import shutil
 import time
+from collections import OrderedDict, defaultdict
 from datetime import datetime
 from typing import List, Literal, Optional
 
@@ -67,6 +68,16 @@ DOWNLOAD_ORIGINAL_TEMPLATE = (
 
 DOWNLOAD_NONREDISTRIBUTABLE_TEMPLATE = (
     "Please visit dataset [homepage]({homepage_url}) to download the data. \n"
+)
+
+IMAGES_ONEOF = (
+    sly.TagApplicableTo.ALL,
+    sly.TagApplicableTo.IMAGES_ONLY,
+)
+
+OBJECTS_ONEOF = (
+    sly.TagApplicableTo.ALL,
+    sly.TagApplicableTo.OBJECTS_ONLY,
 )
 
 
@@ -199,6 +210,36 @@ class ProjectRepo:
             self.license.source_url = self.homepage_url
         self.original_license_path = "LICENSE.md"
         self.original_citation_path = "CITATION.md"
+
+        oneof_stats_images = defaultdict(lambda: defaultdict(set))
+        # oneof_stats_objects = defaultdict(lambda: defaultdict(set))
+        for dataset in self.datasets:
+            images = api.image.get_list(dataset.id)
+            for image in images:
+                for t in image.tags:
+                    tag_meta = self.project_meta.get_tag_meta_by_id(t["tagId"])
+                    if tag_meta.value_type == sly.TagValueType.ONEOF_STRING:
+                        if tag_meta.applicable_to in IMAGES_ONEOF:
+                            oneof_stats_images[tag_meta.name][t["value"]].add(t["entityId"])
+            # images = api.image.figure.download(dataset.id)
+            # for figures in images.values():
+            #     for figure in figures:
+            #         for t in figure.tags:
+            #             tag_meta = self.project_meta.get_tag_meta_by_id(t["tagId"])
+            #             if tag_meta.applicable_to in OBJECTS_ONEOF:
+            #                 oneof_stats_objects[tag_meta.name][t["value"]].add(t["id"])
+
+        def sort_categories(data):
+            sorted_data = {}
+            for tag_name, categories in data.items():
+                sorted_sub_categories = OrderedDict(
+                    sorted(categories.items(), key=lambda item: len(item[1]), reverse=True)
+                )
+                sorted_data[tag_name] = sorted_sub_categories
+            return sorted_data
+
+        self.oneof_stats_images = sort_categories(oneof_stats_images)
+        # self.oneof_stats_objects = sort_categories(oneof_stats_objects)
 
         self._process_download_link(force=settings.get("force_download_sly_url") or False)
         self._update_custom_data()
@@ -476,7 +517,9 @@ class ProjectRepo:
                 self.datasets,
                 cls_prevs_tags,
                 self.sly_tag_split,
-                stat_cache=stat_cache,
+                False,
+                stat_cache,
+                self.oneof_stats_images,
             ),
             dtools.ObjectsDistribution(self.project_meta),
             dtools.ObjectSizes(self.project_meta, self.project_stats),

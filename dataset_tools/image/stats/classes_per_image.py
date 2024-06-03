@@ -40,6 +40,7 @@ class ClassesPerImage(BaseStats):
         sly_tag_split: Optional[dict] = None,
         force: bool = False,
         stat_cache: dict = None,
+        oneof_stats_images: dict = {},
     ) -> None:
         self._meta = project_meta
         self.project_stats = project_stats
@@ -51,7 +52,7 @@ class ClassesPerImage(BaseStats):
         self._sly_tag_split = {} if sly_tag_split is None else sly_tag_split
 
         # self._columns = ["Image"]
-        self._columns = []
+        self._altsplit_columns = []
 
         self._stats = {}
 
@@ -65,19 +66,27 @@ class ClassesPerImage(BaseStats):
         self._tag_to_position = {}
         self._sly_tag_split_len = 0
 
-        for curr_split, tag_split_list in self._sly_tag_split.items():
+        self.oneof_stats_images = oneof_stats_images
+
+        for curr_split, tag_split in self._sly_tag_split.items():
             if curr_split == "__POSTTEXT__" or curr_split == "__PRETEXT__":
                 continue
 
-            intersection_tags = list(set(tag_split_list) - self._cls_prevs_tags)
-            if len(intersection_tags) == 0:
-                continue
+            if isinstance(tag_split, str):
+                self._altsplit_columns.append(tag_split)
+                self._sly_tag_split_len += 1
+                self._tag_to_position[tag_split] = self._sly_tag_split_len + 1
 
-            self._columns.append(curr_split)
-            self._sly_tag_split_len += 1
+            elif isinstance(tag_split, list):
+                intersection_tags = list(set(tag_split) - self._cls_prevs_tags)
+                if len(intersection_tags) == 0:
+                    continue
 
-            for tag in tag_split_list:
-                self._tag_to_position[tag] = self._sly_tag_split_len + 1  # + start_columns_len
+                self._altsplit_columns.append(curr_split)
+                self._sly_tag_split_len += 1
+
+                for tag in tag_split:
+                    self._tag_to_position[tag] = self._sly_tag_split_len + 1  # + start_columns_len
 
         self._class_names = ["unlabeled"]
         self._class_indices_colors = [UNLABELED_COLOR]
@@ -258,7 +267,13 @@ class ClassesPerImage(BaseStats):
                 for tag in ann.img_tags:
                     tag_position = self._tag_to_position.get(tag.name)
                     if tag_position is not None:
-                        table_row[tag_position] = tag.name
+                        if tag.meta.value_type == sly.TagValueType.ONEOF_STRING:
+                            for tagval, image_ids in self.oneof_stats_images[tag.name].items():
+                                if image.id in image_ids:
+                                    table_row[tag_position] = tagval
+                                    break
+                        if tag.meta.value_type == sly.TagValueType.NONE:
+                            table_row[tag_position] = tag.name
 
             area_unl = stat_area.get(
                 "unlabeled", 0
@@ -290,9 +305,9 @@ class ClassesPerImage(BaseStats):
     def to_json(self) -> Dict:
 
         if self._dataset_id_to_name is not None:
-            columns = ["Image", "Split"] + self._columns + ["Height", "Width", "Unlabeled"]
+            columns = ["Image", "Split"] + self._altsplit_columns + ["Height", "Width", "Unlabeled"]
         else:
-            columns = ["Image"] + self._columns + ["Height", "Width", "Unlabeled"]
+            columns = ["Image"] + self._altsplit_columns + ["Height", "Width", "Unlabeled"]
 
         # self._columns.extend(["Height", "Width", "Unlabeled"])
 
@@ -304,9 +319,14 @@ class ClassesPerImage(BaseStats):
                 "subtitle": "folder name",
             }
 
-        for curr_split in self._sly_tag_split.keys():
+        for k, v in self._sly_tag_split.items():
+
+            curr_split = k
             if curr_split == "__POSTTEXT__" or curr_split == "__PRETEXT__":
                 continue
+            if isinstance(v, str):
+                curr_split = v
+
             columns_options[columns.index(curr_split)] = {
                 "subtitle": "tag split",
             }
