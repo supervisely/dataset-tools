@@ -571,6 +571,12 @@ class ClassesTreemap(BaseStats):
         lite_labels = []
 
         for figure in figures:
+            if figure.geometry_type not in (
+                sly.Bitmap.name(),
+                sly.Rectangle.name(),
+                sly.Polygon.name(),
+            ):
+                continue
             lite_labels.append(
                 LiteLabel(
                     obj_class_name=self._class_ids[figure.class_id],
@@ -590,15 +596,16 @@ class ClassesTreemap(BaseStats):
         lite_labels = [
             LiteLabel(
                 obj_class_name=label.obj_class.name,
-                geometry_type=type(label.geometry),
+                geometry_type=label.geometry.name(),
                 geometry_to_bbox=label.geometry.to_bbox(),
                 geometry_area=label.geometry.area,
             )
             for label in ann.labels
+            if type(label.geometry) in (sly.Bitmap, sly.Rectangle, sly.Polygon)
         ]
-        lite_ann = LiteAnnotation(labels=lite_labels, img_size=ann.img_size)
-
-        self._data.append(lite_ann)
+        if len(lite_labels) > 0:
+            lite_ann = LiteAnnotation(labels=lite_labels, img_size=ann.img_size)
+            self._data.append(lite_ann)
 
     def to_json(self) -> Dict:
         if not self._data:
@@ -621,12 +628,11 @@ class ClassesTreemap(BaseStats):
         for ann in self._data:
             image_height, image_width = ann.img_size
             for label in ann.labels:
-                # if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
-                if label.geometry_type not in [
-                    sly.Bitmap.geometry_name(),
-                    sly.Rectangle.geometry_name(),
-                    sly.Polygon.geometry_name(),
-                ]:
+                if label.geometry_type not in (
+                    sly.Bitmap.name(),
+                    sly.Rectangle.name(),
+                    sly.Polygon.name(),
+                ):
                     continue
 
                 class_object_counts[label.obj_class_name] += 1

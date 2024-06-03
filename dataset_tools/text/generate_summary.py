@@ -209,6 +209,7 @@ def get_summary_data(
                 ]
             if isinstance(slytag_names, list):
                 tags_none = [project_meta.get_tag_meta(x) for x in slytag_names]
+                tags_none = [x for x in tags_none if x is not None]
                 tags_none = [x for x in tags_none if x.value_type == sly.TagValueType.NONE]
 
                 data = []
