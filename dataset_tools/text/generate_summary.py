@@ -3,6 +3,7 @@ import operator
 import os
 import re
 import textwrap
+from collections import OrderedDict, defaultdict
 from typing import Dict, List, Optional, Union
 
 import inflect
@@ -14,6 +15,16 @@ p = (
 p.defnoun("research", "research")
 
 MAX_CLASSES_IN_TEXT = 25
+
+IMAGES_ONEOF = (
+    sly.TagApplicableTo.ALL,
+    sly.TagApplicableTo.IMAGES_ONLY,
+)
+
+OBJECTS_ONEOF = (
+    sly.TagApplicableTo.ALL,
+    sly.TagApplicableTo.OBJECTS_ONLY,
+)
 
 
 def list2sentence(
@@ -36,8 +47,7 @@ def list2sentence(
 
     anytail = " " + anytail if anytail != "" else anytail
     if len(lst) == 0:
-        sly.logger.warning("Provided list is empty")
-        return
+        raise ValueError("Provided list is empty")
 
     if url is not None:
         new_lst = []
@@ -108,8 +118,41 @@ def get_summary_data(
     api = sly.Api.from_env()
     project_id = kwargs.get("project_id", None)
     project_info = api.project.get_info_by_id(project_id)
+    meta_json = api.project.get_meta(project_id, with_settings=True)
+    project_meta = sly.ProjectMeta.from_json(meta_json)
 
     stats = api.project.get_stats(project_id)
+
+    oneof_stats_images = defaultdict(lambda: defaultdict(set))
+    oneof_stats_objects = defaultdict(lambda: defaultdict(set))
+    datasets = api.dataset.get_list(project_id)
+    for dataset in datasets:
+        images = api.image.get_list(dataset.id)
+        for image in images:
+            for t in image.tags:
+                tag_meta = project_meta.get_tag_meta_by_id(t["tagId"])
+                if tag_meta.value_type == sly.TagValueType.ONEOF_STRING:
+                    if tag_meta.applicable_to in IMAGES_ONEOF:
+                        oneof_stats_images[tag_meta.name][t["value"]].add(t["entityId"])
+        images = api.image.figure.download(dataset.id)
+        for figures in images.values():
+            for figure in figures:
+                for t in figure.tags:
+                    tag_meta = project_meta.get_tag_meta_by_id(t["tagId"])
+                    if tag_meta.applicable_to in OBJECTS_ONEOF:
+                        oneof_stats_objects[tag_meta.name][t["value"]].add(t["id"])
+
+    def sort_categories(data):
+        sorted_data = {}
+        for tag_name, categories in data.items():
+            sorted_sub_categories = OrderedDict(
+                sorted(categories.items(), key=lambda item: len(item[1]), reverse=True)
+            )
+            sorted_data[tag_name] = sorted_sub_categories
+        return sorted_data
+
+    oneof_stats_images = sort_categories(oneof_stats_images)
+    oneof_stats_objects = sort_categories(oneof_stats_objects)
 
     notsorted = [
         [cls["objectClass"]["name"], cls["total"]] for cls in stats["images"]["objectClasses"]
@@ -137,32 +180,68 @@ def get_summary_data(
 
     slytagsplits_dict = {}
     if slytagsplit is not None:
-        for group_name, slytag_names in slytagsplit.items():
-            if group_name in ["__PRETEXT__", "__POSTTEXT__"]:
-                slytagsplits_dict[group_name] = ". " + slytag_names
+        for groupname_text, slytag_names in slytagsplit.items():
+            if groupname_text in ["__PRETEXT__", "__POSTTEXT__"]:
+                slytagsplits_dict[groupname_text] = ". " + slytag_names
                 continue
-            if isinstance(slytag_names, list):
-                data = []
-                for image, object in zip(stats["imageTags"]["items"], stats["objectTags"]["items"]):
-                    (
-                        data.append(("instances", object))
-                        if image["total"] == 0
-                        else data.append(("images", image))
+            if isinstance(slytag_names, str):
+                tag_oneof = project_meta.get_tag_meta(slytag_names)
+                if tag_oneof is None:
+                    sly.logger.warning(
+                        f"The provided tag {slytag_names!r} not exists. Skipping tag..."
                     )
+                    continue
+                if tag_oneof.value_type != sly.TagValueType.ONEOF_STRING:
+                    sly.logger.warning("The provided tag is not OneOfSkipping tag...")
+                    continue
+
+                tmp, txt = oneof_stats_objects, "instances"
+                if tag_oneof.applicable_to in IMAGES_ONEOF:
+                    tmp, txt = oneof_stats_images, "images"
+
+                slytagsplits_dict[groupname_text] = [
+                    {
+                        "name": category,
+                        "split_size": len(items),
+                        "type": txt,
+                    }
+                    for category, items in tmp[tag_oneof.name].items()
+                ]
+            if isinstance(slytag_names, list):
+                tags_none = [project_meta.get_tag_meta(x) for x in slytag_names]
+                tags_none = [x for x in tags_none if x.value_type == sly.TagValueType.NONE]
+
+                data = []
+
+                for tag in tags_none:
+                    if tag.applicable_to in IMAGES_ONEOF:
+                        for img_tag in stats["imageTags"]["items"]:
+                            if img_tag["tagMeta"]["name"] == tag.name:
+                                data.append(("images", img_tag))
+                                break
+                    if tag.applicable_to in OBJECTS_ONEOF:
+                        for obj_tag in stats["objectTags"]["items"]:
+                            if obj_tag["tagMeta"]["name"] == tag.name:
+                                data.append(("instances", obj_tag))
+                                break
+                for idx, item in enumerate(data):
+                    if item[1]["total"] == 0:
+                        del data[idx]
+                if is_tags_ambiguity(data):
+                    raise ValueError("No ambiguity in tags applicability is allowed!")
 
                 sorted_data = sorted((data), key=lambda x: x[1]["total"], reverse=True)
-                slytagsplits_dict[group_name] = [
+
+                slytagsplits_dict[groupname_text] = [
                     {
                         "name": item[1]["tagMeta"]["name"],
                         "split_size": item[1]["total"],
-                        "datasets": item[1]["datasets"],
+                        # "datasets": item[1]["datasets"],
                         "type": item[0],
                     }
                     for item in sorted_data
                     if item[1]["tagMeta"]["name"] in slytag_names
                 ]
-            # elif isinstance(slytag_names, str):
-            #     slytagsplits_dict[group_name] =
 
     splits = {
         "slyds": slydssplits_list,
@@ -476,3 +555,20 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
 
 def get_summary_data_sly(project_info: sly.ProjectInfo) -> Dict:
     return get_summary_data(**project_info.custom_data, project_id=project_info.id)
+
+
+def is_tags_ambiguity(data) -> bool:
+    grouped_data = {}
+
+    for item in data:
+        data_type, details = item
+        name = details["tagMeta"]["name"]
+        if name not in grouped_data:
+            grouped_data[name] = []
+        grouped_data[name].append({"type": data_type, **details})
+
+    for tag_json in grouped_data.values():
+        if len(tag_json) > 1:
+            return True
+
+    return False
