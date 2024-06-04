@@ -1,13 +1,20 @@
+from __future__ import annotations
+
 import itertools
 import operator
 import os
 import re
 import textwrap
 from collections import OrderedDict, defaultdict
-from typing import Dict, List, Optional, Union
+
+# import dataset_tools as dtools
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import inflect
 import supervisely as sly
+
+if TYPE_CHECKING:
+    from dataset_tools.repo.project_repo import ProjectRepo
 
 p = (
     inflect.engine()
@@ -93,6 +100,7 @@ def standardize(text: str):
 
 
 def get_summary_data(
+    project_repo: ProjectRepo,
     name: str,
     fullname: str,
     cv_tasks: List[str],
@@ -115,44 +123,12 @@ def get_summary_data(
     tags: List[str] = None,
     **kwargs,
 ) -> Dict:
-    api = sly.Api.from_env()
-    project_id = kwargs.get("project_id", None)
-    project_info = api.project.get_info_by_id(project_id)
-    meta_json = api.project.get_meta(project_id, with_settings=True)
-    project_meta = sly.ProjectMeta.from_json(meta_json)
 
-    stats = api.project.get_stats(project_id)
-
-    oneof_stats_images = defaultdict(lambda: defaultdict(set))
-    oneof_stats_objects = defaultdict(lambda: defaultdict(set))
-    datasets = api.dataset.get_list(project_id)
-    for dataset in datasets:
-        images = api.image.get_list(dataset.id)
-        for image in images:
-            for t in image.tags:
-                tag_meta = project_meta.get_tag_meta_by_id(t["tagId"])
-                if tag_meta.value_type == sly.TagValueType.ONEOF_STRING:
-                    if tag_meta.applicable_to in IMAGES_ONEOF:
-                        oneof_stats_images[tag_meta.name][t["value"]].add(t["entityId"])
-        images = api.image.figure.download(dataset.id)
-        for figures in images.values():
-            for figure in figures:
-                for t in figure.tags:
-                    tag_meta = project_meta.get_tag_meta_by_id(t["tagId"])
-                    if tag_meta.applicable_to in OBJECTS_ONEOF:
-                        oneof_stats_objects[tag_meta.name][t["value"]].add(t["id"])
-
-    def sort_categories(data):
-        sorted_data = {}
-        for tag_name, categories in data.items():
-            sorted_sub_categories = OrderedDict(
-                sorted(categories.items(), key=lambda item: len(item[1]), reverse=True)
-            )
-            sorted_data[tag_name] = sorted_sub_categories
-        return sorted_data
-
-    oneof_stats_images = sort_categories(oneof_stats_images)
-    oneof_stats_objects = sort_categories(oneof_stats_objects)
+    project_meta = project_repo.project_meta
+    stats = project_repo.project_stats
+    project_info = project_repo.project_info
+    oneof_stats_images = project_repo.oneof_stats_images
+    oneof_stats_objects = project_repo.oneof_stats_objects
 
     notsorted = [
         [cls["objectClass"]["name"], cls["total"]] for cls in stats["images"]["objectClasses"]
@@ -265,7 +241,6 @@ def get_summary_data(
         "github_url": github_url,
         "citation_url": citation_url,
         "download_sly_url": download_sly_url,
-        # from supervisely
         "modality": project_info.type,
         "totals": totals_dct,
         "unlabeled_assets_num": unlabeled_num,
@@ -554,8 +529,8 @@ def generate_summary_content(data: Dict, vis_url: str = None) -> str:
     return content
 
 
-def get_summary_data_sly(project_info: sly.ProjectInfo) -> Dict:
-    return get_summary_data(**project_info.custom_data, project_id=project_info.id)
+def get_summary_data_sly(project_repo: ProjectRepo) -> Dict:
+    return get_summary_data(project_repo, **project_repo.custom_data)
 
 
 def is_tags_ambiguity(data) -> bool:

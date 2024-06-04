@@ -73,9 +73,10 @@ class ClassesPerImage(BaseStats):
                 continue
 
             if isinstance(tag_split, str):
-                self._altsplit_columns.append(tag_split)
-                self._sly_tag_split_len += 1
-                self._tag_to_position[tag_split] = self._sly_tag_split_len + 1
+                if self.oneof_stats_images.get(tag_split) is not None:
+                    self._altsplit_columns.append(tag_split)
+                    self._sly_tag_split_len += 1
+                    self._tag_to_position[tag_split] = self._sly_tag_split_len + 1
 
             elif isinstance(tag_split, list):
                 intersection_tags = list(set(tag_split) - self._cls_prevs_tags)

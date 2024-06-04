@@ -24,7 +24,7 @@ from dataset_tools.repo.sample_project import (
     get_sample_image_infos,
 )
 from dataset_tools.templates import DatasetCategory, License
-from dataset_tools.text.generate_summary import list2sentence
+from dataset_tools.text.generate_summary import get_summary_data_sly, list2sentence
 
 DOWNLOAD_ARCHIVE_TEAMFILES_DIR = "/tmp/supervisely/export/export-to-supervisely-format/"
 
@@ -211,35 +211,10 @@ class ProjectRepo:
         self.original_license_path = "LICENSE.md"
         self.original_citation_path = "CITATION.md"
 
-        oneof_stats_images = defaultdict(lambda: defaultdict(set))
-        # oneof_stats_objects = defaultdict(lambda: defaultdict(set))
-        for dataset in self.datasets:
-            images = api.image.get_list(dataset.id)
-            for image in images:
-                for t in image.tags:
-                    tag_meta = self.project_meta.get_tag_meta_by_id(t["tagId"])
-                    if tag_meta.value_type == sly.TagValueType.ONEOF_STRING:
-                        if tag_meta.applicable_to in IMAGES_ONEOF:
-                            oneof_stats_images[tag_meta.name][t["value"]].add(t["entityId"])
-            # images = api.image.figure.download(dataset.id)
-            # for figures in images.values():
-            #     for figure in figures:
-            #         for t in figure.tags:
-            #             tag_meta = self.project_meta.get_tag_meta_by_id(t["tagId"])
-            #             if tag_meta.applicable_to in OBJECTS_ONEOF:
-            #                 oneof_stats_objects[tag_meta.name][t["value"]].add(t["id"])
-
-        def sort_categories(data):
-            sorted_data = {}
-            for tag_name, categories in data.items():
-                sorted_sub_categories = OrderedDict(
-                    sorted(categories.items(), key=lambda item: len(item[1]), reverse=True)
-                )
-                sorted_data[tag_name] = sorted_sub_categories
-            return sorted_data
-
-        self.oneof_stats_images = sort_categories(oneof_stats_images)
-        # self.oneof_stats_objects = sort_categories(oneof_stats_objects)
+        for tag in self.project_meta.tag_metas:
+            if tag.value_type == sly.TagValueType.ONEOF_STRING:
+                self.oneof_stats_images, self.oneof_stats_objects = self.calculate_oneof_stats()
+                break
 
         self._process_download_link(force=settings.get("force_download_sly_url") or False)
         self._update_custom_data()
@@ -891,7 +866,7 @@ class ProjectRepo:
             "VerticalGridAnimated": "visualizations/vertical_grid.webm",
         }
 
-        summary_data = dtools.get_summary_data_sly(self.project_info)
+        summary_data = get_summary_data_sly(self)
 
         if preview_class in classname2path.keys() and sly.fs.file_exists(
             f"./{classname2path[preview_class]}"
@@ -1051,3 +1026,33 @@ class ProjectRepo:
         self.api.file.upload(self.team_id, json_path, tf_repos_path)
 
         sly.logger.info(f"The '{tf_repos_path}' was updated.")
+
+    def calculate_oneof_stats(self):
+        stats_images = defaultdict(lambda: defaultdict(set))
+        stats_objects = defaultdict(lambda: defaultdict(set))
+        for dataset in self.datasets:
+            images = self.api.image.get_list(dataset.id)
+            for image in images:
+                for t in image.tags:
+                    tag_meta = self.project_meta.get_tag_meta_by_id(t["tagId"])
+                    if tag_meta.value_type == sly.TagValueType.ONEOF_STRING:
+                        if tag_meta.applicable_to in IMAGES_ONEOF:
+                            stats_images[tag_meta.name][t["value"]].add(t["entityId"])
+            images = self.api.image.figure.download(dataset.id)
+            for figures in images.values():
+                for figure in figures:
+                    for t in figure.tags:
+                        tag_meta = self.project_meta.get_tag_meta_by_id(t["tagId"])
+                        if tag_meta.applicable_to in OBJECTS_ONEOF:
+                            stats_objects[tag_meta.name][t["value"]].add(t["id"])
+
+        def sort_oneof_categories(data):
+            sorted_data = {}
+            for tag_name, categories in data.items():
+                sorted_categories = OrderedDict(
+                    sorted(categories.items(), key=lambda item: len(item[1]), reverse=True)
+                )
+                sorted_data[tag_name] = sorted_categories
+            return sorted_data
+
+        return sort_oneof_categories(stats_images), sort_oneof_categories(stats_objects)
