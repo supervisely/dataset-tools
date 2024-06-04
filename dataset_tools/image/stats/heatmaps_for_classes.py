@@ -17,6 +17,11 @@ CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
 
 
+def get_thickness(render: np.ndarray, thickness_percent: float) -> int:
+    render_height, render_width, _ = render.shape
+    return int(render_width * thickness_percent / 100)
+
+
 class ClassesHeatmaps(BaseVisual):
     """
     Get heatmaps of visual density of aggregated annotations for every class in the dataset
@@ -65,12 +70,12 @@ class ClassesHeatmaps(BaseVisual):
 
         # new
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes}
-        self.supported_geometry_types = [
-            sly.Polygon.name(),
-            sly.Rectangle.name(),
-            sly.Bitmap.name(),
-            sly.Point.name(),
-        ]
+        # self.supported_geometry_types = [
+        #     sly.Polygon.name(),
+        #     sly.Rectangle.name(),
+        #     sly.Bitmap.name(),
+        #     sly.Point.name(),
+        # ]
 
     def clean(self):
         return self.__init__(self._meta, self._project_stats, self._heatmap_img_size, self.force)
@@ -85,7 +90,8 @@ class ClassesHeatmaps(BaseVisual):
             if self._shortlist_cls is not None:
                 if self._class_ids[figure.class_id] not in self._shortlist_cls:
                     continue
-
+            # if image.id == 30501435:
+            #     pass
             shape = GET_GEOMETRY_FROM_STR(figure.geometry_type)
             try:
                 geometry = shape.from_json(figure.geometry)
@@ -96,13 +102,18 @@ class ClassesHeatmaps(BaseVisual):
                     raise
 
             temp_canvas = np.zeros(img_shape + (3,), dtype=np.uint8)
-            if figure.geometry_type in self.supported_geometry_types:
-                if figure.geometry_type == sly.Point.name():
-                    geometry.draw(temp_canvas, color=(1, 1, 1), thickness=5)
-                else:
-                    geometry.draw(temp_canvas, color=(1, 1, 1))
-                temp_canvas = cv2.resize(temp_canvas, self._heatmap_img_size[::-1])
-                self.classname_heatmap[self._class_ids[figure.class_id]] += temp_canvas
+            # if figure.geometry_type in self.supported_geometry_types:
+            if figure.geometry_type == sly.Point.name():
+                t = get_thickness(temp_canvas, 3)
+                geometry.draw(temp_canvas, color=(1, 1, 1), thickness=t)
+            elif figure.geometry_type in (sly.GraphNodes.name(), sly.Polyline.name()):
+                t = get_thickness(temp_canvas, 2)
+                geometry.draw(temp_canvas, color=(1, 1, 1), thickness=t)
+            else:
+
+                geometry.draw(temp_canvas, color=(1, 1, 1))
+            temp_canvas = cv2.resize(temp_canvas, self._heatmap_img_size[::-1])
+            self.classname_heatmap[self._class_ids[figure.class_id]] += temp_canvas
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         image_height, image_width = ann.img_size
