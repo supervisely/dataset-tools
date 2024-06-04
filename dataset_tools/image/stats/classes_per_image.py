@@ -328,6 +328,8 @@ class ClassesPerImage(BaseStats):
             if isinstance(v, str):
                 if v in self._altsplit_columns:
                     curr_split = v
+                else:
+                    continue
 
             columns_options[columns.index(curr_split)] = {
                 "subtitle": "tag split",

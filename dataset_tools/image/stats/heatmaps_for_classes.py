@@ -1,20 +1,25 @@
 import math
 import os
-from typing import Union
-from supervisely.annotation.json_geometries_map import GET_GEOMETRY_FROM_STR
+from typing import Dict, List, Union
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
-from typing import List, Dict
+
 import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseVisual
 from supervisely import FigureInfo, ImageInfo
+from supervisely.annotation.json_geometries_map import GET_GEOMETRY_FROM_STR
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(CURENT_DIR))
+
+
+def get_thickness(render: np.ndarray, thickness_percent: float) -> int:
+    render_height, render_width, _ = render.shape
+    return int(render_width * thickness_percent / 100)
 
 
 class ClassesHeatmaps(BaseVisual):
@@ -108,10 +113,10 @@ class ClassesHeatmaps(BaseVisual):
         image_height, image_width = ann.img_size
         self._ds_image_sizes.append((image_height, image_width))
         geometry_types_to_heatmap = [
-            sly.Polygon.name(),
-            sly.Rectangle.name(),
-            sly.Bitmap.name(),
-            sly.Point.name(),
+            sly.Polygon,
+            sly.Rectangle,
+            sly.Bitmap,
+            sly.Point,
         ]
 
         for label in ann.labels:
@@ -120,9 +125,10 @@ class ClassesHeatmaps(BaseVisual):
                     continue
 
             temp_canvas = np.zeros(ann.img_size + (3,), dtype=np.uint8)
-            if label.geometry.name() in geometry_types_to_heatmap:
-                if label.geometry.name() == sly.Point.name():
-                    label.draw(temp_canvas, color=(1, 1, 1), thickness=5)
+            if type(label.geometry) in geometry_types_to_heatmap:
+                if type(label.geometry) is sly.Point:
+                    t = get_thickness(temp_canvas, 3)
+                    label.draw(temp_canvas, color=(1, 1, 1), thickness=t)
                 else:
                     label.draw(temp_canvas, color=(1, 1, 1))
                 temp_canvas = cv2.resize(temp_canvas, self._heatmap_img_size[::-1])
