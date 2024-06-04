@@ -110,7 +110,6 @@ class ClassesHeatmaps(BaseVisual):
                 t = get_thickness(temp_canvas, 2)
                 geometry.draw(temp_canvas, color=(1, 1, 1), thickness=t)
             else:
-
                 geometry.draw(temp_canvas, color=(1, 1, 1))
             temp_canvas = cv2.resize(temp_canvas, self._heatmap_img_size[::-1])
             self.classname_heatmap[self._class_ids[figure.class_id]] += temp_canvas

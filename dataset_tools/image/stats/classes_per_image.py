@@ -156,11 +156,11 @@ class ClassesPerImage(BaseStats):
 
     def to_json2(self):
 
-        columns = ["Image", "Split", "Height", "Width"]  # , "Unlabeled"]
+        columns = ["Image", "Dataset", "Height", "Width"]  # , "Unlabeled"]
 
         columns_options = [None] * len(columns)
 
-        columns_options[columns.index("Split")] = {
+        columns_options[columns.index("Dataset")] = {
             "subtitle": "folder name",
         }
         # TODO Add slytagsplits and tree-folders
