@@ -326,7 +326,8 @@ class ClassesPerImage(BaseStats):
             if curr_split == "__POSTTEXT__" or curr_split == "__PRETEXT__":
                 continue
             if isinstance(v, str):
-                curr_split = v
+                if v in self._altsplit_columns:
+                    curr_split = v
 
             columns_options[columns.index(curr_split)] = {
                 "subtitle": "tag split",
