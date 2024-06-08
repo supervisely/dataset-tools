@@ -58,10 +58,15 @@ class TagsImagesCooccurrence(BaseStats):
             self._tag_name_to_applicable[im_tag_meta.name] = im_tag_meta.applicable_to
             self._tag_names.append(im_tag_meta.name)
 
-        self._references = defaultdict(lambda: defaultdict(list))
+        # self._references = defaultdict(lambda: defaultdict(list))
 
         self._num_tags = len(self._tag_names)
-        self.co_occurrence_matrix = np.zeros((self._num_tags, self._num_tags), dtype=int)
+        # self.co_occurrence_matrix = np.zeros((self._num_tags, self._num_tags), dtype=int)
+
+        self.co_occurrence_dict = {
+            class_id_x: {class_id_y: set() for class_id_y in self._tag_ids}
+            for class_id_x in self._tag_ids
+        }
 
         # self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
 
@@ -71,26 +76,32 @@ class TagsImagesCooccurrence(BaseStats):
 
         tags = set()
         for tag in image.tags:
-            if self._tag_ids.get(tag["tagId"]) is not None:  # TODO remove later
-                tag_name = self._tag_ids[tag["tagId"]]
-                tags.add(tag_name)
+            # if self._tag_ids.get(tag["tagId"]) is not None:  # TODO remove later
+            tags.add(tag["tagId"])
 
-        for tag_name in tags:
-            idx = self._name_to_index[tag_name]
-            self.co_occurrence_matrix[idx][idx] += 1
-            self._references[idx][idx].append(image.id)
+        for tag_id in tags:
+            # idx = self._name_to_index[tag_id]
+            self.co_occurrence_dict[tag_id][tag_id].add(image.id)
+            # self.co_occurrence_matrix[idx][idx] += 1
+            # self._references[idx][idx].append(image.id)
 
-        tags = list(tags)
-        n = len(tags)
-        for i in range(n):
-            for j in range(i + 1, n):
-                idx_i = self._name_to_index[tags[i]]
-                idx_j = self._name_to_index[tags[j]]
-                self.co_occurrence_matrix[idx_i][idx_j] += 1
-                self.co_occurrence_matrix[idx_j][idx_i] += 1
+        for tag_id_i in tags:
+            for tag_id_j in tags:
+                self.co_occurrence_dict[tag_id_i][tag_id_j].add(image.id)
+                self.co_occurrence_dict[tag_id_j][tag_id_i].add(image.id)
 
-                self._references[idx_i][idx_j].append(image.id)
-                self._references[idx_j][idx_i].append(image.id)
+        # tags = list(tags)
+        # n = len(tags)
+        # for i in range(n):
+        #     for j in range(i + 1, n):
+        #         idx_i = self._name_to_index[tags[i]]
+        #         idx_j = self._name_to_index[tags[j]]
+
+        # self.co_occurrence_matrix[idx_i][idx_j] += 1
+        # self.co_occurrence_matrix[idx_j][idx_i] += 1
+
+        # self._references[idx_i][idx_j].append(image.id)
+        # self._references[idx_j][idx_i].append(image.id)
 
     def clean(self) -> None:
         self.__init__(self._meta, self.force)
@@ -112,15 +123,32 @@ class TagsImagesCooccurrence(BaseStats):
                 "applicableTo": self._tag_name_to_applicable[self._tag_names[idx]],
             }
 
-        data = [
-            [value] + sublist
-            for value, sublist in zip(self._tag_names, self.co_occurrence_matrix.tolist())
-        ]
+        keys = list(self.co_occurrence_dict.keys())
+        index = {key: idx for idx, key in enumerate(keys)}
+        size = len(keys)
+        nested_list = [[None] * size for _ in range(size)]
+        references = defaultdict(lambda: defaultdict(list))
+
+        for row_key, subdict in self.co_occurrence_dict.items():
+            for col_key, image_ids in subdict.items():
+                row_idx = index[row_key]
+                col_idx = index[col_key]
+                nested_list[row_idx][col_idx] = len(image_ids)
+                nested_list[col_idx][row_idx] = len(image_ids)
+                references[row_idx][col_idx] = list(image_ids)
+                references[col_idx][row_idx] = list(image_ids)
+
+        data = [[value] + sublist for value, sublist in zip(self._tag_names, nested_list)]
+
+        def _to_dict(d):
+            if isinstance(d, defaultdict):
+                d = {k: _to_dict(v) for k, v in d.items()}
+            return d
 
         res = {
             "columns": ["Tag"] + self._tag_names,
             "data": data,
-            "referencesCell": self._references,  # row - col
+            "referencesCell": _to_dict(references),
             "options": options,
             "colomnsOptions": colomns_options,
         }
@@ -130,91 +158,126 @@ class TagsImagesCooccurrence(BaseStats):
         if self._num_tags == 0:
             return
 
-        matrix = np.array(self.co_occurrence_matrix, dtype="int32")
-        n = self._num_tags
-        ref_list = [[None for _ in range(n)] for _ in range(n)]
-        for i in range(n):
-            for j in range(n):
-                ref_list[i][j] = set(self._references[i][j])
+        return np.array(self.co_occurrence_dict, dtype=object)
 
-        references = np.array(ref_list, dtype=object)
+        # matrix = np.array(self.co_occurrence_matrix, dtype="int32")
+        # n = self._num_tags
+        # ref_list = [[None for _ in range(n)] for _ in range(n)]
+        # for i in range(n):
+        #     for j in range(n):
+        #         ref_list[i][j] = set(self._references[i][j])
 
-        return np.stack([matrix, references], axis=0)
+        # references = np.array(ref_list, dtype=object)
+
+        # return np.stack([matrix, references], axis=0)
 
     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
         if self._num_tags == 0:
             return
+
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
-
-        res = np.zeros((self._num_tags, self._num_tags), dtype="int32")
-        is_zero_area = None
-        references = []
-
-        def merge_elements(a, b):
-            if a is None:
-                return b
-            elif b is None:
-                return a
-            else:
-                return [
-                    (
-                        elem1 + list(elem2)
-                        if elem1 is not None and elem2 is not None
-                        else elem1 or list(elem2)
-                    )
-                    for elem1, elem2 in zip(a, b)
-                ]
-
-        def update_shape(
-            array: np.ndarray, updated_classes: dict, insert_val=0
-        ) -> Tuple[np.ndarray, np.ndarray]:
-            if len(updated_classes) > 0:
-                _updated_classes = list(updated_classes.values())
-                indices = list(sorted([self._tag_names.index(cls) for cls in _updated_classes]))
-                sdata = array[0].copy()
-                rdata = array[1].copy().tolist()
-
-                for ind in indices:
-                    for axis in range(2):
-                        sdata = np.apply_along_axis(
-                            lambda line: np.insert(line, [ind], [insert_val]),
-                            axis=axis,
-                            arr=sdata,
-                        )
-                    empty_line = [[] for _ in range(len(rdata))]
-                    rdata.insert(ind, empty_line)
-                    rdata = [sublist[:ind] + [[]] + sublist[ind:] for sublist in rdata]
-
-                return sdata, np.array(rdata, dtype=object)
-            return array[0], array[1]
-
         for file in files:
-            loaded_data = np.load(file, allow_pickle=True)
-            if np.any(loaded_data == None):
-                continue
+            loaded_data = np.load(file, allow_pickle=True).tolist()
+            if loaded_data is not None:
+                loaded_tags = set(loaded_data)
+                true_tags = set(self._tag_ids)
 
-            stat_data, ref_data = loaded_data[0], loaded_data[1]
-            if loaded_data.shape[1] != self._num_tags:
-                stat_data, ref_data = update_shape(loaded_data, updated_classes)
+                added = true_tags - loaded_tags
+                for tag_id_new in added:
+                    loaded_data[tag_id_new][tag_id_new] = set()
+                    for tag_id_old in loaded_tags:
+                        loaded_data[tag_id_new][tag_id_old] = set()
+                        loaded_data[tag_id_old][tag_id_new] = set()
 
-            res = np.add(stat_data, res)
+                removed = loaded_tags - true_tags
+                for tag_id_rm in removed:
+                    loaded_data.pop(tag_id_rm)
+                    for tag_id_keep in true_tags:
+                        loaded_data[tag_id_keep].pop(tag_id_rm)
 
-            if len(references) == 0:
-                references = np.empty_like(res).tolist()
+                save_data = np.array(loaded_data, dtype=object)
+                np.save(file, save_data)
 
-            references = [
-                merge_elements(sublist1, sublist2)
-                for sublist1, sublist2 in zip(references, ref_data.tolist())
-            ]
+                for tag_id_rm in true_tags:
+                    for tag_id_j in true_tags:
+                        self.co_occurrence_dict[tag_id_rm][tag_id_j].update(
+                            loaded_data[tag_id_rm][tag_id_j]
+                        )
+                        self.co_occurrence_dict[tag_id_j][tag_id_rm].update(
+                            loaded_data[tag_id_rm][tag_id_j]
+                        )
 
-            np.save(file, np.stack([stat_data, ref_data]))
+        # files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
-        self.co_occurrence_matrix = res
-        for i, sublist in enumerate(references):
-            for j, inner_list in enumerate(sublist):
-                self._references[i][j] = list(inner_list)
+        # res = np.zeros((self._num_tags, self._num_tags), dtype="int32")
+        # is_zero_area = None
+        # references = []
 
-        return res
+        # def merge_elements(a, b):
+        #     if a is None:
+        #         return b
+        #     elif b is None:
+        #         return a
+        #     else:
+        #         return [
+        #             (
+        #                 elem1 + list(elem2)
+        #                 if elem1 is not None and elem2 is not None
+        #                 else elem1 or list(elem2)
+        #             )
+        #             for elem1, elem2 in zip(a, b)
+        #         ]
+
+        # def update_shape(
+        #     array: np.ndarray, updated_classes: dict, insert_val=0
+        # ) -> Tuple[np.ndarray, np.ndarray]:
+        #     if len(updated_classes) > 0:
+        #         _updated_classes = list(updated_classes.values())
+        #         indices = list(sorted([self._tag_names.index(cls) for cls in _updated_classes]))
+        #         sdata = array[0].copy()
+        #         rdata = array[1].copy().tolist()
+
+        #         for ind in indices:
+        #             for axis in range(2):
+        #                 sdata = np.apply_along_axis(
+        #                     lambda line: np.insert(line, [ind], [insert_val]),
+        #                     axis=axis,
+        #                     arr=sdata,
+        #                 )
+        #             empty_line = [[] for _ in range(len(rdata))]
+        #             rdata.insert(ind, empty_line)
+        #             rdata = [sublist[:ind] + [[]] + sublist[ind:] for sublist in rdata]
+
+        #         return sdata, np.array(rdata, dtype=object)
+        #     return array[0], array[1]
+
+        # for file in files:
+        #     loaded_data = np.load(file, allow_pickle=True)
+        #     if np.any(loaded_data == None):
+        #         continue
+
+        #     stat_data, ref_data = loaded_data[0], loaded_data[1]
+        #     if loaded_data.shape[1] != self._num_tags:
+        #         stat_data, ref_data = update_shape(loaded_data, updated_tags)
+
+        #     res = np.add(stat_data, res)
+
+        #     if len(references) == 0:
+        #         references = np.empty_like(res).tolist()
+
+        #     references = [
+        #         merge_elements(sublist1, sublist2)
+        #         for sublist1, sublist2 in zip(references, ref_data.tolist())
+        #     ]
+
+        #     np.save(file, np.stack([stat_data, ref_data]))
+
+        # self.co_occurrence_matrix = res
+        # for i, sublist in enumerate(references):
+        #     for j, inner_list in enumerate(sublist):
+        #         self._references[i][j] = list(inner_list)
+
+        # return res
 
 
 class TagsObjectsCooccurrence(BaseStats):
