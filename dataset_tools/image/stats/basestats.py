@@ -43,7 +43,7 @@ class BaseStats:
         """Get name of your class for your file system"""
         return camel_to_snake(self.__class__.__name__)
 
-    def sew_chunks(self) -> str:
+    def sew_chunks(self, chunks_dir: str) -> str:
         raise NotImplementedError()
 
     def _get_summated_canvas(self, bitmap_masks_rgb: List[np.ndarray]) -> np.ndarray:

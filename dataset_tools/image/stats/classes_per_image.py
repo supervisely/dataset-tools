@@ -8,6 +8,7 @@ from supervisely.api.entity_annotation.figure_api import FigureInfo
 from supervisely.api.image_api import ImageInfo
 
 from dataset_tools.image.stats.basestats import BaseStats
+from collections import defaultdict
 
 UNLABELED_COLOR = [0, 0, 0]
 CLASSES_CNT_LIMIT = 200
@@ -106,10 +107,21 @@ class ClassesPerImage(BaseStats):
 
         # new
 
-        self._data = []
+        # self._data = []
         self._splits = {ds.id: ds.name for ds in datasets}
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes}
         self._references = []
+
+        row_dict = {
+            y: None if y != "classes" else {}
+            for y in ("image", "dataset", "height", "width", "classes")
+        }
+        row_dict["classes"].update({y: [0, 0] for y in self._class_ids})
+
+        def _custom_dict():
+            return row_dict
+
+        self._data_dict = defaultdict(_custom_dict)
 
     def clean(self):
         self.__init__(
@@ -130,12 +142,14 @@ class ClassesPerImage(BaseStats):
         areas = {class_id: 0 for class_id in self._class_ids}
         # bboxes = {class_id: [] for class_id in self._class_ids}
 
-        row = [
-            image.name,
-            self._splits[image.dataset_id],
-            image.height,
-            image.width,
-        ]
+        self._data_dict[image.id].update(
+            {
+                "image": image.name,
+                "dataset": self._splits[image.dataset_id],
+                "height": image.height,
+                "width": image.width,
+            }
+        )
 
         image_area = image.width * image.height
 
@@ -149,24 +163,40 @@ class ClassesPerImage(BaseStats):
             # canvas = np.zeros((image.height, image.width), dtype=int)
             # unlabeled_cls_area = self._count_unlabeled_area(canvas, bboxes[class_id])
             # areas[class_id] = (1 - unlabeled_cls_area) * 100
-            row.extend([counts[class_id], round(areas[class_id], 2)])
-
-        self._data.append(row)
-        self._references.append([image.id])
+            self._data_dict[image.id]["classes"][class_id] = [
+                counts[class_id],
+                round(areas[class_id], 2),
+            ]
 
     def to_json2(self):
 
         columns = ["Image", "Dataset", "Height", "Width"]  # , "Unlabeled"]
-
         columns_options = [None] * len(columns)
+
+        fkey = next(iter(self._data_dict))
+        cls_ids = self._data_dict[fkey]["classes"]
+        for cls_id in cls_ids:
+            subcols = [self._class_ids[cls_id]] * 2
+            columns.extend(subcols)
+
+        data = []
+        references = []
+
+        for image_id, row in self._data_dict.items():
+            data.append(
+                [
+                    row["image"],
+                    row["dataset"],
+                    row["height"],
+                    row["width"],
+                ]
+                + [value for x in cls_ids for value in row["classes"][x]]
+            )
+            references.append(image_id)
 
         columns_options[columns.index("Dataset")] = {
             "subtitle": "folder name",
         }
-        # TODO Add slytagsplits and tree-folders
-        # columns_options[columns.index("Split")] = {
-        #     "subtitle": "tag name",
-        # }
         columns_options[columns.index("Height")] = {
             "postfix": "px",
         }
@@ -178,19 +208,18 @@ class ClassesPerImage(BaseStats):
         #     "postfix": "%",
         # }
 
-        # TODO добавить алфавитную сортировку по изображениям + сплитам
-        for class_name in self._class_ids.values():
+        for _ in self._class_ids:
             columns_options.append({"subtitle": "objects count"})
             columns_options.append({"subtitle": "covered area", "postfix": "%"})
-            columns.extend([class_name] * 2)
 
         options = {"fixColumns": 1}
+
         res = {
             "columns": columns,
             "columnsOptions": columns_options,
-            "data": self._data,
+            "data": data,
             "options": options,
-            "referencesRow": self._references,
+            "referencesRow": references,
         }
         return res
 
@@ -340,53 +369,33 @@ class ClassesPerImage(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        return np.array(
-            [[a] + [b] for a, b in zip(self._data, self._references)],
-            dtype=object,
-        )
+        return np.array(dict(self._data_dict), dtype=object)
 
     # @sly.timeit
-    def sew_chunks(self, chunks_dir: str, updated_classes: dict = {}):
+    def sew_chunks(self, chunks_dir: str):
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
-
-        res = []
-        is_zero_area = None
-        references = []
-        labeled_cls = self._class_names[1:]
-
-        def update_shape(loaded_data: list, updated_classes, insert_val=0) -> list:
-            if len(updated_classes) > 0:
-                classnames = list(updated_classes.values())
-                indices = list(sorted([labeled_cls.index(cls) for cls in classnames]))
-                for idx, image in enumerate(loaded_data):
-                    stat_data, ref_data = image
-                    cls_data = stat_data[5:]
-                    for ind in indices:
-                        cls_data.insert(2 * ind, insert_val)
-                        cls_data.insert(2 * ind + 1, insert_val)
-                    stat_data = stat_data[:5] + cls_data
-                    loaded_data[idx] = [stat_data, ref_data]
-            return loaded_data
-
         for file in files:
+
             loaded_data = np.load(file, allow_pickle=True).tolist()
-            if len(loaded_data[0][0][4:]) != (len(labeled_cls) * 2):  # TODO unlabeled ..[5:]..
-                loaded_data = update_shape(loaded_data, updated_classes)
+            if loaded_data is not None:
+                fkey = next(iter(loaded_data))
+                loaded_classes = set(loaded_data[fkey]["classes"])
+                true_classes = set(self._class_ids)
 
-            for image in loaded_data:
-                stat_data, ref_data = image
-                res.append(stat_data)
-                references.append(ref_data)
+                added = true_classes - loaded_classes
+                removed = loaded_classes - true_classes
 
-            save_data = np.array(loaded_data, dtype=object)
-            np.save(file, save_data)
+                if len(added) > 0 or len(removed) > 0:
+                    for row in loaded_data.values():
+                        for cls_id_new in added:
+                            row["classes"][cls_id_new] = [0, 0]
+                        for cls_id_rm in removed:
+                            row["classes"].pop(cls_id_rm, None)
 
-        self._stats["data"] = res
+                save_data = np.array(loaded_data, dtype=object)
+                np.save(file, save_data)
 
-        self._data = res
-        self._references = references
-
-        return np.array(res)
+                self._data_dict.update(loaded_data)
 
     def _count_unlabeled_area(self, canvas, bounding_boxes):
         for bbox in bounding_boxes:

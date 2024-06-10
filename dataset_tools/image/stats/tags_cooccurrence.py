@@ -100,12 +100,6 @@ class TagsImagesCooccurrence(BaseStats):
         colomns_options = [None] * (len(self._tag_names) + 1)
         colomns_options[0] = {"type": "tag"}  # not used in Web
 
-        for idx in range(len(colomns_options) - 1):
-            colomns_options[idx + 1] = {
-                "tagType": self._tag_name_to_type[self._tag_names[idx]],
-                "applicableTo": self._tag_name_to_applicable[self._tag_names[idx]],
-            }
-
         keys = list(self._tag_ids)
         index = {key: idx for idx, key in enumerate(keys)}
         size = self._num_tags
@@ -135,7 +129,6 @@ class TagsImagesCooccurrence(BaseStats):
     def to_numpy_raw(self):
         if self._num_tags == 0:
             return
-
         return np.array(self.co_occurrence_dict, dtype=object)
 
     def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
@@ -160,8 +153,8 @@ class TagsImagesCooccurrence(BaseStats):
                 removed = loaded_tags - true_tags
                 for tag_id_rm in removed:
                     loaded_data.pop(tag_id_rm)
-                    for tag_id_keep in true_tags:
-                        loaded_data[tag_id_keep].pop(tag_id_rm)
+                    for tag_id in true_tags:
+                        loaded_data[tag_id].pop(tag_id_rm)
 
                 save_data = np.array(loaded_data, dtype=object)
                 np.save(file, save_data)

@@ -52,6 +52,10 @@ class ClassCooccurrence(BaseStats):
             self._class_to_index[obj_class.sly_id] = idx
 
         self._images_set = {class_id: set() for class_id in self._class_ids}
+        self.co_occurrence_dict = {
+            cls_id_x: {cls_id_y: set() for cls_id_y in self._class_ids}
+            for cls_id_x in self._class_ids
+        }
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
@@ -60,28 +64,70 @@ class ClassCooccurrence(BaseStats):
             return
 
         classes = set()
-        for f in figures:
-            classes.add(f.class_id)
+        for figure in figures:
+            classes.add(figure.class_id)
 
-        for class_id in classes:
-            idx = self._class_to_index[class_id]
-            self.co_occurrence_matrix[idx][idx] += 1
-            self._references[idx][idx].append(image.id)
+        for cls_id in classes:
+            self.co_occurrence_dict[cls_id][cls_id].add(image.id)
 
-        classes = list(classes)
-        n = len(classes)
-        for i in range(n):
-            for j in range(i + 1, n):
-                idx_i = self._class_to_index[classes[i]]
-                idx_j = self._class_to_index[classes[j]]
-                self.co_occurrence_matrix[idx_i][idx_j] += 1
-                self.co_occurrence_matrix[idx_j][idx_i] += 1
+        for cls_id_i in classes:
+            for cls_id_j in classes:
+                self.co_occurrence_dict[cls_id_i][cls_id_j].add(image.id)
+                self.co_occurrence_dict[cls_id_j][cls_id_i].add(image.id)
 
-                self._references[idx_i][idx_j].append(image.id)
-                self._references[idx_j][idx_i].append(image.id)
+        # for class_id in classes:
+        #     idx = self._class_to_index[class_id]
+        #     self.co_occurrence_matrix[idx][idx] += 1
+        #     self._references[idx][idx].append(image.id)
+
+        # classes = list(classes)
+        # n = len(classes)
+        # for i in range(n):
+        #     for j in range(i + 1, n):
+        #         idx_i = self._class_to_index[classes[i]]
+        #         idx_j = self._class_to_index[classes[j]]
+        #         self.co_occurrence_matrix[idx_i][idx_j] += 1
+        #         self.co_occurrence_matrix[idx_j][idx_i] += 1
+
+        #         self._references[idx_i][idx_j].append(image.id)
+        #         self._references[idx_j][idx_i].append(image.id)
 
     def to_json2(self):
-        return self.to_json()
+        if self._num_classes == 0:
+            return
+
+        options = {
+            "fixColumns": 1,  # not used in Web
+            "cellTooltip": "Click to preview. {currentCell} images have objects of both classes {firstCell} and {currentColumn} at same time",
+        }
+        colomns_options = [None] * (len(self._class_names) + 1)
+        colomns_options[0] = {"type": "class"}  # not used in Web
+
+        keys = list(self._class_ids)
+        index = {key: idx for idx, key in enumerate(keys)}
+        size = self._num_classes
+        nested_list = [[None] * size for _ in range(size)]
+        refs_image_ids = {x: {y: None for y in range(size)} for x in range(size)}
+
+        for row_key, subdict in self.co_occurrence_dict.items():
+            for col_key, image_ids in subdict.items():
+                row_idx = index[row_key]
+                col_idx = index[col_key]
+                nested_list[row_idx][col_idx] = len(image_ids)
+                nested_list[col_idx][row_idx] = len(image_ids)
+                refs_image_ids[row_idx][col_idx] = list(image_ids)
+                refs_image_ids[col_idx][row_idx] = list(image_ids)
+
+        data = [[value] + sublist for value, sublist in zip(self._class_names, nested_list)]
+
+        res = {
+            "columns": ["Class"] + self._class_names,
+            "data": data,
+            "referencesCell": refs_image_ids,
+            "options": options,
+            "colomnsOptions": colomns_options,
+        }
+        return res
 
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         if self._num_classes == 1:
@@ -153,99 +199,57 @@ class ClassCooccurrence(BaseStats):
     def to_numpy_raw(self):
         if self._num_classes == 0:
             return
+        return np.array(self.co_occurrence_dict, dtype=object)
         #  if unlabeled
         # if np.sum(self.co_occurrence_matrix) == 0:
         #     return
-        matrix = np.array(self.co_occurrence_matrix, dtype="int32")
+        # matrix = np.array(self.co_occurrence_matrix, dtype="int32")
 
-        n = self._num_classes
-        ref_list = [[None for _ in range(n)] for _ in range(n)]
-        for i in range(n):
-            for j in range(n):
-                ref_list[i][j] = set(self._references[i][j])
+        # n = self._num_classes
+        # ref_list = [[None for _ in range(n)] for _ in range(n)]
+        # for i in range(n):
+        #     for j in range(n):
+        #         ref_list[i][j] = set(self._references[i][j])
 
-        references = np.array(ref_list, dtype=object)
-        return np.stack([matrix, references], axis=0)
+        # references = np.array(ref_list, dtype=object)
+        # return np.stack([matrix, references], axis=0)
 
-    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str) -> None:
         if self._num_classes == 0:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
-        # res = None
-        res = np.zeros((self._num_classes, self._num_classes), dtype=int)
-        references = []
-
-        def merge_elements(a, b):
-            if a is None:
-                return b
-            elif b is None:
-                return a
-            else:
-                return [
-                    (
-                        elem1 + list(elem2)
-                        if elem1 is not None and elem2 is not None
-                        else elem1 or list(elem2)
-                    )
-                    for elem1, elem2 in zip(a, b)
-                ]
-
-        def update_shape(
-            array: np.ndarray, updated_classes: dict, insert_val=0
-        ) -> Tuple[np.ndarray, np.ndarray]:
-            if len(updated_classes) > 0:
-                _updated_classes = list(updated_classes.values())
-                indices = list(sorted([self._class_names.index(cls) for cls in _updated_classes]))
-                sdata = array[0].copy()
-                rdata = array[1].copy().tolist()
-
-                for ind in indices:
-                    for axis in range(2):
-                        sdata = np.apply_along_axis(
-                            lambda line: np.insert(line, [ind], [insert_val]),
-                            axis=axis,
-                            arr=sdata,
-                        )
-                    empty_line = [[] for _ in range(len(rdata))]
-                    rdata.insert(ind, empty_line)
-                    rdata = [sublist[:ind] + [[]] + sublist[ind:] for sublist in rdata]
-
-                return sdata, np.array(rdata, dtype=object)
-            return array[0], array[1]
-
         for file in files:
-            loaded_data = np.load(file, allow_pickle=True)
-            if np.any(loaded_data == None):
-                continue
+            loaded_data = np.load(file, allow_pickle=True).tolist()
+            if loaded_data is not None:
+                loaded_classes = set(loaded_data)
+                true_classes = set(self._class_ids)
 
-            stat_data, ref_data = loaded_data[0], loaded_data[1]
-            if loaded_data.shape[1] != self._num_classes:
-                stat_data, ref_data = update_shape(loaded_data, updated_classes)
+                added = true_classes - loaded_classes
+                for cls_id_new in added:
+                    loaded_data[cls_id_new] = dict()
+                    loaded_data[cls_id_new][cls_id_new] = set()
+                    for cls_id_old in loaded_classes:
+                        loaded_data[cls_id_new][cls_id_old] = set()
+                        loaded_data[cls_id_old][cls_id_new] = set()
 
-            # if res is None:
-            #     res = np.zeros((self._num_classes, self._num_classes), dtype="int32")
-            res = np.add(stat_data, res)
+                removed = loaded_classes - true_classes
+                for cls_id_rm in removed:
+                    loaded_data.pop(cls_id_rm)
+                    for cls_id in true_classes:
+                        loaded_data[cls_id].pop(cls_id_rm)
 
-            if len(references) == 0:
-                references = np.empty_like(res).tolist()
+                save_data = np.array(loaded_data, dtype=object)
+                np.save(file, save_data)
 
-            references = [
-                merge_elements(sublist1, sublist2)
-                for sublist1, sublist2 in zip(references, ref_data.tolist())
-            ]
-
-            np.save(file, np.stack([stat_data, ref_data]))
-
-        # if res is None:
-        #     np.zeros((self._num_classes, self._num_classes), dtype=int)
-
-        self.co_occurrence_matrix = res
-        for i, sublist in enumerate(references):
-            for j, inner_list in enumerate(sublist):
-                self._references[i][j] = list(inner_list)
-
-        return res
+                for cls_id_i in true_classes:
+                    for cls_id_j in true_classes:
+                        self.co_occurrence_dict[cls_id_i][cls_id_j].update(
+                            loaded_data[cls_id_i].get(cls_id_j, set())
+                        )
+                        self.co_occurrence_dict[cls_id_j][cls_id_i].update(
+                            loaded_data[cls_id_j].get(cls_id_i, set())
+                        )
 
 
 class ClassToTagCooccurrence(BaseStats):
@@ -376,7 +380,7 @@ class ClassToTagCooccurrence(BaseStats):
             {"objects": self.co_occurrence_dict, "images": self.references_dict}, dtype=object
         )
 
-    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str) -> None:
         if self._num_classes == 0:
             return
         if self._num_tags == 0:
