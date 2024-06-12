@@ -100,6 +100,12 @@ class TagsImagesCooccurrence(BaseStats):
         colomns_options = [None] * (len(self._tag_names) + 1)
         colomns_options[0] = {"type": "tag"}  # not used in Web
 
+        for idx in range(len(colomns_options) - 1):
+            colomns_options[idx + 1] = {
+                "tagType": self._tag_name_to_type[self._tag_names[idx]],
+                "applicableTo": self._tag_name_to_applicable[self._tag_names[idx]],
+            }
+
         keys = list(self._tag_ids)
         index = {key: idx for idx, key in enumerate(keys)}
         size = self._num_tags
