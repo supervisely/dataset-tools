@@ -106,22 +106,9 @@ class ClassesPerImage(BaseStats):
             self.update_freq = MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / total
 
         # new
-
-        # self._data = []
         self._splits = {ds.id: ds.name for ds in datasets}
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes}
-        self._references = []
-
-        row_dict = {
-            y: None if y != "classes" else {}
-            for y in ("image", "dataset", "height", "width", "classes")
-        }
-        row_dict["classes"].update({y: [0, 0] for y in self._class_ids})
-
-        def _custom_dict():
-            return row_dict
-
-        self._data_dict = defaultdict(_custom_dict)
+        self._data_dict = {}
 
     def clean(self):
         self.__init__(
@@ -142,14 +129,12 @@ class ClassesPerImage(BaseStats):
         areas = {class_id: 0 for class_id in self._class_ids}
         # bboxes = {class_id: [] for class_id in self._class_ids}
 
-        self._data_dict[image.id].update(
-            {
-                "image": image.name,
-                "dataset": self._splits[image.dataset_id],
-                "height": image.height,
-                "width": image.width,
-            }
-        )
+        row_dict = {
+            "image": image.name,
+            "dataset": self._splits[image.dataset_id],
+            "height": image.height,
+            "width": image.width,
+        }
 
         image_area = image.width * image.height
 
@@ -159,14 +144,17 @@ class ClassesPerImage(BaseStats):
             areas[figure.class_id] += area_percent
             # bboxes[figure.class_id].append(figure.geometry_meta["bbox"])
 
+        row_dict["classes"] = dict()
         for class_id in self._class_ids:
             # canvas = np.zeros((image.height, image.width), dtype=int)
             # unlabeled_cls_area = self._count_unlabeled_area(canvas, bboxes[class_id])
             # areas[class_id] = (1 - unlabeled_cls_area) * 100
-            self._data_dict[image.id]["classes"][class_id] = [
+            row_dict["classes"][class_id] = [
                 counts[class_id],
                 round(areas[class_id], 2),
             ]
+
+        self._data_dict[image.id] = row_dict
 
     def to_json2(self):
 
@@ -369,7 +357,7 @@ class ClassesPerImage(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        return np.array(dict(self._data_dict), dtype=object)
+        return np.array(self._data_dict, dtype=object)
 
     # @sly.timeit
     def sew_chunks(self, chunks_dir: str):
@@ -403,38 +391,3 @@ class ClassesPerImage(BaseStats):
             y_min, x_min, y_max, x_max = bbox
             canvas[y_min:y_max, x_min:x_max] = 1
         return np.sum(canvas == 0) / canvas.size
-
-
-# canvas = np.zeros((image.height, image.width), dtype=np.uint8)
-
-# if figures[0].geometry is None:
-#     unlabeled_area = image_area
-#     for figure in figures:
-#         unlabeled_area -= int(figure.area)
-#     unlabeled_percent = round(unlabeled_area / image_area * 100, 2)
-# else:  # TODO: remove later
-#     for figure in figures:
-#         geom = figure.geometry.get(sly.Bitmap.geometry_name())
-#         if geom is not None:
-#             mask = sly.Bitmap.base64_2_data(geom["data"])
-#             canvas = self.project_mask(canvas, mask, geom["origin"])
-#         geom = figure.geometry.get("points")
-#         if geom is not None:
-#             if len(geom["exterior"]) == 2:
-#                 lt, rb = geom["exterior"][0], geom["exterior"][1]
-#                 fig = sly.Rectangle(lt[1], lt[0], rb[1], rb[0])
-#                 mask = fig.get_mask((image.height, image.width))
-#                 canvas = self.project_mask(canvas, mask)
-#             else:
-#                 # _exterior = [[el[1], el[0]] for el in geom["exterior"]]
-#                 # _interior = [[el[1], el[0]] for el in geom["interior"]]
-#                 _exterior = geom["exterior"]
-#                 _interior = geom["interior"]
-#                 fig = sly.Polygon(
-#                     _exterior, _interior
-#                 )  # TODO неправильный unlabeled (площади не матчатся)
-#                 mask = fig.get_mask((image.height, image.width))
-#                 canvas = self.project_mask(canvas, mask)
-
-#     unlabeled = np.count_nonzero(canvas == 0)
-#     unlabeled_percent = round((unlabeled / canvas.size) * 100, 2)

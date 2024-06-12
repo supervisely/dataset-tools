@@ -208,7 +208,6 @@ class ObjectsDistribution(BaseStats):
                     references[class_title] = reference
 
         hmp = HeatmapChart(
-            # title="Objects on images - distribution for every class",
             title="",
             xaxis_title="Number of objects on image",
             color_range="row",
@@ -252,7 +251,7 @@ class ObjectsDistribution(BaseStats):
         return np.array(self._distribution_dict, dtype=object)
 
     # @sly.timeit
-    def sew_chunks(self, chunks_dir: str, updated_classes: dict) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str) -> np.ndarray:
         # if len(updated_classes) > 0:
         #     self._class_ids.update(updated_classes)
 

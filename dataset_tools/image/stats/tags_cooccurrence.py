@@ -131,7 +131,7 @@ class TagsImagesCooccurrence(BaseStats):
             return
         return np.array(self.co_occurrence_dict, dtype=object)
 
-    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str) -> np.ndarray:
         if self._num_tags == 0:
             return
 
@@ -299,7 +299,7 @@ class TagsObjectsCooccurrence(BaseStats):
             {"objects": self.co_occurrence_dict, "images": self.references_dict}, dtype=object
         )
 
-    def sew_chunks(self, chunks_dir: str, updated_classes: List[str] = []) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str) -> np.ndarray:
         if self._num_tags == 0:
             return
 
@@ -483,7 +483,7 @@ class TagsImagesOneOfDistribution(BaseStats):
         return np.array(_data, dtype=object)
 
     # @sly.timeit
-    def sew_chunks(self, chunks_dir: str, updated_classes: dict) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str) -> np.ndarray:
 
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
@@ -676,7 +676,7 @@ class TagsObjectsOneOfDistribution(BaseStats):
         return np.array(_data, dtype=object)
 
     # @sly.timeit
-    def sew_chunks(self, chunks_dir: str, updated_classes: dict) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str) -> np.ndarray:
 
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 

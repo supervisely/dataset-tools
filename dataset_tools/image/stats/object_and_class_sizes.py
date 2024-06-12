@@ -270,7 +270,7 @@ class ObjectSizes(BaseStats):
         # return np.array((self._data, self._references))
 
     # @sly.timeit
-    def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         res = []
@@ -534,7 +534,7 @@ class ClassSizes(BaseStats):
         return np.array(self._data, dtype=object)
 
     # @sly.timeit
-    def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
+    def sew_chunks(self, chunks_dir: str) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         for file in files:
@@ -679,7 +679,7 @@ class ClassesTreemap(BaseStats):
         return np.array(self._data, dtype=object)
 
     # @sly.timeit
-    def sew_chunks(self, chunks_dir, *args, **kwargs) -> np.ndarray:
+    def sew_chunks(self, chunks_dir) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         # TODO handle when class has 0 images
