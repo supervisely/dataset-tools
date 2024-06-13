@@ -40,7 +40,7 @@ class ClassesPerImage(BaseStats):
         sly_tag_split: Optional[dict] = None,
         force: bool = False,
         stat_cache: dict = None,
-        oneof_stats_images: dict = {},
+        oneof_stats_images: dict = None,
     ) -> None:
         self._meta = project_meta
         self.project_stats = project_stats
@@ -66,7 +66,7 @@ class ClassesPerImage(BaseStats):
         self._tag_to_position = {}
         self._sly_tag_split_len = 0
 
-        self.oneof_stats_images = oneof_stats_images
+        self.oneof_stats_images = oneof_stats_images or dict()
 
         for curr_split, tag_split in self._sly_tag_split.items():
             if curr_split == "__POSTTEXT__" or curr_split == "__PRETEXT__":

@@ -211,6 +211,7 @@ class ProjectRepo:
         self.original_license_path = "LICENSE.md"
         self.original_citation_path = "CITATION.md"
 
+        self.oneof_stats_images, self.oneof_stats_objects = None, None
         for tag in self.project_meta.tag_metas:
             if tag.value_type == sly.TagValueType.ONEOF_STRING:
                 self.oneof_stats_images, self.oneof_stats_objects = self.calculate_oneof_stats()
