@@ -180,7 +180,7 @@ class ClassesPerImage(BaseStats):
                 ]
                 + [value for x in cls_ids for value in row["classes"][x]]
             )
-            references.append(image_id)
+            references.append([image_id])
 
         columns_options[columns.index("Dataset")] = {
             "subtitle": "folder name",
