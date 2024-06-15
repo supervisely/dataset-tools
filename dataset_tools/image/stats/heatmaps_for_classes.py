@@ -112,12 +112,6 @@ class ClassesHeatmaps(BaseVisual):
     def update(self, image: sly.ImageInfo, ann: sly.Annotation) -> None:
         image_height, image_width = ann.img_size
         self._ds_image_sizes.append((image_height, image_width))
-        geometry_types_to_heatmap = [
-            sly.Polygon,
-            sly.Rectangle,
-            sly.Bitmap,
-            sly.Point,
-        ]
 
         for label in ann.labels:
             if self._shortlist_cls is not None:
@@ -125,14 +119,23 @@ class ClassesHeatmaps(BaseVisual):
                     continue
 
             temp_canvas = np.zeros(ann.img_size + (3,), dtype=np.uint8)
-            if type(label.geometry) in geometry_types_to_heatmap:
-                if type(label.geometry) is sly.Point:
-                    t = get_thickness(temp_canvas, 3)
-                    label.draw(temp_canvas, color=(1, 1, 1), thickness=t)
-                else:
-                    label.draw(temp_canvas, color=(1, 1, 1))
-                temp_canvas = cv2.resize(temp_canvas, self._heatmap_img_size[::-1])
-                self.classname_heatmap[label.obj_class.name] += temp_canvas
+
+            if type(label.geometry) == sly.Point.name():
+                t = get_thickness(temp_canvas, 3)
+                label.draw(temp_canvas, color=(1, 1, 1), thickness=t)
+            elif type(label.geometry) in (sly.GraphNodes.name(), sly.Polyline.name()):
+                t = get_thickness(temp_canvas, 2)
+                label.draw(temp_canvas, color=(1, 1, 1), thickness=t)
+            else:
+                label.draw(temp_canvas, color=(1, 1, 1))
+
+            if type(label.geometry) is sly.Point:
+                t = get_thickness(temp_canvas, 3)
+                label.draw(temp_canvas, color=(1, 1, 1), thickness=t)
+            else:
+                label.draw(temp_canvas, color=(1, 1, 1))
+            temp_canvas = cv2.resize(temp_canvas, self._heatmap_img_size[::-1])
+            self.classname_heatmap[label.obj_class.name] += temp_canvas
 
     def to_image(
         self,
