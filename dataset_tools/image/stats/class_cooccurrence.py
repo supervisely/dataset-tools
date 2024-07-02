@@ -75,23 +75,6 @@ class ClassCooccurrence(BaseStats):
                 self.co_occurrence_dict[cls_id_i][cls_id_j].add(image.id)
                 self.co_occurrence_dict[cls_id_j][cls_id_i].add(image.id)
 
-        # for class_id in classes:
-        #     idx = self._class_to_index[class_id]
-        #     self.co_occurrence_matrix[idx][idx] += 1
-        #     self._references[idx][idx].append(image.id)
-
-        # classes = list(classes)
-        # n = len(classes)
-        # for i in range(n):
-        #     for j in range(i + 1, n):
-        #         idx_i = self._class_to_index[classes[i]]
-        #         idx_j = self._class_to_index[classes[j]]
-        #         self.co_occurrence_matrix[idx_i][idx_j] += 1
-        #         self.co_occurrence_matrix[idx_j][idx_i] += 1
-
-        #         self._references[idx_i][idx_j].append(image.id)
-        #         self._references[idx_j][idx_i].append(image.id)
-
     def to_json2(self):
         if self._num_classes == 0:
             return
@@ -102,6 +85,15 @@ class ClassCooccurrence(BaseStats):
         }
         colomns_options = [None] * (len(self._class_names) + 1)
         colomns_options[0] = {"type": "class"}  # not used in Web
+
+        max_lengths = {key: 0 for key in self.co_occurrence_dict}
+
+        for outer_key, inner_dict in self.co_occurrence_dict.items():
+            for inner_key, value_set in inner_dict.items():
+                max_lengths[inner_key] = max(max_lengths[inner_key], len(value_set))
+
+        for idx, val in enumerate(max_lengths.values(), start=1):
+            colomns_options[idx] = {"maxValue": val}
 
         keys = list(self._class_ids)
         index = {key: idx for idx, key in enumerate(keys)}
