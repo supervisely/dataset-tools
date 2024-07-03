@@ -1039,7 +1039,7 @@ class ProjectRepo:
                     if tag_meta.value_type == sly.TagValueType.ONEOF_STRING:
                         if tag_meta.applicable_to in IMAGES_ONEOF:
                             stats_images[tag_meta.name][t["value"]].add(t["entityId"])
-            images = self.api.image.figure.download(dataset.id)
+            images = self.api.image.figure.download(dataset.id, skip_geometry=True)
             for figures in images.values():
                 for figure in figures:
                     for t in figure.tags:
