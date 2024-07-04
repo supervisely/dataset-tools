@@ -276,9 +276,7 @@ class ClassesPerImage(BaseStats):
                         if tag.meta.value_type == sly.TagValueType.NONE:
                             table_row[tag_position] = tag.name
 
-            area_unl = stat_area.get(
-                "unlabeled", 0
-            )  # if not np.isnan(stat_area["unlabeled"]) else 0
+            area_unl = stat_area.get("unlabeled", 0)
             table_row.extend(
                 [
                     image.height,  # stat_area["height"],
@@ -287,8 +285,8 @@ class ClassesPerImage(BaseStats):
                 ]
             )
             for class_name in self._class_names[1:]:
-                # if class_name == "unlabeled":
-                #     continue
+                if class_name == "unlabeled":
+                    continue
                 if class_name not in cur_class_names:
                     cur_area = 0
                     cur_count = 0
