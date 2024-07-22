@@ -29,7 +29,7 @@ INSTALL_REQUIRES = [
     "gdown>=4.7.1",
     "urllib3==1.26.15",
     "geojson>=3.0.0",
-    "titlecase==2.4",
+    "titlecase>=2.4.1",
     "pycocotools>=2.0.0",
     "memory-profiler==0.61.0",
     "Pympler==1.0.1",
