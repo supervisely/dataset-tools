@@ -325,8 +325,7 @@ class ClassToTagCooccurrence(BaseStats):
             "fixColumns": 1,  # not used in Web
             "cellTooltip": "Click to preview. Class {RowCell} has {currentCell} objects of tag {currentColumn}",
         }
-        colomns_options = [None] * (len(self._tag_names) + 1)
-        colomns_options[0] = {"type": "tag"}  # not used in Web
+        colomns_options = [{"tagType": ""}] * (len(self._tag_names) + 1)
 
         row_index = {key: idx for idx, key in enumerate(self._class_ids)}
         column_index = {key: idx for idx, key in enumerate(self._tag_ids)}
@@ -359,7 +358,7 @@ class ClassToTagCooccurrence(BaseStats):
             "referencesCellCount": data_refs,
             "referencesCell": refs_image_ids,
             "options": options,
-            "colomnsOptions": colomns_options,
+            # "colomnsOptions": colomns_options,
         }
         return res
 
