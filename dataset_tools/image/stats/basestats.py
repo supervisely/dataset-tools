@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import supervisely as sly
 from supervisely._utils import camel_to_snake
+from collections import defaultdict
 
 
 class BaseStats:
@@ -42,6 +43,12 @@ class BaseStats:
     def basename_stem(self) -> str:
         """Get name of your class for your file system"""
         return camel_to_snake(self.__class__.__name__)
+
+    def _base_factory(self):
+        return {"images": set(), "objects": set()}
+
+    def _default_factory(self):
+        return defaultdict(self._base_factory)
 
     def sew_chunks(self, chunks_dir: str) -> str:
         raise NotImplementedError()

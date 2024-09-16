@@ -10,6 +10,8 @@ from typing import Dict, List, Optional
 from itertools import groupby
 import supervisely as sly
 import numpy as np
+import zlib
+import pickle
 
 
 from supervisely.imaging.color import random_rgb
@@ -63,12 +65,12 @@ class TagsImagesCooccurrence(BaseStats):
         self._num_tags = len(self._tag_names)
         # self.co_occurrence_matrix = np.zeros((self._num_tags, self._num_tags), dtype=int)
 
-        self.co_occurrence_dict = {
-            class_id_x: {class_id_y: set() for class_id_y in self._tag_ids}
-            for class_id_x in self._tag_ids
-        }
+        # self.co_occurrence_dict = {
+        #     class_id_x: {class_id_y: set() for class_id_y in self._tag_ids}
+        #     for class_id_x in self._tag_ids
+        # }
 
-        # self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
+        self.data = defaultdict(self._default_factory)
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
         if len(image.tags) == 0:
@@ -79,12 +81,12 @@ class TagsImagesCooccurrence(BaseStats):
             tags.add(tag["tagId"])
 
         for tag_id in tags:
-            self.co_occurrence_dict[tag_id][tag_id].add(image.id)
+            self.data[tag_id][tag_id]["images"].add(image.id)
 
         for tag_id_i in tags:
             for tag_id_j in tags:
-                self.co_occurrence_dict[tag_id_i][tag_id_j].add(image.id)
-                self.co_occurrence_dict[tag_id_j][tag_id_i].add(image.id)
+                self.data[tag_id_i][tag_id_j]["images"].add(image.id)
+                # self.data[tag_id_j][tag_id_i]["images"].add(image.id)
 
     def clean(self) -> None:
         self.__init__(self._meta, self.force)
@@ -98,7 +100,7 @@ class TagsImagesCooccurrence(BaseStats):
             "cellTooltip": "Click to preview. {currentCell} images have both tags {firstCell} and {currentColumn} at same time",
         }
         colomns_options = [None] * (len(self._tag_names) + 1)
-        colomns_options[0] = {"type": "tag"}  # not used in Web
+        colomns_options[0] = {"tagType": ""}  # not used in Web
 
         for idx in range(len(colomns_options) - 1):
             colomns_options[idx + 1] = {
@@ -106,27 +108,27 @@ class TagsImagesCooccurrence(BaseStats):
                 "applicableTo": self._tag_name_to_applicable[self._tag_names[idx]],
             }
 
-        keys = list(self._tag_ids)
-        index = {key: idx for idx, key in enumerate(keys)}
-        size = self._num_tags
-        nested_list = [[None] * size for _ in range(size)]
-        refs_image_ids = {x: {y: None for y in range(size)} for x in range(size)}
+        # keys = list(self._tag_ids)
+        # index = {key: idx for idx, key in enumerate(keys)}
+        # size = self._num_tags
+        # nested_list = [[None] * size for _ in range(size)]
+        # refs_image_ids = {x: {y: None for y in range(size)} for x in range(size)}
 
-        for row_key, subdict in self.co_occurrence_dict.items():
-            for col_key, image_ids in subdict.items():
-                row_idx = index[row_key]
-                col_idx = index[col_key]
-                nested_list[row_idx][col_idx] = len(image_ids)
-                nested_list[col_idx][row_idx] = len(image_ids)
-                refs_image_ids[row_idx][col_idx] = list(image_ids)
-                refs_image_ids[col_idx][row_idx] = list(image_ids)
+        # for row_key, subdict in self.co_occurrence_dict.items():
+        #     for col_key, image_ids in subdict.items():
+        #         row_idx = index[row_key]
+        #         col_idx = index[col_key]
+        #         nested_list[row_idx][col_idx] = len(image_ids)
+        #         nested_list[col_idx][row_idx] = len(image_ids)
+        #         refs_image_ids[row_idx][col_idx] = list(image_ids)
+        #         refs_image_ids[col_idx][row_idx] = list(image_ids)
 
-        data = [[value] + sublist for value, sublist in zip(self._tag_names, nested_list)]
+        # data = [[value] + sublist for value, sublist in zip(self._tag_names, nested_list)]
 
         res = {
             "columns": ["Tag"] + self._tag_names,
-            "data": data,
-            "referencesCell": refs_image_ids,
+            "data": dict(self.data),
+            # "referencesCell": refs_image_ids,
             "options": options,
             "colomnsOptions": colomns_options,
         }
@@ -135,44 +137,39 @@ class TagsImagesCooccurrence(BaseStats):
     def to_numpy_raw(self):
         if self._num_tags == 0:
             return
-        return np.array(self.co_occurrence_dict, dtype=object)
+        # return np.array(self.co_occurrence_dict, dtype=object)
+        return zlib.compress(pickle.dumps(self.data))
 
     def sew_chunks(self, chunks_dir: str) -> np.ndarray:
         if self._num_tags == 0:
             return
 
-        files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
+        files = sly.fs.list_files(chunks_dir, valid_extensions=[".pkl"])
         for file in files:
-            loaded_data = np.load(file, allow_pickle=True).tolist()
-            if loaded_data is not None:
-                loaded_tags = set(loaded_data)
-                true_tags = set(self._tag_ids)
+            # loaded_data = np.load(file, allow_pickle=True).tolist()
+            with open(file, "rb") as f:
+                loaded_data = pickle.loads(zlib.decompress(f.read()))
 
-                added = true_tags - loaded_tags
-                for tag_id_new in added:
-                    loaded_data[tag_id_new] = dict()
-                    loaded_data[tag_id_new][tag_id_new] = set()
-                    for tag_id_old in loaded_tags:
-                        loaded_data[tag_id_new][tag_id_old] = set()
-                        loaded_data[tag_id_old][tag_id_new] = set()
+            if loaded_data:
+                loaded_tags = set(loaded_data.keys())
+                true_tags = set(self._tag_ids.keys())
 
                 removed = loaded_tags - true_tags
+
                 for tag_id_rm in removed:
                     loaded_data.pop(tag_id_rm)
                     for tag_id in true_tags:
-                        loaded_data[tag_id].pop(tag_id_rm)
+                        if loaded_data.get(tag_id) is not None:
+                            loaded_data[tag_id].pop(tag_id_rm)
 
-                save_data = np.array(loaded_data, dtype=object)
-                np.save(file, save_data)
+                with open(file, "wb") as f:
+                    f.write(zlib.compress(pickle.dumps(loaded_data)))
 
                 for tag_id_i in true_tags:
                     for tag_id_j in true_tags:
-                        self.co_occurrence_dict[tag_id_i][tag_id_j].update(
-                            loaded_data[tag_id_i].get(tag_id_j, set())
-                        )
-                        self.co_occurrence_dict[tag_id_j][tag_id_i].update(
-                            loaded_data[tag_id_j].get(tag_id_i, set())
-                        )
+                        cell_data = loaded_data[tag_id_i][tag_id_j]
+                        self.data[tag_id_i][tag_id_j]["images"].update(cell_data["images"])
+                        # self.data[tag_id_j][tag_id_i]["images"].update(cell_data["images"])
 
 
 class TagsObjectsCooccurrence(BaseStats):
@@ -214,13 +211,15 @@ class TagsObjectsCooccurrence(BaseStats):
         self._num_tags = len(self._tag_names)
         # self.co_occurrence_matrix = np.zeros((self._num_tags, self._num_tags), dtype=int)
 
-        self.co_occurrence_dict = {
-            tag_id_x: {tag_id_y: set() for tag_id_y in self._tag_ids} for tag_id_x in self._tag_ids
-        }
-        self.references_dict = {
-            tag_id_x: {tag_id_y: set() for tag_id_y in self._tag_ids} for tag_id_x in self._tag_ids
-        }
+        # self.co_occurrence_dict = {
+        #     tag_id_x: {tag_id_y: set() for tag_id_y in self._tag_ids} for tag_id_x in self._tag_ids
+        # }
+        # self.references_dict = {
+        #     tag_id_x: {tag_id_y: set() for tag_id_y in self._tag_ids} for tag_id_x in self._tag_ids
+        # }
         # self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
+        self.data = defaultdict(self._default_factory)
+        # self.references_dict = defaultdict(default_factory)
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
         if len(figures) == 0:
@@ -232,15 +231,18 @@ class TagsObjectsCooccurrence(BaseStats):
                 tags.add(tag["tagId"])
 
             for tag_id in tags:
-                self.co_occurrence_dict[tag_id][tag_id].add(figure.id)
-                self.references_dict[tag_id][tag_id].add(image.id)
+                self.data[tag_id][tag_id]["objects"].add(figure.id)
+                self.data[tag_id][tag_id]["images"].add(image.id)
+                # self.references_dict[tag_id][tag_id].add(image.id)
 
             for tag_id_i in tags:
                 for tag_id_j in tags:
-                    self.co_occurrence_dict[tag_id_i][tag_id_j].add(figure.id)
-                    self.co_occurrence_dict[tag_id_j][tag_id_i].add(figure.id)
-                    self.references_dict[tag_id_i][tag_id_j].add(image.id)
-                    self.references_dict[tag_id_j][tag_id_i].add(image.id)
+                    self.data[tag_id_i][tag_id_j]["objects"].add(figure.id)
+                    self.data[tag_id_j][tag_id_i]["objects"].add(figure.id)
+                    self.data[tag_id_i][tag_id_j]["images"].add(image.id)
+                    self.data[tag_id_j][tag_id_i]["images"].add(image.id)
+                    # self.references_dict[tag_id_i][tag_id_j].add(image.id)
+                    # self.references_dict[tag_id_j][tag_id_i].add(image.id)
 
     def clean(self) -> None:
         self.__init__(self._meta, self.force)
@@ -254,7 +256,8 @@ class TagsObjectsCooccurrence(BaseStats):
             "cellTooltip": "Click to preview. {currentCell} objects have both tags {firstCell} and {currentColumn} at same time",
         }
         colomns_options = [None] * (len(self._tag_names) + 1)
-        colomns_options[0] = {"type": "tag"}
+        # colomns_options[0] = {"type": "tag"}
+        colomns_options[0] = {"tagType": ""}
 
         for idx in range(len(colomns_options) - 1):
             colomns_options[idx + 1] = {
@@ -262,37 +265,37 @@ class TagsObjectsCooccurrence(BaseStats):
                 "applicableTo": self._tag_name_to_applicable[self._tag_names[idx]],
             }
 
-        keys = list(self._tag_ids)
-        index = {key: idx for idx, key in enumerate(keys)}
-        size = self._num_tags
-        nested_objects = [[None] * size for _ in range(size)]
-        nested_images = [[None] * size for _ in range(size)]
-        refs_image_ids = {x: {y: None for y in range(size)} for x in range(size)}
+        # keys = list(self._tag_ids)
+        # index = {key: idx for idx, key in enumerate(keys)}
+        # size = self._num_tags
+        # nested_objects = [[None] * size for _ in range(size)]
+        # nested_images = [[None] * size for _ in range(size)]
+        # refs_image_ids = {x: {y: None for y in range(size)} for x in range(size)}
 
-        for row_key, subdict in self.co_occurrence_dict.items():
-            for col_key, object_ids in subdict.items():
-                row_idx = index[row_key]
-                col_idx = index[col_key]
-                nested_objects[row_idx][col_idx] = len(object_ids)
-                nested_objects[col_idx][row_idx] = len(object_ids)
+        # for row_key, subdict in self.data["objects"].items():
+        #     for col_key, object_ids in subdict.items():
+        #         row_idx = index[row_key]
+        #         col_idx = index[col_key]
+        #         nested_objects[row_idx][col_idx] = len(object_ids)
+        #         nested_objects[col_idx][row_idx] = len(object_ids)
 
-        for row_key, subdict in self.references_dict.items():
-            for col_key, image_ids in subdict.items():
-                row_idx = index[row_key]
-                col_idx = index[col_key]
-                nested_images[row_idx][col_idx] = len(image_ids)
-                nested_images[col_idx][row_idx] = len(image_ids)
-                refs_image_ids[row_idx][col_idx] = list(image_ids)
-                refs_image_ids[col_idx][row_idx] = list(image_ids)
+        # for row_key, subdict in self.data["images"].items():
+        #     for col_key, image_ids in subdict.items():
+        #         row_idx = index[row_key]
+        #         col_idx = index[col_key]
+        #         nested_images[row_idx][col_idx] = len(image_ids)
+        #         nested_images[col_idx][row_idx] = len(image_ids)
+        #         refs_image_ids[row_idx][col_idx] = list(image_ids)
+        #         refs_image_ids[col_idx][row_idx] = list(image_ids)
 
-        data = [[value] + sublist for value, sublist in zip(self._tag_names, nested_objects)]
-        data_refs = [[value] + sublist for value, sublist in zip(self._tag_names, nested_images)]
+        # data = [[value] + sublist for value, sublist in zip(self._tag_names, nested_objects)]
+        # data_refs = [[value] + sublist for value, sublist in zip(self._tag_names, nested_images)]
 
         res = {
             "columns": ["Tag"] + self._tag_names,
-            "data": data,
-            "referencesCellCount": data_refs,
-            "referencesCell": refs_image_ids,
+            "data": dict(self.data),
+            # "referencesCellCount": data_refs,
+            # "referencesCell": refs_image_ids,
             "options": options,
             "colomnsOptions": colomns_options,
         }
@@ -301,47 +304,40 @@ class TagsObjectsCooccurrence(BaseStats):
     def to_numpy_raw(self):
         if self._num_tags == 0:
             return
-        return np.array(
-            {"objects": self.co_occurrence_dict, "images": self.references_dict}, dtype=object
-        )
+        return zlib.compress(pickle.dumps(self.data))
 
     def sew_chunks(self, chunks_dir: str) -> np.ndarray:
         if self._num_tags == 0:
             return
 
-        files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
+        files = sly.fs.list_files(chunks_dir, valid_extensions=[".pkl"])
         for file in files:
-            loaded_data = np.load(file, allow_pickle=True).tolist()
+            # loaded_data = np.load(file, allow_pickle=True).tolist()
+            with open(file, "rb") as f:
+                loaded_data = pickle.loads(zlib.decompress(f.read()))
+
             if loaded_data is not None:
-                loaded_tags = set(loaded_data["objects"].keys())
                 true_tags = set(self._tag_ids.keys())
-                added = true_tags - loaded_tags
+                loaded_tags = set(loaded_data.keys())
+
                 removed = loaded_tags - true_tags
 
-                for data, res in zip(
-                    (loaded_data["objects"], loaded_data["images"]),
-                    (self.co_occurrence_dict, self.references_dict),
-                ):
+                for tag_id_rm in removed:
+                    loaded_data.pop(tag_id_rm)
+                    for tag_id in true_tags:
+                        if loaded_data.get(tag_id) is not None:
+                            loaded_data[tag_id].pop(tag_id_rm)
 
-                    for tag_id_new in added:
-                        data[tag_id_new] = dict()
-                        data[tag_id_new][tag_id_new] = set()
-                        for tag_id_old in loaded_tags:
-                            data[tag_id_new][tag_id_old] = set()
-                            data[tag_id_old][tag_id_new] = set()
+                with open(file, "wb") as f:
+                    f.write(zlib.compress(pickle.dumps(loaded_data)))
 
-                    for tag_id_rm in removed:
-                        data.pop(tag_id_rm)
-                        for tag_id in true_tags:
-                            data[tag_id].pop(tag_id_rm)
-
-                    for tag_id_i in true_tags:
-                        for tag_id_j in true_tags:
-                            res[tag_id_i][tag_id_j].update(data[tag_id_i].get(tag_id_j, set()))
-                            res[tag_id_j][tag_id_i].update(data[tag_id_j].get(tag_id_i, set()))
-
-                save_data = np.array(loaded_data, dtype=object)
-                np.save(file, save_data)
+                for tag_id_i in loaded_tags:
+                    for tag_id_j in loaded_tags:
+                        cell_data = loaded_data[tag_id_i][tag_id_j]
+                        self.data[tag_id_i][tag_id_j]["objects"].update(cell_data["objects"])
+                        # self.data[tag_id_j][tag_id_i]["objects"].update(cell_data["objects"])
+                        self.data[tag_id_i][tag_id_j]["images"].update(cell_data["images"])
+                        # self.data[tag_id_j][tag_id_i]["images"].update(cell_data["images"])
 
 
 class TagsImagesOneOfDistribution(BaseStats):
