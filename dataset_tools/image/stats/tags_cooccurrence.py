@@ -23,6 +23,7 @@ IMAGES_TAGS = ["imagesOnly", "all"]
 OBJECTS_TAGS = ["objectsOnly", "all"]
 ONEOF_STRING = "oneof_string"
 MAX_NUMBER_OF_COLUMNS = 100
+MAX_NUMBER_OF_TAGS = 500
 
 
 def rgb_to_hex(rgb: List[int]) -> str:
@@ -71,7 +72,7 @@ class TagsImagesCooccurrence(BaseStats):
         # self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
-        if len(image.tags) == 0:
+        if len(image.tags) == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
 
         tags = set()
@@ -90,7 +91,7 @@ class TagsImagesCooccurrence(BaseStats):
         self.__init__(self._meta, self.force)
 
     def to_json2(self) -> Optional[Dict]:
-        if self._num_tags == 0:
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return None
 
         options = {
@@ -133,12 +134,12 @@ class TagsImagesCooccurrence(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        if self._num_tags == 0:
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
         return np.array(self.co_occurrence_dict, dtype=object)
 
     def sew_chunks(self, chunks_dir: str) -> np.ndarray:
-        if self._num_tags == 0:
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
 
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
@@ -223,7 +224,7 @@ class TagsObjectsCooccurrence(BaseStats):
         # self._tag_ids = {item.sly_id: item.name for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]) -> None:
-        if len(figures) == 0:
+        if len(figures) == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
 
         for figure in figures:
@@ -246,7 +247,7 @@ class TagsObjectsCooccurrence(BaseStats):
         self.__init__(self._meta, self.force)
 
     def to_json2(self) -> Optional[Dict]:
-        if self._num_tags == 0:
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return None
 
         options = {
@@ -299,14 +300,14 @@ class TagsObjectsCooccurrence(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        if self._num_tags == 0:
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
         return np.array(
             {"objects": self.co_occurrence_dict, "images": self.references_dict}, dtype=object
         )
 
     def sew_chunks(self, chunks_dir: str) -> np.ndarray:
-        if self._num_tags == 0:
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
 
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
@@ -379,7 +380,7 @@ class TagsImagesOneOfDistribution(BaseStats):
         self._tags_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
-        if len(image.tags) == 0:
+        if len(image.tags) == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
 
         _tags_oneof = []
@@ -395,7 +396,7 @@ class TagsImagesOneOfDistribution(BaseStats):
         self.__init__(self._meta, self.force)
 
     def to_json2(self) -> Dict:
-        if len(self._tag_ids) == 0:
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
         series, colors = [], []
         references = defaultdict(dict)
@@ -479,6 +480,8 @@ class TagsImagesOneOfDistribution(BaseStats):
         return res
 
     def to_numpy_raw(self):
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
+            return
         _data = dict(self._objects_cnt_dict)
         _refs = dict(self._references_dict)
         for tag_id, vals in dict(_data).items():
@@ -490,7 +493,8 @@ class TagsImagesOneOfDistribution(BaseStats):
 
     # @sly.timeit
     def sew_chunks(self, chunks_dir: str) -> np.ndarray:
-
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
+            return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         for file in files:
@@ -570,7 +574,7 @@ class TagsObjectsOneOfDistribution(BaseStats):
         self._tags_hex = {item.sly_id: rgb_to_hex(item.color) for item in self._meta.tag_metas}
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
-        if len(figures) == 0:
+        if len(figures) == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
 
         _tags_oneof = []
@@ -588,7 +592,7 @@ class TagsObjectsOneOfDistribution(BaseStats):
         self.__init__(self._meta, self.force)
 
     def to_json2(self) -> Dict:
-        if len(self._tag_ids) == 0:
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
         series, colors = [], []
         references = defaultdict(dict)
@@ -672,6 +676,8 @@ class TagsObjectsOneOfDistribution(BaseStats):
         return res
 
     def to_numpy_raw(self):
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
+            return
         _data = dict(self._objects_cnt_dict)
         _refs = dict(self._references_dict)
         for tag_id, vals in dict(_data).items():
@@ -683,7 +689,8 @@ class TagsObjectsOneOfDistribution(BaseStats):
 
     # @sly.timeit
     def sew_chunks(self, chunks_dir: str) -> np.ndarray:
-
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
+            return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
         for file in files:

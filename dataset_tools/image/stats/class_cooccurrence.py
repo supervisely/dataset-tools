@@ -12,6 +12,7 @@ from dataset_tools.image.stats.basestats import BaseStats
 
 REFERENCES_LIMIT = 500
 OBJECTS_TAGS = ["objectsOnly", "all"]
+MAX_NUMBER_OF_TAGS = 500
 
 
 class ClassCooccurrence(BaseStats):
@@ -288,7 +289,7 @@ class ClassToTagCooccurrence(BaseStats):
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
             return
-        if self._num_classes == 0:
+        if self._num_classes == 0 or self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
 
         for figure in figures:
@@ -318,7 +319,7 @@ class ClassToTagCooccurrence(BaseStats):
     def to_json2(self) -> Optional[Dict]:
         if self._num_classes == 0:
             return
-        if self._num_tags == 0:
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
 
         options = {
@@ -365,7 +366,7 @@ class ClassToTagCooccurrence(BaseStats):
     def to_numpy_raw(self):
         if self._num_classes == 0:
             return
-        if self._num_tags == 0:
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
         return np.array(
             {"objects": self.co_occurrence_dict, "images": self.references_dict}, dtype=object
@@ -374,7 +375,7 @@ class ClassToTagCooccurrence(BaseStats):
     def sew_chunks(self, chunks_dir: str) -> None:
         if self._num_classes == 0:
             return
-        if self._num_tags == 0:
+        if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
 
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
