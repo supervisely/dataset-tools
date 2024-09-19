@@ -47,6 +47,11 @@ class TagsImagesCooccurrence(BaseStats):
         self._tag_names = []
         self._tag_ids = {}
 
+        self._num_tags = len(self._meta.tag_metas)
+        self.co_occurrence_dict = {}
+        if self._num_tags > MAX_NUMBER_OF_TAGS:
+            return
+
         for tag_meta in self._meta.tag_metas:
             if tag_meta.applicable_to in IMAGES_TAGS:
                 self._images_tags.append(tag_meta)
@@ -61,7 +66,6 @@ class TagsImagesCooccurrence(BaseStats):
 
         # self._references = defaultdict(lambda: defaultdict(list))
 
-        self._num_tags = len(self._tag_names)
         # self.co_occurrence_matrix = np.zeros((self._num_tags, self._num_tags), dtype=int)
 
         self.co_occurrence_dict = {
@@ -193,6 +197,11 @@ class TagsObjectsCooccurrence(BaseStats):
         self._tag_names = []
 
         self._tag_ids = {}  # item.sly_id: item.name for item in self._meta.tag_metas}
+
+        self._num_tags = len(self._meta.tag_metas)
+        self.co_occurrence_dict = {}
+        if self._num_tags > MAX_NUMBER_OF_TAGS:
+            return
 
         for tag_meta in self._meta.tag_metas:
             if tag_meta.applicable_to in OBJECTS_TAGS:
