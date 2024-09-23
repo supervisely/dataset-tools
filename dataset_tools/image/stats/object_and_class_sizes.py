@@ -375,6 +375,8 @@ class ClassSizes(BaseStats):
         #         "ClassSizes: No stats were added in update() method, the result will be None."
         #     )
         #     return
+        if len(self._class_titles) == 0:
+            return
 
         stats = []
 
