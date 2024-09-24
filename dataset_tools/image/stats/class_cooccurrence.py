@@ -350,7 +350,7 @@ class ClassToTagCooccurrence(BaseStats):
                 refs_image_ids[row_idx][col_idx] = list(image_ids)
 
         data = [[value] + sublist for value, sublist in zip(self._class_names, nested_objects)]
-        data_refs = [[value] + sublist for value, sublist in zip(self._tag_names, nested_images)]
+        data_refs = [[value] + sublist for value, sublist in zip(self._class_names, nested_images)]
 
         res = {
             "columns": ["Tag"] + list(self._tag_names),
