@@ -84,11 +84,18 @@ class TagsImagesCooccurrence(BaseStats):
             tags.add(tag["tagId"])
 
         for tag_id in tags:
+            if tag_id not in self.co_occurrence_dict:
+                self.co_occurrence_dict[tag_id] = {tag_id: set()}
             self.co_occurrence_dict[tag_id][tag_id].add(image.id)
 
         for tag_id_i in tags:
             for tag_id_j in tags:
+                if tag_id_j not in self.co_occurrence_dict[tag_id_i]:
+                    self.co_occurrence_dict[tag_id_i][tag_id_j] = set()
                 self.co_occurrence_dict[tag_id_i][tag_id_j].add(image.id)
+                
+                if tag_id_i not in self.co_occurrence_dict[tag_id_j]:
+                    self.co_occurrence_dict[tag_id_j][tag_id_i] = set()
                 self.co_occurrence_dict[tag_id_j][tag_id_i].add(image.id)
 
     def clean(self) -> None:
