@@ -395,6 +395,7 @@ class ClassesPerImage(BaseStats):
         return np.sum(canvas == 0) / canvas.size
 
     def _get_aggregated_names(self, datasets: List) -> Dict:
+        id_to_info = {ds.id: ds for ds in datasets}
         for dataset in datasets:
             original_id = dataset.id
             dataset_name = dataset.name
@@ -403,6 +404,6 @@ class ClassesPerImage(BaseStats):
                 parent = current.parent_id
                 if parent is None:
                     break
-                current = self._dataset_id_to_name[parent]
+                current = id_to_info[parent]
                 dataset_name = current.name + '/' + dataset_name
             self._dataset_id_to_name[original_id] = dataset_name
