@@ -403,6 +403,6 @@ class ClassesPerImage(BaseStats):
                 parent = current.parent_id
                 if parent is None:
                     break
-                current = self._id_to_info[parent]
+                current = self._dataset_id_to_name[parent]
                 dataset_name = current.name + '/' + dataset_name
             self._dataset_id_to_name[original_id] = dataset_name
