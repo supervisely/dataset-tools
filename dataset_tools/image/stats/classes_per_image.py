@@ -58,7 +58,9 @@ class ClassesPerImage(BaseStats):
 
         self._dataset_id_to_name = None
         if datasets is not None:
-            self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
+            self._dataset_id_to_name = {}
+            self._get_aggregated_names(datasets)
+            # self._dataset_id_to_name = {ds.id: ds.name for ds in datasets}
             # self._columns.append("Split")
 
         # start_columns_len = len(self._columns)
@@ -391,3 +393,16 @@ class ClassesPerImage(BaseStats):
             y_min, x_min, y_max, x_max = bbox
             canvas[y_min:y_max, x_min:x_max] = 1
         return np.sum(canvas == 0) / canvas.size
+
+    def _get_aggregated_names(self, datasets: List) -> Dict:
+        for dataset in datasets:
+            original_id = dataset.id
+            dataset_name = dataset.name
+            current = dataset
+            while True:
+                parent = current.parent_id
+                if parent is None:
+                    break
+                current = self._id_to_info[parent]
+                dataset_name = current.name + '/' + dataset_name
+            self._dataset_id_to_name[original_id] = dataset_name
