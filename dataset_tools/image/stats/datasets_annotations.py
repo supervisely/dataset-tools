@@ -171,10 +171,10 @@ class DatasetsAnnotations(BaseStats):
                 )
                 max_value_per_class_cnt = max([cnt for class_to_cnt in self._class_avg_cnt.values() for clss, cnt in class_to_cnt.items() if clss == class_id])
                 # max_value_per_class_area = max([area for class_to_area in self._class_avg_area.values() for clss, area in class_to_area.items() if clss == class_id])
-                col_options[7 + 2 * idx] = {"maxValue": max_value_per_class_cnt, "subtitle": "average number of objects per image", "tooltip": count_tooltip}
+                col_options[7 + 2 * idx] = {"maxValue": max_value_per_class_cnt, "subtitle": "objects per image", "tooltip": count_tooltip}
                 col_options[8 + 2 * idx] = {
                     "maxValue": 100,
-                    "subtitle": "average covered area",
+                    "subtitle": "covered area",
                     "tooltip": area_tooltip,
                     "postfix": "%",
                 }
