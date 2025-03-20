@@ -48,7 +48,6 @@ class DatasetsAnnotations(BaseStats):
             for children in self._parent_to_infos.get(ds.id, []):
                 self._id_to_total[ds.id] += children.images_count
 
-
         # annotations statistics
         self._num_objects = {ds.id: 0 for ds in datasets}
         self._num_tagged_objs = {ds.id: 0 for ds in datasets}
@@ -57,7 +56,7 @@ class DatasetsAnnotations(BaseStats):
 
         self._class_avg_cnt = defaultdict(dict)
         self._class_avg_area = defaultdict(dict)
-        for ds_id in datasets:
+        for ds_id in self._id_to_info.keys():
             for cls in project_meta.obj_classes:
                 self._class_avg_cnt[ds_id][cls.sly_id] = 0
                 self._class_avg_area[ds_id][cls.sly_id] = 0
@@ -67,7 +66,7 @@ class DatasetsAnnotations(BaseStats):
 
         # images for references
         self._images_set = defaultdict(set)
-        for ds_id in datasets:
+        for ds_id in self._id_to_info.keys():
             for cls in project_meta.obj_classes:
                 self._class_cnt_sum[ds_id][cls.sly_id] = 0
                 self._class_area_sum[ds_id][cls.sly_id] = 0
