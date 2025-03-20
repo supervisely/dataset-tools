@@ -140,9 +140,9 @@ class DatasetsAnnotations(BaseStats):
         col_options = [None] * len(columns)
         col_options[0] = {}
         col_options[1] = {}
-        col_options[2] = {"subtitle": "number of images"}
+        col_options[2] = {"subtitle": "total count"}
         col_options[3] = {"subtitle": "number of images"}
-        col_options[4] = {"subtitle": "images count"}
+        col_options[4] = {"subtitle": "number of images"}
         col_options[5] = {"subtitle": "total count"}
         col_options[6] = {"subtitle": "total count"}
 
