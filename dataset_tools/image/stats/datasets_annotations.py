@@ -7,7 +7,7 @@ from collections import defaultdict
 
 class DatasetsAnnotations(BaseStats):
     """
-    Statistics for datasets annotations.
+    Aggregated statistics for datasets annotations.
 
     This statistic builds a table using data from project_stats.
     """
@@ -35,8 +35,11 @@ class DatasetsAnnotations(BaseStats):
 
         self._parent_to_infos = defaultdict(list)
         for ds in datasets:
-            if ds.parent_id:
-                self._parent_to_infos[ds.parent_id].append(ds)
+            current = ds
+            while parent_id := current.parent_id:
+                parent_id = current.parent_id
+                self._parent_to_infos[parent_id].append(ds)
+                current = self._id_to_info[parent_id]
 
         # get aggregated total number of images
         self._id_to_total = {}
@@ -131,9 +134,9 @@ class DatasetsAnnotations(BaseStats):
         col_options = [None] * len(columns)
         col_options[0] = {}
         col_options[1] = {}
-        col_options[2] = {"maxValue": max_images, "subtitle": "number of images, aggregated"}
-        col_options[3] = {"maxValue": max_annotated, "subtitle": "number of images, aggregated"}
-        col_options[4] = {"maxValue": max_tagged, "subtitle": "number of images w/ tags, aggregated"}
+        col_options[2] = {"maxValue": max_images, "subtitle": "number of images"}
+        col_options[3] = {"maxValue": max_annotated, "subtitle": "number of images"}
+        col_options[4] = {"maxValue": max_tagged, "subtitle": "images count"}
 
         options = {
             "fixColumns": 1,
@@ -183,12 +186,14 @@ class DatasetsAnnotations(BaseStats):
         avg_class_cnt_sum = np.array(self._class_cnt_sum, dtype=object)
         avg_class_area_sum = np.array(self._class_area_sum, dtype=object)
         num_annotated = np.array(self._num_annotated, dtype=object)
+        num_tagged = np.array(self._num_tagged, dtype=object)
         return np.stack(
             [
                 images_set,
                 avg_class_cnt_sum,
                 avg_class_area_sum,
-                num_annotated
+                num_annotated,
+                num_tagged
             ],
             axis=0,
         )
@@ -207,6 +212,7 @@ class DatasetsAnnotations(BaseStats):
                     loaded_data[1][ds_id] = {class_id: 0 for class_id in self._class_id_to_name.keys()}
                     loaded_data[2][ds_id] = {class_id: 0 for class_id in self._class_id_to_name.keys()}
                     loaded_data[3][ds_id] = 0
+                    loaded_data[4][ds_id] = 0
 
                 removed = loaded_ds_ids.difference(true_ds_ids)
                 for ds_id in list(removed):
@@ -214,14 +220,16 @@ class DatasetsAnnotations(BaseStats):
                     loaded_data[1].pop(ds_id)
                     loaded_data[2].pop(ds_id)
                     loaded_data[3].pop(ds_id)
+                    loaded_data[4].pop(ds_id)
 
                 save_data = np.array(loaded_data, dtype=object)
                 np.save(file, save_data)
 
                 for ds_id in loaded_ds_ids:
-                    self._num_annotated[ds_id] += loaded_data[3][ds_id]
                     self._images_set[ds_id].update(loaded_data[0][ds_id])
                     for class_id, cnt in loaded_data[1][ds_id].items():
                         self._class_cnt_sum[ds_id][class_id] += cnt
                     for class_id, area in loaded_data[2][ds_id].items():
                         self._class_area_sum[ds_id][class_id] += area
+                    self._num_annotated[ds_id] += loaded_data[3][ds_id]
+                    self._num_tagged[ds_id] += loaded_data[4][ds_id]
