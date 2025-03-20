@@ -127,16 +127,16 @@ class DatasetsAnnotations(BaseStats):
             columns.append(name)
             columns.append(name)
 
-        max_images = max(list(self._id_to_total.values()))
-        max_annotated = max(list(self._num_annotated.values()))
-        max_tagged = max(list(self._num_tagged.values()))
+        # max_images = max(list(self._id_to_total.values()))
+        # max_annotated = max(list(self._num_annotated.values()))
+        # max_tagged = max(list(self._num_tagged.values()))
 
         col_options = [None] * len(columns)
         col_options[0] = {}
         col_options[1] = {}
-        col_options[2] = {"maxValue": max_images, "subtitle": "number of images"}
-        col_options[3] = {"maxValue": max_annotated, "subtitle": "number of images"}
-        col_options[4] = {"maxValue": max_tagged, "subtitle": "images count"}
+        col_options[2] = {"subtitle": "number of images"}
+        col_options[3] = {"subtitle": "number of images"}
+        col_options[4] = {"subtitle": "images count"}
 
         options = {
             "fixColumns": 1,
@@ -160,9 +160,14 @@ class DatasetsAnnotations(BaseStats):
                     round(self._class_area_sum[ds_id][class_id] / num_ann, 2) if num_ann else 0
                 )
                 max_value_per_class_cnt = max([cnt for class_to_cnt in self._class_avg_cnt.values() for clss, cnt in class_to_cnt.items() if clss == class_id])
-                max_value_per_class_area = max([area for class_to_area in self._class_avg_area.values() for clss, area in class_to_area.items() if clss == class_id])
+                # max_value_per_class_area = max([area for class_to_area in self._class_avg_area.values() for clss, area in class_to_area.items() if clss == class_id])
                 col_options[5 + 2 * idx] = {"maxValue": max_value_per_class_cnt, "subtitle": "objects/image on average", "tooltip": count_tooltip}
-                col_options[6 + 2 * idx] = {"maxValue": max_value_per_class_area, "subtitle": "average covered area", "tooltip": area_tooltip, "postfix": "%"}
+                col_options[6 + 2 * idx] = {
+                    "maxValue": 100,
+                    "subtitle": "average covered area",
+                    "tooltip": area_tooltip,
+                    "postfix": "%",
+                }
 
                 row.append(self._class_avg_cnt[ds_id][class_id])
                 row.append(self._class_avg_area[ds_id][class_id])
