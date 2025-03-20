@@ -20,20 +20,19 @@ class DatasetsAnnotations(BaseStats):
         self._stat_cache = stat_cache
 
         # get aggregated names to use as rows
+        self._id_to_info = {ds.id : ds for ds in datasets}
         self._id_to_name = {}
         self._get_aggregated_names(datasets)
-
         self._class_id_to_name = {cls.sly_id: cls.name for cls in project_meta.obj_classes}
-        self._id_to_info = {ds.id : ds for ds in datasets}
 
-        self._id_to_parents = {}
+
+        # mappings for parent-child relationships
+        self._id_to_parents = defaultdict(list)
         for ds in datasets:
-            parents = []
             current = ds
             while current.parent_id:
-                parents.append(current.parent_id)
                 current = self._id_to_info[current.parent_id]
-            self._id_to_parents[ds.id] = parents
+                self._id_to_parents[ds.id].append(current)
         
         self._parent_to_infos = defaultdict(list)
         for ds in datasets:
@@ -47,6 +46,7 @@ class DatasetsAnnotations(BaseStats):
             for children in self._parent_to_infos.get(ds.id, []):
                 self._id_to_total[ds.id] += children.images_count
 
+        # annotations statistics
         self._num_annotated = {ds_id: 0 for ds_id in self._id_to_info.keys()}
         self._num_tagged = {ds_id: 0 for ds_id in self._id_to_info.keys()}
 
@@ -60,6 +60,7 @@ class DatasetsAnnotations(BaseStats):
         self._class_cnt_sum = defaultdict(dict)
         self._class_area_sum = defaultdict(dict)
 
+        # images for references
         self._images_set = defaultdict(set)
         for ds_id in self._id_to_info.keys():
             for cls in project_meta.obj_classes:
