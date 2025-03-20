@@ -3,6 +3,7 @@ from typing import Dict, List, Optional
 import supervisely as sly
 from dataset_tools.image.stats.basestats import BaseStats
 import numpy as np
+from collections import defaultdict
 
 class DatasetsAnnotations(BaseStats):
     """
@@ -20,32 +21,47 @@ class DatasetsAnnotations(BaseStats):
 
         # get aggregated names to use as rows
         self._id_to_name = {}
-        self._id_to_info = {ds.id : ds for ds in datasets}
         self._get_aggregated_names(datasets)
 
-        self._id_to_total = {ds_id: info.images_count for ds_id, info in self._id_to_info.items()}
         self._class_id_to_name = {cls.sly_id: cls.name for cls in project_meta.obj_classes}
+        self._id_to_info = {ds.id : ds for ds in datasets}
+
+        self._id_to_parents = {}
+        for ds in datasets:
+            parents = []
+            current = ds
+            while current.parent_id:
+                parents.append(current.parent_id)
+                current = self._id_to_info[current.parent_id]
+            self._id_to_parents[ds.id] = parents
+        
+        self._parent_to_infos = defaultdict(list)
+        for ds in datasets:
+            if ds.parent_id:
+                self._parent_to_infos[ds.parent_id].append(ds)
+
+        # get aggregated total number of images
+        self._id_to_total = {}
+        for ds in datasets:
+            self._id_to_total[ds.id] = ds.images_count
+            for children in self._parent_to_infos.get(ds.id, []):
+                self._id_to_total[ds.id] += children.images_count
 
         self._num_annotated = {ds_id: 0 for ds_id in self._id_to_info.keys()}
         self._num_tagged = {ds_id: 0 for ds_id in self._id_to_info.keys()}
 
-        self._class_avg_cnt = {}
-        self._class_avg_area = {}
+        self._class_avg_cnt = defaultdict(dict)
+        self._class_avg_area = defaultdict(dict)
         for ds_id in self._id_to_info.keys():
-            self._class_avg_cnt[ds_id] = {}
-            self._class_avg_area[ds_id] = {}
             for cls in project_meta.obj_classes:
                 self._class_avg_cnt[ds_id][cls.sly_id] = 0
                 self._class_avg_area[ds_id][cls.sly_id] = 0
 
-        self._class_cnt_sum = {}
-        self._class_area_sum = {}
+        self._class_cnt_sum = defaultdict(dict)
+        self._class_area_sum = defaultdict(dict)
 
-        self._images_set = {}
+        self._images_set = defaultdict(set)
         for ds_id in self._id_to_info.keys():
-            self._images_set[ds_id] = set()
-            self._class_cnt_sum[ds_id] = {}
-            self._class_area_sum[ds_id] = {}
             for cls in project_meta.obj_classes:
                 self._class_cnt_sum[ds_id][cls.sly_id] = 0
                 self._class_area_sum[ds_id][cls.sly_id] = 0
@@ -66,12 +82,9 @@ class DatasetsAnnotations(BaseStats):
             original_id = dataset.id
             dataset_name = dataset.name
             current = dataset
-            while True:
-                parent = current.parent_id
-                if parent is None:
-                    break
+            while parent := current.parent_id:
+                dataset_name = self._id_to_info[parent].name + '/' + dataset_name
                 current = self._id_to_info[parent]
-                dataset_name = current.name + '/' + dataset_name
             self._id_to_name[original_id] = dataset_name
 
     def update(self):
@@ -79,18 +92,28 @@ class DatasetsAnnotations(BaseStats):
     
     def update2(self, image, figures) -> None:
         ds_id = image.dataset_id
+        parents = self._id_to_parents.get(ds_id, [])
         if len(image.tags) > 0:
             self._num_tagged[ds_id] += 1
-        if len(figures) == 0:
+            for parent in parents:
+                self._num_tagged[parent] += 1
+                
+        if len(figures) == 0 and not self._id_to_parents:
             return
+        self._num_annotated[ds_id] += 1 if len(figures) > 0 else 0
+        for parent in parents:
+            self._num_annotated[parent.id] += 1
         self.is_unlabeled = False
 
         image_area = image.width * image.height
-        self._num_annotated[ds_id] += 1
         for figure in figures:
             self._images_set[ds_id].add(image.id)
             self._class_cnt_sum[ds_id][figure.class_id] += 1
             self._class_area_sum[ds_id][figure.class_id] += float(figure.area) / image_area * 100
+            for parent in parents:
+                self._images_set[parent.id].add(image.id)
+                self._class_cnt_sum[parent.id][figure.class_id] += 1
+                self._class_area_sum[parent.id][figure.class_id] += float(figure.area) / image_area * 100
 
     def to_json(self):
         raise NotImplementedError()
@@ -108,9 +131,9 @@ class DatasetsAnnotations(BaseStats):
         col_options = [None] * len(columns)
         col_options[0] = {}
         col_options[1] = {}
-        col_options[2] = {"maxValue": max_images, "tooltip": "Total number of images in the dataset"}
-        col_options[3] = {"maxValue": max_annotated, "tooltip": "Total number of annotated images"}
-        col_options[4] = {"maxValue": max_tagged, "tooltip": "Total number of tagged images"}
+        col_options[2] = {"maxValue": max_images, "subtitle": "number of images, aggregated"}
+        col_options[3] = {"maxValue": max_annotated, "subtitle": "number of images, aggregated"}
+        col_options[4] = {"maxValue": max_tagged, "subtitle": "number of images w/ tags, aggregated"}
 
         options = {
             "fixColumns": 1,
