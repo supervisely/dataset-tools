@@ -25,7 +25,6 @@ class DatasetsAnnotations(BaseStats):
         self._get_aggregated_names(datasets)
         self._class_id_to_name = {cls.sly_id: cls.name for cls in project_meta.obj_classes}
 
-
         # mappings for parent-child relationships
         self._id_to_parents = defaultdict(list)
         for ds in datasets:
@@ -33,7 +32,7 @@ class DatasetsAnnotations(BaseStats):
             while current.parent_id:
                 current = self._id_to_info[current.parent_id]
                 self._id_to_parents[ds.id].append(current)
-        
+
         self._parent_to_infos = defaultdict(list)
         for ds in datasets:
             if ds.parent_id:
@@ -66,7 +65,7 @@ class DatasetsAnnotations(BaseStats):
             for cls in project_meta.obj_classes:
                 self._class_cnt_sum[ds_id][cls.sly_id] = 0
                 self._class_area_sum[ds_id][cls.sly_id] = 0
-        
+
         self.is_unlabeled = True
 
     def clean(self) -> None:
@@ -90,15 +89,15 @@ class DatasetsAnnotations(BaseStats):
 
     def update(self):
         raise NotImplementedError()
-    
+
     def update2(self, image, figures) -> None:
         ds_id = image.dataset_id
         parents = self._id_to_parents.get(ds_id, [])
         if len(image.tags) > 0:
             self._num_tagged[ds_id] += 1
             for parent in parents:
-                self._num_tagged[parent] += 1
-                
+                self._num_tagged[parent.id] += 1
+
         if len(figures) == 0 and not self._id_to_parents:
             return
         self._num_annotated[ds_id] += 1 if len(figures) > 0 else 0
@@ -118,7 +117,7 @@ class DatasetsAnnotations(BaseStats):
 
     def to_json(self):
         raise NotImplementedError()
-    
+
     def to_json2(self) -> Optional[Dict]:
         columns = ["Dataset", "ID", "Total", "Annotated", "Tagged"]
         for name in self._class_id_to_name.values():
@@ -168,7 +167,7 @@ class DatasetsAnnotations(BaseStats):
 
             seized_refs = self._seize_list_to_fixed_size(list(self._images_set[ds_id]), 1000)
             refs.append(seized_refs)
-            
+
         return {
             "columns": columns,
             "data": rows,
@@ -176,7 +175,7 @@ class DatasetsAnnotations(BaseStats):
             "options": options,
             "columnsOptions": col_options,
         }
-    
+
     def to_numpy_raw(self):
         if self.is_unlabeled:
             return
@@ -193,7 +192,7 @@ class DatasetsAnnotations(BaseStats):
             ],
             axis=0,
         )
-    
+
     def sew_chunks(self, chunks_dir: str) -> None:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
         for file in files:
