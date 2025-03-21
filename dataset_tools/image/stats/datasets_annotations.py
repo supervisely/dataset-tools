@@ -89,9 +89,9 @@ class DatasetsAnnotations(BaseStats):
         ids_to_update = [ds_id] + [parent.id for parent in parents]
         img_has_tags = len(image.tags) > 0
         image_area = image.width * image.height
-        self._total_imgs_area[ds_id] += image_area
         for i in ids_to_update:
             self._images_set[i].add(image.id)
+            self._total_imgs_area[i] += image_area
             if img_has_tags:
                 self._num_tagged[i] += 1
 
@@ -147,9 +147,9 @@ class DatasetsAnnotations(BaseStats):
         class_area = defaultdict(lambda: defaultdict(lambda: 0))
         for ds_id in self._id_to_total.keys():
             num_ann = self._num_annotated[ds_id]
+            total_img_area = self._total_imgs_area[ds_id]
             for class_id in self._class_id_to_name.keys():
                 total_area = self._class_areas[ds_id][class_id]
-                total_img_area = self._total_imgs_area[ds_id]
                 obj_cnt = self._num_class_objs[ds_id][class_id]
                 avg_count = round(obj_cnt / num_ann, 2) if num_ann else 0
                 class_avg_cnt[ds_id][class_id] = avg_count
@@ -165,9 +165,11 @@ class DatasetsAnnotations(BaseStats):
         #         class_id = cls_dict['objectClass']["id"]
         #         ds_area_stat = round(next((item['percentage'] for item in cls_dict['datasets'] if item['id'] == ds_id), 0), 2)
         #         calculated = class_area[ds_id][class_id]
-        #         if ds_dict['name'] in self._id_to_name.values() and calculated != ds_area_stat:
-        #             print("Area mismatch for class {} in dataset {}".format(class_id, ds_id))
-        #             print("Calculated: {}, Stat: {}".format(calculated, ds_area_stat))
+        #         if ds_id not in self._id_to_parents:
+        #             print(ds_area_stat, calculated)
+                    # if calculated != ds_area_stat:
+                        # print("Area mismatch for class {} in dataset {}".format(class_id, ds_id))
+                        # print("Calculated: {}, Stat: {}".format(calculated, ds_area_stat))
 
         for ds_id, ds_name in self._id_to_name.items():
             total = self._id_to_total[ds_id]
