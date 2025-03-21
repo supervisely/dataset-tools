@@ -143,13 +143,12 @@ class DatasetsAnnotations(BaseStats):
         # create mapping for class_id to average count and area
         class_avg_cnt = defaultdict(lambda: defaultdict(lambda: 0))
         class_area = defaultdict(lambda: defaultdict(lambda: 0))
-        for ds_id in self._id_to_total.keys():
-            num_ann = self._num_annotated[ds_id]
+        for ds_id, total_cnt in self._id_to_total.items():
             total_img_area = self._total_imgs_area[ds_id]
             for class_id in self._class_id_to_name.keys():
                 total_area = self._class_areas[ds_id][class_id]
                 obj_cnt = self._num_class_objs[ds_id][class_id]
-                avg_count = round(obj_cnt / num_ann, 2) if num_ann else 0
+                avg_count = round(obj_cnt / total_cnt, 2) if total_cnt else 0
                 class_avg_cnt[ds_id][class_id] = avg_count
                 area = round((total_area / total_img_area) * 100, 2) if total_img_area else 0
                 class_area[ds_id][class_id] = area
