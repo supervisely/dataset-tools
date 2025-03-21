@@ -54,8 +54,9 @@ class DatasetsAnnotations(BaseStats):
         self._num_annotated = {ds.id: 0 for ds in datasets}
         self._num_tagged = {ds.id: 0 for ds in datasets}
 
-        self._class_imgs_set = {ds.id: defaultdict(set) for ds in datasets}
-        self._class_areas = {ds.id: defaultdict(list) for ds in datasets}
+        self._class_areas = {ds.id: defaultdict(int) for ds in datasets}
+        self._total_imgs_area = {ds.id: 0 for ds in datasets}
+        self._num_class_objs = {ds.id: defaultdict(int) for ds in datasets}
         self._images_set = defaultdict(set)
 
         self.is_unlabeled = True
@@ -86,9 +87,10 @@ class DatasetsAnnotations(BaseStats):
         ds_id = image.dataset_id
         parents = self._id_to_parents.get(ds_id, [])
         ids_to_update = [ds_id] + [parent.id for parent in parents]
+        img_has_tags = len(image.tags) > 0
         for i in ids_to_update:
             self._images_set[i].add(image.id)
-            if image.tags:
+            if img_has_tags:
                 self._num_tagged[i] += 1
 
         if len(figures) == 0:
@@ -101,11 +103,11 @@ class DatasetsAnnotations(BaseStats):
             self._num_tagged_objs[i] += len([figure for figure in figures if figure.tags])
 
         image_area = image.width * image.height
+        self._total_imgs_area[ds_id] += image_area
         for figure in figures:
-            area = float(figure.area) / image_area * 100
             for i in ids_to_update:
-                # self._class_imgs_set[i][figure.class_id].add(image.id) # todo check if needed
-                self._class_areas[i][figure.class_id].append(area)
+                self._num_class_objs[i][figure.class_id] += 1
+                self._class_areas[i][figure.class_id] += int(figure.area)
 
     def to_json(self):
         raise NotImplementedError()
@@ -142,19 +144,29 @@ class DatasetsAnnotations(BaseStats):
         rows, refs = [], []
         # create mapping for class_id to average count and area
         class_avg_cnt = defaultdict(lambda: defaultdict(lambda: 0))
-        class_avg_area = defaultdict(lambda: defaultdict(lambda: 0))
+        class_area = defaultdict(lambda: defaultdict(lambda: 0))
         for ds_id in self._id_to_total.keys():
+            num_ann = self._num_annotated[ds_id]
             for class_id in self._class_id_to_name.keys():
-                ann_images = self._num_annotated[ds_id]
-                areas = self._class_areas[ds_id][class_id]
-                if ann_images == 0:
-                    class_avg_cnt[ds_id][class_id] = 0
-                    class_avg_area[ds_id][class_id] = 0
-                    continue
-                avg_count = round(len(areas) / ann_images, 2)
+                total_area = self._class_areas[ds_id][class_id]
+                total_img_area = self._total_imgs_area[ds_id]
+                obj_cnt = self._num_class_objs[ds_id][class_id]
+                avg_count = round(obj_cnt / num_ann, 2) if num_ann else 0
                 class_avg_cnt[ds_id][class_id] = avg_count
-                avg_area = round(sum(areas) / len(areas), 2) if areas else 0
-                class_avg_area[ds_id][class_id] = avg_area
+                class_area[ds_id][class_id] = round((total_area / total_img_area) * 100, 2) if total_img_area else 0
+
+        # Compare with stats from project_stats for development
+        # stats = self._project_stats
+        # for ds_dict in stats['objectsArea']['datasets']:
+        #     ds_id = ds_dict["id"]
+        #     # ids_to_update = [ds_id] + [parent.id for parent in self._id_to_parents.get(ds_id, [])]
+        #     for cls_dict in stats['objectsArea']['items']:
+        #         class_id = cls_dict['objectClass']["id"]
+        #         ds_area_stat = round(next((item['percentage'] for item in cls_dict['datasets'] if item['id'] == ds_id), 0), 2)
+        #         calculated = class_area[ds_id][class_id]
+        #         if ds_dict['name'] in self._id_to_name.values() and calculated != ds_area_stat:
+        #             print("Area mismatch for class {} in dataset {}".format(class_id, ds_id))
+        #             print("Calculated: {}, Stat: {}".format(calculated, ds_area_stat))
 
         for ds_id, ds_name in self._id_to_name.items():
             total = self._id_to_total[ds_id]
@@ -166,12 +178,12 @@ class DatasetsAnnotations(BaseStats):
             for idx, class_id in enumerate(self._class_id_to_name.keys()):
                 class_cnt_avg = class_avg_cnt[ds_id][class_id]
                 max_value_per_class_cnt = max(class_avg_cnt[ds_id].values())
-                class_area_avg = class_avg_area[ds_id][class_id]
+                class_area_avg = class_area[ds_id][class_id]
 
                 col_options[7 + 2 * idx] = {"maxValue": max_value_per_class_cnt, "subtitle": "objects per image", "tooltip": count_tooltip}
                 col_options[8 + 2 * idx] = {
                     "maxValue": 100,
-                    "subtitle": "covered area",
+                    "subtitle": "average area",
                     "tooltip": area_tooltip,
                     "postfix": "%",
                 }
@@ -195,21 +207,23 @@ class DatasetsAnnotations(BaseStats):
         if self.is_unlabeled:
             return
         images_set = np.array(self._images_set, dtype=object)
-        class_imgs_set = np.array(self._class_imgs_set, dtype=object)
-        avg_class_area_sum = np.array(self._class_areas, dtype=object)
+        total_cls_area = np.array(self._class_areas, dtype=object)
+        obj_cls_cnt = np.array(self._num_class_objs, dtype=object)
         num_annotated = np.array(self._num_annotated, dtype=object)
         num_tagged = np.array(self._num_tagged, dtype=object)
         num_objects = np.array(self._num_objects, dtype=object)
         num_tagged_objs = np.array(self._num_tagged_objs, dtype=object)
+        total_imgs_area = np.array(self._total_imgs_area, dtype=object)
         return np.stack(
             [
                 images_set,
-                class_imgs_set,
-                avg_class_area_sum,
+                total_cls_area,
+                obj_cls_cnt,
                 num_annotated,
                 num_tagged,
                 num_objects,
                 num_tagged_objs,
+                total_imgs_area
             ],
             axis=0,
         )
@@ -228,11 +242,12 @@ class DatasetsAnnotations(BaseStats):
                     loaded_data[1][ds_id] = {
                         class_id: set() for class_id in self._class_id_to_name.keys()
                     }
-                    loaded_data[2][ds_id] = {class_id: 0 for class_id in self._class_id_to_name.keys()}
+                    loaded_data[2][ds_id] = 0
                     loaded_data[3][ds_id] = 0
                     loaded_data[4][ds_id] = 0
                     loaded_data[5][ds_id] = 0
                     loaded_data[6][ds_id] = 0
+                    loaded_data[7][ds_id] = 0
 
                 removed = loaded_ds_ids.difference(true_ds_ids)
                 for ds_id in list(removed):
@@ -243,15 +258,17 @@ class DatasetsAnnotations(BaseStats):
                     loaded_data[4].pop(ds_id)
                     loaded_data[5].pop(ds_id)
                     loaded_data[6].pop(ds_id)
+                    loaded_data[7].pop(ds_id)
 
                 save_data = np.array(loaded_data, dtype=object)
                 np.save(file, save_data)
 
                 for ds_id in loaded_ds_ids:
                     self._images_set[ds_id].update(loaded_data[0][ds_id])
-                    self._class_imgs_set[ds_id].update(loaded_data[1][ds_id])
-                    self._class_areas[ds_id].update(loaded_data[2][ds_id])
+                    self._class_areas[ds_id].update(loaded_data[1][ds_id])
+                    self._num_class_objs[ds_id].update(loaded_data[2][ds_id])
                     self._num_annotated[ds_id] += loaded_data[3][ds_id]
                     self._num_tagged[ds_id] += loaded_data[4][ds_id]
                     self._num_objects[ds_id] += loaded_data[5][ds_id]
                     self._num_tagged_objs[ds_id] += loaded_data[6][ds_id]
+                    self._total_imgs_area[ds_id] += loaded_data[7][ds_id]
