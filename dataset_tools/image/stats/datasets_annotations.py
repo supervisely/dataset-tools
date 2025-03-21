@@ -153,21 +153,6 @@ class DatasetsAnnotations(BaseStats):
                 area = round((total_area / total_img_area) * 100, 2) if total_img_area else 0
                 class_area[ds_id][class_id] = area
 
-        # Compare with stats from project_stats for development
-        # stats = self._project_stats
-        # for ds_dict in stats['objectsArea']['datasets']:
-        #     ds_id = ds_dict["id"]
-        #     # ids_to_update = [ds_id] + [parent.id for parent in self._id_to_parents.get(ds_id, [])]
-        #     for cls_dict in stats['objectsArea']['items']:
-        #         class_id = cls_dict['objectClass']["id"]
-        #         ds_area_stat = round(next((item['percentage'] for item in cls_dict['datasets'] if item['id'] == ds_id), 0), 2)
-        #         calculated = class_area[ds_id][class_id]
-        #         if ds_id not in self._id_to_parents:
-        #             print(ds_area_stat, calculated)
-                    # if calculated != ds_area_stat:
-                        # print("Area mismatch for class {} in dataset {}".format(class_id, ds_id))
-                        # print("Calculated: {}, Stat: {}".format(calculated, ds_area_stat))
-
         for ds_id, ds_name in self._id_to_name.items():
             total = self._id_to_total[ds_id]
             num_ann = self._num_annotated[ds_id]
