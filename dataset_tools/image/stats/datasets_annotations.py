@@ -104,8 +104,6 @@ class DatasetsAnnotations(BaseStats):
             self._num_objects[i] += len(figures)
             self._num_tagged_objs[i] += len([figure for figure in figures if figure.tags])
 
-        image_area = image.width * image.height
-        self._total_imgs_area[ds_id] += image_area
         for figure in figures:
             for i in ids_to_update:
                 self._num_class_objs[i][figure.class_id] += 1
