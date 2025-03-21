@@ -88,6 +88,8 @@ class DatasetsAnnotations(BaseStats):
         parents = self._id_to_parents.get(ds_id, [])
         ids_to_update = [ds_id] + [parent.id for parent in parents]
         img_has_tags = len(image.tags) > 0
+        image_area = image.width * image.height
+        self._total_imgs_area[ds_id] += image_area
         for i in ids_to_update:
             self._images_set[i].add(image.id)
             if img_has_tags:
@@ -140,7 +142,7 @@ class DatasetsAnnotations(BaseStats):
         count_tooltip = (
             "Average count of objects per image. Only annotated images are taken into account."
         )
-        area_tooltip = "Average area covered by objects per image. Only images with objects of class are being taken into account."
+        area_tooltip = "Average area covered by objects per image."
         rows, refs = [], []
         # create mapping for class_id to average count and area
         class_avg_cnt = defaultdict(lambda: defaultdict(lambda: 0))
@@ -153,7 +155,8 @@ class DatasetsAnnotations(BaseStats):
                 obj_cnt = self._num_class_objs[ds_id][class_id]
                 avg_count = round(obj_cnt / num_ann, 2) if num_ann else 0
                 class_avg_cnt[ds_id][class_id] = avg_count
-                class_area[ds_id][class_id] = round((total_area / total_img_area) * 100, 2) if total_img_area else 0
+                area = round((total_area / total_img_area) * 100, 2) if total_img_area else 0
+                class_area[ds_id][class_id] = area
 
         # Compare with stats from project_stats for development
         # stats = self._project_stats
@@ -177,19 +180,17 @@ class DatasetsAnnotations(BaseStats):
             row = [ds_name, ds_id, total, num_ann, num_tag, num_obj, num_tagged_objs]
             for idx, class_id in enumerate(self._class_id_to_name.keys()):
                 class_cnt_avg = class_avg_cnt[ds_id][class_id]
-                max_value_per_class_cnt = max(class_avg_cnt[ds_id].values())
                 class_area_avg = class_area[ds_id][class_id]
+                row.append(class_cnt_avg)
+                row.append(class_area_avg)
 
-                col_options[7 + 2 * idx] = {"maxValue": max_value_per_class_cnt, "subtitle": "objects per image", "tooltip": count_tooltip}
+                col_options[7 + 2 * idx] = {"maxValue": max(class_avg_cnt[ds_id].values()), "subtitle": "objects per image", "tooltip": count_tooltip}
                 col_options[8 + 2 * idx] = {
                     "maxValue": 100,
-                    "subtitle": "average area",
+                    "subtitle": "covered area",
                     "tooltip": area_tooltip,
                     "postfix": "%",
                 }
-
-                row.append(class_cnt_avg)
-                row.append(class_area_avg)
             rows.append(row)
 
             seized_refs = self._seize_list_to_fixed_size(list(self._images_set[ds_id]), 1000)
