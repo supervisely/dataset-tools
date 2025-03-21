@@ -102,12 +102,10 @@ class DatasetsAnnotations(BaseStats):
         for i in ids_to_update:
             self._num_annotated[i] += 1
             self._num_objects[i] += len(figures)
-            self._num_tagged_objs[i] += len([figure for figure in figures if figure.tags])
-
-        for i in ids_to_update:
             for figure in figures:
                 self._num_class_objs[i][figure.class_id] += 1
                 self._class_areas[i][figure.class_id] += int(figure.area)
+                self._num_tagged_objs[i] += 1 if figure.tags else 0
 
     def to_json(self):
         raise NotImplementedError()
@@ -266,8 +264,10 @@ class DatasetsAnnotations(BaseStats):
 
                 for ds_id in loaded_ds_ids:
                     self._images_set[ds_id].update(loaded_data[0][ds_id])
-                    self._class_areas[ds_id].update(loaded_data[1][ds_id])
-                    self._num_class_objs[ds_id].update(loaded_data[2][ds_id])
+                    for class_id, area in loaded_data[1][ds_id].items():
+                        self._class_areas[ds_id][class_id] += area
+                    for class_id, count in loaded_data[2][ds_id].items():
+                        self._num_class_objs[ds_id][class_id] += count
                     self._num_annotated[ds_id] += loaded_data[3][ds_id]
                     self._num_tagged[ds_id] += loaded_data[4][ds_id]
                     self._num_objects[ds_id] += loaded_data[5][ds_id]
