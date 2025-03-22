@@ -21,8 +21,7 @@ class DatasetsAnnotations(BaseStats):
 
         # get aggregated names to use as rows
         self._id_to_info = {ds.id : ds for ds in datasets}
-        self._id_to_name = {}
-        self._get_aggregated_names(datasets)
+        self._id_to_name = self._get_aggregated_names(datasets, self._id_to_info)
         self._class_id_to_name = {cls.sly_id: cls.name for cls in project_meta.obj_classes}
 
         # mappings for parent-child relationships
@@ -70,15 +69,17 @@ class DatasetsAnnotations(BaseStats):
             self._stat_cache,
         )
 
-    def _get_aggregated_names(self, datasets: List) -> Dict:
+    def _get_aggregated_names(self, datasets: List, id_to_info: Dict) -> Dict:
+        id_to_name = {}
         for dataset in datasets:
             original_id = dataset.id
             dataset_name = dataset.name
             current = dataset
             while parent := current.parent_id:
-                dataset_name = self._id_to_info[parent].name + '/' + dataset_name
-                current = self._id_to_info[parent]
-            self._id_to_name[original_id] = dataset_name
+                dataset_name = id_to_info[parent].name + '/' + dataset_name
+                current = id_to_info[parent]
+            id_to_name[original_id] = dataset_name
+        return id_to_name
 
     def update(self):
         raise NotImplementedError()
@@ -123,9 +124,9 @@ class DatasetsAnnotations(BaseStats):
         col_options = [None] * len(columns)
         col_options[0] = {}
         col_options[1] = {}
-        col_options[2] = {"subtitle": "total count"}
-        col_options[3] = {"subtitle": "number of images"}
-        col_options[4] = {"subtitle": "number of images"}
+        col_options[2] = {"subtitle": "images count"}
+        col_options[3] = {"subtitle": "images count"}
+        col_options[4] = {"subtitle": "images count"}
         col_options[5] = {"subtitle": "total count"}
         col_options[6] = {"subtitle": "total count"}
 
@@ -136,11 +137,11 @@ class DatasetsAnnotations(BaseStats):
         }
 
         count_tooltip = (
-            "Average count of objects per image. Only annotated images are taken into account."
+            "Average count of objects per image."
         )
         area_tooltip = "Average area covered by objects per image."
         rows, refs = [], []
-        # create mapping for class_id to average count and area
+        # create mappings for class_id to average count and area
         class_avg_cnt = defaultdict(lambda: defaultdict(lambda: 0))
         class_area = defaultdict(lambda: defaultdict(lambda: 0))
         for ds_id, total_cnt in self._id_to_total.items():
@@ -225,7 +226,9 @@ class DatasetsAnnotations(BaseStats):
                     loaded_data[1][ds_id] = {
                         class_id: set() for class_id in self._class_id_to_name.keys()
                     }
-                    loaded_data[2][ds_id] = 0
+                    loaded_data[2][ds_id] = {
+                        class_id: set() for class_id in self._class_id_to_name.keys()
+                    }
                     loaded_data[3][ds_id] = 0
                     loaded_data[4][ds_id] = 0
                     loaded_data[5][ds_id] = 0
