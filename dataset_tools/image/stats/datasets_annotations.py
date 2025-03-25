@@ -109,7 +109,7 @@ class DatasetsAnnotations(BaseStats):
         raise NotImplementedError()
 
     def to_json2(self) -> Optional[Dict]:
-        columns = ["Dataset", "ID", "Total", "Annotated", "Tagged", "Objects", "Tagged Objects"]
+        columns = ["Dataset", "ID", "Size", "Annotated", "Tagged", "Objects", "Tagged Objects"]
         for name in self._class_id_to_name.values():
             columns.append(name)
             columns.append(name)
@@ -130,9 +130,9 @@ class DatasetsAnnotations(BaseStats):
         }
 
         count_tooltip = (
-            "Average count of objects per image."
+            "Average count of objects per image. Only images with objects of class are counted."
         )
-        area_tooltip = "Average area covered by objects per image."
+        area_tooltip = "Average area covered by objects per image. Only images with objects of class are taken into account."
         rows, refs = [], []
         # create mappings for class_id to average count and area
         class_avg_cnt = defaultdict(lambda: defaultdict(lambda: 0))
@@ -169,7 +169,7 @@ class DatasetsAnnotations(BaseStats):
                 col_options[7 + 2 * idx] = {"maxValue": max(class_avg_cnt[ds_id].values()), "subtitle": "objects per image", "tooltip": count_tooltip}
                 col_options[8 + 2 * idx] = {
                     "maxValue": 100,
-                    "subtitle": "covered area",
+                    "subtitle": "average area",
                     "tooltip": area_tooltip,
                     "postfix": "%",
                 }
