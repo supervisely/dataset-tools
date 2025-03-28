@@ -209,6 +209,7 @@ class ClassesHeatmaps(BaseVisual):
             x = outer_grid_spacing + col * (img_width + grid_spacing)
             y = outer_grid_spacing + row * (img_height + grid_spacing)
             result_image.paste(img, (x, y))
+            img.close()
             sly.api.file_api.silent_remove(img_path)
             self.heatmap_image_paths = []
 
