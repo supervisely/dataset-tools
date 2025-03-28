@@ -51,13 +51,16 @@ class Overview(BaseStats):
         stats = self._project_stats
         marked_count = stats["images"]["total"]["imagesMarked"]
         not_marked_count = stats["images"]["total"]["imagesNotMarked"]
-        self._ann_pie_json['series'].append(marked_count, not_marked_count)
-        self._ann_pie_json['labels'].append("Annotated", "Unlabeled")
+        self._ann_pie_json['series'].extend([marked_count, not_marked_count])
+        self._ann_pie_json['options']['labels'].extend(["Annotated", "Unlabeled"])
+        self._refs_ann_pie.setdefault("Annotated", [])
+        self._refs_ann_pie.setdefault("Unlabeled", [])
 
         for cls in stats["images"]["objectClasses"]:
             self._ann_donut_json['series'].append(cls["total"])
-            self._ann_donut_json['labels'].append(cls["objectClass"]["name"])
-            self._ann_donut_json['colors'].append(cls["objectClass"]["color"])
+            self._ann_donut_json['options']['labels'].append(cls["objectClass"]["name"])
+            self._ann_donut_json['options']['colors'].append(cls["objectClass"]["color"])
+            self._refs_ann_donut.setdefault(cls["objectClass"]["name"], [])
 
         # tagged = stats["imageTags"]["total"]["imagesTagged"]
         # not_tagged = stats["imageTags"]["total"]["imagesNotTagged"]
@@ -68,6 +71,9 @@ class Overview(BaseStats):
         #     self._tag_donut_json['series'].append(tag["total"])
         #     self._tag_donut_json['labels'].append(tag["tagMeta"]["name"])
         #     self._tag_donut_json['colors'].append(tag["tagMeta"]["color"])
+
+    def clean(self):
+        self.__init__(self._meta, self._project_stats)
 
     def update(self):
         raise NotImplementedError()
@@ -84,8 +90,8 @@ class Overview(BaseStats):
         raise NotImplementedError()
 
     def to_json2(self):
-        self._ann_pie_json['referencesCell'] = self._seize_list_to_fixed_size(self._refs_ann_pie)
-        self._ann_donut_json['referencesCell'] = self._seize_list_to_fixed_size(self._refs_ann_donut)
+        self._ann_pie_json['referencesCell'] = self._seize_list_to_fixed_size(self._refs_ann_pie, 1000)
+        self._ann_donut_json['referencesCell'] = self._seize_list_to_fixed_size(self._refs_ann_donut, 1000)
         return {
             "annPie": self._ann_pie_json,
             "annDonut": self._ann_donut_json,
@@ -108,8 +114,8 @@ class Overview(BaseStats):
         for file in files:
             loaded_data = np.load(file, allow_pickle=True).tolist()
             if loaded_data is not None:
-                self._ann_pie_json = loaded_data[0]
-                self._ann_donut_json = loaded_data[1]
+                self._ann_pie_json.update(loaded_data[0])
+                self._ann_donut_json.update(loaded_data[1])
                 self._refs_ann_pie.update(loaded_data[2])
                 self._refs_ann_donut.update(loaded_data[3])
                 # self._tag_pie_json = loaded_data[2]
