@@ -7,7 +7,12 @@ from supervisely.api.entity_annotation.figure_api import FigureInfo
 from supervisely.api.image_api import ImageInfo
 from supervisely.app.widgets import PieChart
 
-class OverviewPieChart(BaseStats):
+class OverviewPie(BaseStats):
+    """
+    This stat calculates and visualizes the distribution of annotated and unlabeled images in the project.
+    It creates a pie chart showing the ratio between annotated and unlabeled images.
+    """
+
     CHART_HEIGHT = 200
     def __init__(self, project_meta: sly.ProjectMeta, project_stats: Dict, force: bool = False,
                  stat_cache: dict = None) -> None:
@@ -67,10 +72,16 @@ class OverviewPieChart(BaseStats):
                 self._refs = loaded_data[1]
 
 
-class OverviewDonutChart(OverviewPieChart):
+class OverviewDonut(OverviewPie):
+    """
+    This stat calculates and visualizes the distribution of objects by class in the project.
+    It creates a donut chart showing the ratio between different object classes.
+    """
+
     def __init__(self, project_meta: sly.ProjectMeta, project_stats: Dict, force: bool = False,
                  stat_cache: dict = None) -> None:
         super().__init__(project_meta, project_stats, force, stat_cache)
+        self._colors = [item.color for item in self._meta.obj_classes.items()]
         self._update_chart()
 
     def _update_chart(self):
