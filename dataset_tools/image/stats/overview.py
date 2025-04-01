@@ -82,16 +82,21 @@ class OverviewDonut(OverviewPie):
                  stat_cache: dict = None) -> None:
         super().__init__(project_meta, project_stats, force, stat_cache)
         self._colors = [item.color for item in self._meta.obj_classes.items()]
+        self._class_id_to_name = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
         self._update_chart()
 
+
     def _update_chart(self):
-        stats = self._project_stats
         self._series = []
         self._refs = defaultdict(list)
-        for cls in stats["images"]["objectClasses"]:
+        for cls in self._project_stats["images"]["objectClasses"]:
             class_name = cls["objectClass"]["name"]
             self._series.append({"name": class_name, "data": cls["total"]})
             self._refs.setdefault(class_name, [])
+
+    def update2(self, image: ImageInfo, figures: List[FigureInfo]):
+        for figure in figures:
+            self._refs[self._class_id_to_name[figure.class_id]].append(image.id)
 
     def to_json2(self):
         donut = PieChart("", self._series, 3, True, self.CHART_HEIGHT, "donut")
