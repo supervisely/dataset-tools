@@ -58,7 +58,7 @@ class OverviewPie(BaseStats):
 
         chart_json = chart.get_json_data()
 
-        data_labels_settings = {
+        chart_json["options"]["dataLabels"] = {
             "enabled": True,
             "style": {
                 "fontSize": "16px",
@@ -67,11 +67,11 @@ class OverviewPie(BaseStats):
             },
             "dropShadow": {"enabled": False}
         }
-        plot_option_settings = {
+        chart_json["options"]["plotOptions"] = {
             "pie": {
 			    "customScale": 0.8,
 				"dataLabels": {
-					"offset": 50
+					"offset": 45
 				}
 			},
 			"donut": {
@@ -81,12 +81,6 @@ class OverviewPie(BaseStats):
 				}
 			}
         }
-        
-
-        chart_json["options"]["dataLabels"] = data_labels_settings
-        chart_json["options"]["plotOptions"] = plot_option_settings
-
-        
 
         chart_json["options"]["chart"]["height"] = self.CHART_HEIGHT
         chart_json["referencesCell"] = self._seize_list_to_fixed_size(self._refs, 1000)
