@@ -14,6 +14,7 @@ class OverviewPie(BaseStats):
     """
 
     CHART_HEIGHT = 200
+    BORDER_WIDTH = 0
     def __init__(self, project_meta: sly.ProjectMeta, project_stats: Dict, force: bool = False,
                  stat_cache: dict = None) -> None:
         self._meta = project_meta
@@ -23,6 +24,8 @@ class OverviewPie(BaseStats):
 
         self._series = []
         self._refs = defaultdict(list)
+        self._type = "pie"
+        self._colors = None
 
         self._update_chart()
         
@@ -51,11 +54,21 @@ class OverviewPie(BaseStats):
         raise NotImplementedError()
 
     def to_json2(self):
-        pie_json = PieChart("", self._series, 3, True, self.CHART_HEIGHT, "pie").get_json_data()
-        pie_json['options'].pop('dataLabels')
-        pie_json['options']['chart']['height'] = self.CHART_HEIGHT
-        pie_json['referencesCell'] = self._seize_list_to_fixed_size(self._refs, 1000)
-        return pie_json
+        chart = PieChart("", self._series, self.BORDER_WIDTH, True, self.CHART_HEIGHT, self._type)
+        if self._colors is not None:
+            chart.set_colors(self._colors)
+
+        chart_json = chart.get_json_data()
+        # pie_json['options'].pop('dataLabels')
+
+        # experimental
+        chart_json['options']['dataLabels']['offsetX'] = 10,
+        chart_json['options']['dataLabels']['offsetY'] = 10,
+        chart_json['options']['dataLabels']['dropShadow'] = {"enabled": False}
+
+        chart_json['options']['chart']['height'] = self.CHART_HEIGHT
+        chart_json['referencesCell'] = self._seize_list_to_fixed_size(self._refs, 1000)
+        return chart_json
         
     def to_numpy_raw(self):
         return np.array([
@@ -81,6 +94,7 @@ class OverviewDonut(OverviewPie):
     def __init__(self, project_meta: sly.ProjectMeta, project_stats: Dict, force: bool = False,
                  stat_cache: dict = None) -> None:
         super().__init__(project_meta, project_stats, force, stat_cache)
+        self._type = "donut"
         self._colors = [item.color for item in self._meta.obj_classes.items()]
         self._class_id_to_name = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
         self._update_chart()
@@ -97,12 +111,3 @@ class OverviewDonut(OverviewPie):
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         for figure in figures:
             self._refs[self._class_id_to_name[figure.class_id]].append(image.id)
-
-    def to_json2(self):
-        donut = PieChart("", self._series, 3, True, self.CHART_HEIGHT, "donut")
-        donut.set_colors(self._colors)
-        donut_json = donut.get_json_data()
-        donut_json['options'].pop('dataLabels')
-        donut_json['options']['chart']['height'] = self.CHART_HEIGHT
-        donut_json['referencesCell'] = self._seize_list_to_fixed_size(self._refs, 1000)
-        return donut_json
