@@ -13,7 +13,7 @@ class OverviewPie(BaseStats):
     It creates a pie chart showing the ratio between annotated and unlabeled images.
     """
 
-    CHART_HEIGHT = 200
+    CHART_HEIGHT = 250
     BORDER_WIDTH = 0
     def __init__(self, project_meta: sly.ProjectMeta, project_stats: Dict, force: bool = False,
                  stat_cache: dict = None) -> None:
@@ -45,10 +45,8 @@ class OverviewPie(BaseStats):
         raise NotImplementedError()
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
-        if len(figures) == 0:
-            self._refs["Unlabeled"].append(image.id)
-        else:
-            self._refs["Annotated"].append(image.id)
+        key = "Annotated" if len(figures) > 0 else "Unlabeled"
+        self._refs[key].append(image.id)
 
     def to_json(self):
         raise NotImplementedError()
@@ -59,15 +57,39 @@ class OverviewPie(BaseStats):
             chart.set_colors(self._colors)
 
         chart_json = chart.get_json_data()
-        # pie_json['options'].pop('dataLabels')
 
-        # experimental
-        chart_json['options']['dataLabels']['offsetX'] = 10,
-        chart_json['options']['dataLabels']['offsetY'] = 10,
-        chart_json['options']['dataLabels']['dropShadow'] = {"enabled": False}
+        data_labels_settings = {
+            "enabled": True,
+            "style": {
+                "fontSize": "16px",
+                "fontWeight": "550",
+                "colors": ["black"]
+            },
+            "dropShadow": {"enabled": False}
+        }
+        plot_option_settings = {
+            "pie": {
+			    "customScale": 0.8,
+				"dataLabels": {
+					"offset": 50
+				}
+			},
+			"donut": {
+			    "size": "80%",
+				"labels": {
+					"show": False
+				}
+			}
+        }
+        
 
-        chart_json['options']['chart']['height'] = self.CHART_HEIGHT
-        chart_json['referencesCell'] = self._seize_list_to_fixed_size(self._refs, 1000)
+        chart_json["options"]["dataLabels"] = data_labels_settings
+        chart_json["options"]["plotOptions"] = plot_option_settings
+
+        
+
+        chart_json["options"]["chart"]["height"] = self.CHART_HEIGHT
+        chart_json["referencesCell"] = self._seize_list_to_fixed_size(self._refs, 1000)
         return chart_json
         
     def to_numpy_raw(self):
