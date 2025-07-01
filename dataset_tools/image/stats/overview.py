@@ -111,7 +111,7 @@ class OverviewDonut(OverviewPie):
                  stat_cache: dict = None) -> None:
         super().__init__(project_meta, project_stats, force, stat_cache)
         self._type = "donut"
-        self._colors = [item.color for item in self._meta.obj_classes.items()]
+        self._colors = [item.color for item in self._meta.obj_classes.items()] or None
         self._class_id_to_name = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
         self._update_chart()
 
