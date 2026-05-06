@@ -43,6 +43,11 @@ from dataset_tools.image.stats.wrapper import (  # , initialize
     count_stats,
 )
 from dataset_tools.repo.download import download, prepare_link, update_sly_url_dict
+from dataset_tools.repo.heatmap_status import (
+    get_heatmap_status,
+    heatmap_status_endpoint,
+    normalize_heatmap_status,
+)
 from dataset_tools.repo.project_repo import ProjectRepo
 from dataset_tools.text.generate_summary import (
     generate_summary_content,
