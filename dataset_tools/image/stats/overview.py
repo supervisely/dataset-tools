@@ -33,6 +33,15 @@ class OverviewPie(BaseStats):
         stats = self._project_stats
         marked_count = stats["images"]["total"]["imagesMarked"]
         not_marked_count = stats["images"]["total"]["imagesNotMarked"]
+        image_tags_stats = stats.get("imageTags", {})
+        image_tags_count = image_tags_stats.get("total", {}).get("imagesTagged")
+        if image_tags_count is None:
+            image_tags_count = sum(
+                ds.get("imagesTagged", 0) for ds in image_tags_stats.get("datasets", [])
+            )
+        tagged_only_count = min(image_tags_count, not_marked_count)
+        marked_count += tagged_only_count
+        not_marked_count -= tagged_only_count
         self._series = [{"name": "Annotated","data": marked_count},
                               {"name": "Unlabeled","data": not_marked_count}]
         self._refs.setdefault("Annotated", [])
@@ -45,13 +54,22 @@ class OverviewPie(BaseStats):
         raise NotImplementedError()
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
-        key = "Annotated" if len(figures) > 0 else "Unlabeled"
+        key = "Annotated" if len(figures) > 0 or len(image.tags) > 0 else "Unlabeled"
         self._refs[key].append(image.id)
 
     def to_json(self):
         raise NotImplementedError()
 
     def to_json2(self):
+        if self._type == "pie":
+            total_refs = sum(len(image_ids) for image_ids in self._refs.values())
+            images_total = self._project_stats["images"]["total"].get("imagesInDataset")
+            if images_total is not None and total_refs == images_total:
+                self._series = [
+                    {"name": "Annotated", "data": len(self._refs["Annotated"])},
+                    {"name": "Unlabeled", "data": len(self._refs["Unlabeled"])},
+                ]
+
         chart = PieChart("", self._series, self.BORDER_WIDTH, True, self.CHART_HEIGHT, self._type)
         if self._colors is not None:
             chart.set_colors(self._colors)

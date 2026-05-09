@@ -87,18 +87,25 @@ class DatasetsAnnotations(BaseStats):
     def update2(self, image, figures) -> None:
         parents = self._id_to_parents.get(image.dataset_id, [])
         ids_to_update = [image.dataset_id] + [parent.id for parent in parents]
+        is_annotated = len(figures) > 0 or len(image.tags) > 0
         for i in ids_to_update:
             self._images_set[i].add(image.id)
             if len(image.tags) > 0:
                 self._num_tagged[i] += 1
 
-        if len(figures) == 0:
+        for i in ids_to_update:
+            if is_annotated:
+                self._num_annotated[i] += 1
+
+        if not is_annotated:
             return
 
         self.is_unlabeled = False
+        if len(figures) == 0:
+            return
+
         for i in ids_to_update:
             self._imgid_to_area[i][image.id] = image.width * image.height
-            self._num_annotated[i] += 1
             for figure in figures:
                 self._class_imgids[i][figure.class_id].add(image.id)
                 self._class_figure_areas[i][figure.class_id].append(int(figure.area))
