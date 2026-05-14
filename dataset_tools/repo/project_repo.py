@@ -18,6 +18,10 @@ from supervisely.io.fs import archive_directory, get_file_name, mkdir
 
 import dataset_tools as dtools
 from dataset_tools.repo import download
+from dataset_tools.repo.heatmap_status import (
+    HEATMAP_STATUS_CUSTOM_DATA_KEY,
+    HeatmapStatusReporter,
+)
 from dataset_tools.repo.sample_project import (
     download_sample_image_project,
     get_sample_image_infos,
@@ -364,6 +368,9 @@ class ProjectRepo:
     def _update_custom_data(self):
         sly.logger.info("Updating project custom data...")
 
+        current_project_info = self.api.project.get_info_by_id(self.project_id)
+        current_custom_data = current_project_info.custom_data or {}
+
         custom_data = {
             #####################
             # ! required fields #
@@ -407,6 +414,9 @@ class ProjectRepo:
             "classification_task_classes": self.classification_task_classes,
             "tags": self.tags,
             "explore_datasets": self.explore_datasets,
+            HEATMAP_STATUS_CUSTOM_DATA_KEY: current_custom_data.get(
+                HEATMAP_STATUS_CUSTOM_DATA_KEY
+            ),
         }
 
         self.api.project.update_custom_data(self.project_id, custom_data)
@@ -490,6 +500,9 @@ class ProjectRepo:
         #     )
 
         heatmaps = dtools.ClassesHeatmaps(self.project_meta, self.project_stats)
+        heatmap_output_path = f"./stats/{heatmaps.basename_stem}.png"
+        heatmap_status = HeatmapStatusReporter(self.api, self.project_id, logger=sly.logger)
+        heatmap_status_reported = False
 
         if cls_prevs_settings.get("tags") is not None:
             self.classification_task_classes = cls_prevs_settings.pop("tags")
@@ -522,7 +535,7 @@ class ProjectRepo:
                 vstat.force = True
 
         if (
-            not sly.fs.file_exists(f"./stats/{heatmaps.basename_stem}.png")
+            not sly.fs.file_exists(heatmap_output_path)
             or heatmaps.__class__.__name__ in force
         ):
             heatmaps.force = True
@@ -535,6 +548,14 @@ class ProjectRepo:
             else:
                 classes_previews_tags.force = True
 
+        if heatmaps.force and len(heatmaps.classname_heatmap) == 0:
+            heatmap_status.skipped(
+                "No object classes are available for heatmap generation.",
+                output_path=heatmap_output_path,
+            )
+            heatmap_status_reported = True
+            heatmaps.force = False
+
         vstats = [stat for stat in vstats if stat.force]
 
         srate = 1
@@ -542,6 +563,11 @@ class ProjectRepo:
             srate = settings["Other"].get("sample_rate", 1)
 
         if self.project_stats["images"]["total"]["imagesMarked"] == 0:
+            heatmap_status.skipped(
+                "Classification-only dataset: no object annotations for heatmap generation.",
+                output_path=heatmap_output_path if sly.fs.file_exists(heatmap_output_path) else None,
+            )
+            heatmap_status_reported = True
             sly.logger.info(
                 "This is a classification-only dataset. It has zero annotations. Building only ClassesPreview and Poster."
             )
@@ -551,34 +577,89 @@ class ProjectRepo:
             vstats = [vstat for vstat in vstats if isinstance(vstat, dtools.ClassesPreviewTags)]
             heatmaps.force, classes_previews.force, classes_previews_tags.force = False, False, True
 
-        dtools.count_stats(
-            self.api, self.project_id, self.project_stats, stats=stats + vstats, sample_rate=srate
-        )
+        if not heatmaps.force and not heatmap_status_reported:
+            heatmap_status.skipped(
+                "Heatmap already exists and force was not requested.",
+                output_path=heatmap_output_path if sly.fs.file_exists(heatmap_output_path) else None,
+            )
+            heatmap_status_reported = True
+
+        if heatmaps.force:
+            heatmap_status.running(
+                "collecting_stats",
+                "Collecting annotation data for heatmap generation.",
+                progress=0.1,
+                output_path=heatmap_output_path,
+            )
+
+        try:
+            dtools.count_stats(
+                self.api,
+                self.project_id,
+                self.project_stats,
+                stats=stats + vstats,
+                sample_rate=srate,
+            )
+        except Exception as exc:
+            if heatmaps.force:
+                heatmap_status.failed(
+                    exc,
+                    stage="collecting_stats",
+                    output_path=heatmap_output_path,
+                )
+            raise
 
         sly.logger.info("Saving stats...")
-        for stat in stats:
-            sly.logger.info(f"Saving {stat.basename_stem}...")
-            result_json = stat.to_json()
-            if type(result_json) is list and len(result_json) > 0:
-                mkdir(f"./stats/one_of_string_tags/")
-                for curr_result_json in result_json:
-                    tag_name = curr_result_json["data"][0][0].replace("/", " ")
-                    with open(f"./stats/one_of_string_tags/{tag_name}.json", "w") as f:
-                        json.dump(curr_result_json, f)
+        try:
+            for stat in stats:
+                sly.logger.info(f"Saving {stat.basename_stem}...")
+                result_json = stat.to_json()
+                if type(result_json) is list and len(result_json) > 0:
+                    mkdir(f"./stats/one_of_string_tags/")
+                    for curr_result_json in result_json:
+                        tag_name = curr_result_json["data"][0][0].replace("/", " ")
+                        with open(f"./stats/one_of_string_tags/{tag_name}.json", "w") as f:
+                            json.dump(curr_result_json, f)
 
-                result_json = None
+                    result_json = None
 
-            if result_json is not None:
-                with open(f"./stats/{stat.basename_stem}.json", "w") as f:
-                    json.dump(result_json, f)
-            try:
-                stat.to_image(f"./stats/{stat.basename_stem}.png")
-            except TypeError:
-                pass
+                if result_json is not None:
+                    with open(f"./stats/{stat.basename_stem}.json", "w") as f:
+                        json.dump(result_json, f)
+                try:
+                    stat.to_image(f"./stats/{stat.basename_stem}.png")
+                except TypeError:
+                    pass
+        except Exception as exc:
+            if heatmaps.force:
+                heatmap_status.failed(
+                    exc,
+                    stage="saving_stats",
+                    output_path=heatmap_output_path,
+                )
+            raise
 
         if len(vstats) > 0:
             if heatmaps.force:
-                heatmaps.to_image(f"./stats/{heatmaps.basename_stem}.png", **heatmaps_settings)
+                heatmap_status.running(
+                    "rendering",
+                    "Rendering heatmap image.",
+                    progress=0.8,
+                    output_path=heatmap_output_path,
+                )
+                try:
+                    heatmaps.to_image(heatmap_output_path, **heatmaps_settings)
+                except Exception as exc:
+                    heatmap_status.failed(
+                        exc,
+                        stage="rendering",
+                        output_path=heatmap_output_path,
+                    )
+                    raise
+                heatmap_status.success(
+                    "Heatmap generation completed successfully.",
+                    output_path=heatmap_output_path,
+                )
             if classes_previews.force:
                 classes_previews.animate(f"./visualizations/{classes_previews.basename_stem}.webm")
             elif classes_previews_tags.force:  # classification-only dataset
