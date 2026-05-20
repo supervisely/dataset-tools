@@ -19,7 +19,7 @@ INSTALL_REQUIRES = [
     "supervisely>=6.72.28",
     "numpy>=1.19, <2.0.0",
     "requests>=2.27.1, <3.0.0",
-    "requests-toolbelt>=0.9.1, <1.0.0",
+    "requests-toolbelt>=1.0.0, <2.0.0",
     "tqdm>=4.62.3, <5.0.0",
     "pandas>=1.1.3, <=1.5.2",  # For compatibility with Python3.7
     "matplotlib>=3.3.2, <4.0.0",
