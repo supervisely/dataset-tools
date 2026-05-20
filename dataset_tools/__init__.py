@@ -1,8 +1,11 @@
-import pkg_resources  # isort: skip
+try:
+    from importlib.metadata import PackageNotFoundError, version  # isort: skip
+except ImportError:
+    from importlib_metadata import PackageNotFoundError, version  # isort: skip
 
 try:
-    __version__ = pkg_resources.require("dataset-tools")[0].version
-except TypeError as e:
+    __version__ = version("dataset-tools")
+except PackageNotFoundError:
     __version__ = "development"
 
 from dataset_tools.image.renders.convert import (

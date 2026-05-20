@@ -1,5 +1,6 @@
 [build-system]
 requires = [
+    "importlib-metadata>=4; python_version < '3.8'",
     "requests",
     "setuptools>=42",
     "wheel"

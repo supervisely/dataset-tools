@@ -1,7 +1,11 @@
 import os
 import re
 import requests
-from pkg_resources import DistributionNotFound, get_distribution
+
+try:
+    from importlib.metadata import PackageNotFoundError, distribution
+except ImportError:
+    from importlib_metadata import PackageNotFoundError, distribution
 
 from setuptools import find_packages, setup
 
@@ -16,21 +20,30 @@ version = response.json()["tag_name"]
 
 
 INSTALL_REQUIRES = [
+    "importlib-metadata>=4; python_version < '3.8'",
     "supervisely>=6.72.28",
-    "numpy>=1.19, <2.0.0",
-    "requests>=2.27.1, <3.0.0",
+    "numpy>=1.19, <2.0.0; python_version < '3.11'",
+    "numpy>=2.3.3, <=2.3.3; python_version >= '3.11'",
+    "requests>=2.27.1, <3.0.0; python_version < '3.11'",
+    "requests>=2.33.0, <=2.34.0; python_version >= '3.11'",
     "requests-toolbelt>=1.0.0, <2.0.0",
     "tqdm>=4.62.3, <5.0.0",
-    "pandas>=1.1.3, <=1.5.2",  # For compatibility with Python3.7
-    "matplotlib>=3.3.2, <4.0.0",
-    "scikit-image>=0.17.1, <1.0.0",
-    "dataframe_image>=0.1.11, <1.0.0",
+    "pandas>=1.1.3, <=1.5.2; python_version < '3.11'",
+    "pandas>=2.3.3, <=2.3.3; python_version >= '3.11'",
+    "matplotlib>=3.3.2, <4.0.0; python_version < '3.11'",
+    "matplotlib>=3.10.0, <4.0.0; python_version >= '3.11'",
+    "scikit-image>=0.17.1, <1.0.0; python_version < '3.11'",
+    "scikit-image>=0.25.0, <1.0.0; python_version >= '3.11'",
+    "dataframe_image>=0.1.11, <1.0.0; python_version < '3.11'",
+    "dataframe_image>=0.2.7, <1.0.0; python_version >= '3.11'",
     "inflect>=6.0.0",
     "gdown>=4.7.1",
-    "urllib3==1.26.15",
+    "urllib3==1.26.15; python_version < '3.11'",
+    "urllib3>=2.6.3, <3.0.0; python_version >= '3.11'",
     "geojson>=3.0.0",
     "titlecase>=2.4.1",
-    "pycocotools>=2.0.0",
+    "pycocotools>=2.0.0; python_version < '3.11'",
+    "pycocotools>=2.0.10, <3.0.0; python_version >= '3.11'",
     "memory-profiler==0.61.0",
     "Pympler==1.0.1",
     "xmltodict==0.13.0",
@@ -53,9 +66,9 @@ def check_alternative_installation(install_require, alternative_install_requires
     for alternative_install_require in alternative_install_requires:
         try:
             alternative_pkg_name = re.split(r"[ !<>=]", alternative_install_require)[0]
-            get_distribution(alternative_pkg_name)
+            distribution(alternative_pkg_name)
             return str(alternative_install_require)
-        except DistributionNotFound:
+        except PackageNotFoundError:
             continue
 
     return str(install_require)
@@ -110,6 +123,10 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
