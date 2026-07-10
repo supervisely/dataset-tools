@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 from skimage.transform import resize
 from typing import List, Dict
 import supervisely as sly
+from dataset_tools.image.pillow_compat import draw_text_size, font_text_size
 from dataset_tools.image.stats.basestats import BaseVisual
 from supervisely import FigureInfo, ImageInfo
 
@@ -270,7 +271,7 @@ class ClassesHeatmaps(BaseVisual):
 
         for char in characters[1:]:
             temp_line = current_line + char
-            size = font.getsize(temp_line)
+            size = font_text_size(font, temp_line)
 
             if size[0] <= image.size[0]:
                 current_line = temp_line
@@ -315,7 +316,7 @@ class ClassesHeatmaps(BaseVisual):
             font = self._font.font_variant(size=font_size)
             text = f"{heatmap}"
             text_color = (255, 255, 255)
-            text_width, _ = draw.textsize(text, font=font)
+            text_width, _ = draw_text_size(draw, text, font=font)
             text_position = (x_pos_center - int(text_width / 2), y_pos_percent)
             draw.text(text_position, text, font=font, fill=text_color)
             image.save(image_path)
@@ -329,12 +330,12 @@ class ClassesHeatmaps(BaseVisual):
         font_size = 10
 
         font = self._font.font_variant(size=font_size)
-        text_width, _ = font.getsize(text)
+        text_width, _ = font_text_size(font, text)
 
         while text_width > desired_text_width:
             font_size -= 1
             font = font.font_variant(size=font_size)
-            text_width, _ = font.getsize(text)
+            text_width, _ = font_text_size(font, text)
             font.font_variant
 
         desired_font_height = math.ceil((self._heatmap_img_size[0] * text_height_percent) // 100)

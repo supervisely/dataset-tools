@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 from supervisely.imaging import font as sly_font
 from tqdm import tqdm
 
+from dataset_tools.image.pillow_compat import draw_text_size, font_text_size
 from dataset_tools.image.renders.convert import compress_png
 
 CURENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -311,7 +312,7 @@ class Poster:
         x_pos_center = int(image_w * 0.5)
         y_pos_percent = int(image_h * 0.5)
 
-        text_width, text_height = font.getsize(text)
+        text_width, text_height = font_text_size(font, text)
         text_color = (0, 0, 0, 210)
 
         tmp_canvas = np.zeros(
@@ -323,7 +324,7 @@ class Poster:
 
         tmp_canvas = Image.fromarray(tmp_canvas)
         draw = ImageDraw.Draw(tmp_canvas)
-        text_width, text_height = draw.textsize(text, font=font)
+        text_width, text_height = draw_text_size(draw, text, font=font)
         draw.text((half_offset, -half_offset // 3), text, font=font, fill=text_color)
 
         tmp_canvas = np.array(tmp_canvas, dtype=np.uint8)
@@ -347,7 +348,7 @@ class Poster:
         while text_width > desired_text_width or text_height > desired_text_height:
             font_size -= 1
             font = font.font_variant(size=font_size)
-            text_width, text_height = font.getsize(text)
+            text_width, text_height = font_text_size(font, text)
 
         desired_font_height = math.ceil((image_h * text_height_percent) // 100)
         desired_font_size = math.ceil(font_size * desired_text_width / text_width)

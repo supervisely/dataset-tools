@@ -11,6 +11,7 @@ import supervisely as sly
 from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 
+from dataset_tools.image.pillow_compat import draw_text_size, font_text_size
 from dataset_tools.image.renders.convert import compress_mp4, from_mp4_to_webm
 from dataset_tools.image.stats.basestats import BaseVisual
 
@@ -388,7 +389,7 @@ class ClassesPreview(BaseVisual):
         x_pos_center = int(image_w * 0.5)
         y_pos_percent = self._gap * 2
 
-        text_width, text_height = font.getsize(text)
+        text_width, text_height = font_text_size(font, text)
         text_color = (255, 255, 255, 255)
 
         tmp_canvas = np.zeros(
@@ -401,7 +402,7 @@ class ClassesPreview(BaseVisual):
         tmp_canvas = Image.fromarray(tmp_canvas)
         canvas_w, canvas_h = tmp_canvas.size
         draw = ImageDraw.Draw(tmp_canvas)
-        text_width, text_height = draw.textsize(text, font=font)
+        text_width, text_height = draw_text_size(draw, text, font=font)
         x, y = (x_pos_center - int(text_width / 2), y_pos_percent)
         draw.text((canvas_w // 2, canvas_h // 2), text, text_color, font, "mm")
 
@@ -421,14 +422,14 @@ class ClassesPreview(BaseVisual):
 
         font = ImageFont.truetype(self._font, font_size)
 
-        text_width, text_height = font.getsize(text)
+        text_width, text_height = font_text_size(font, text)
 
         while text_width > desired_text_width or text_height > desired_text_height:
             font_size -= 1
             if font_size < 1:
                 break
             font = ImageFont.truetype(self._font, font_size)
-            text_width, text_height = font.getsize(text)
+            text_width, text_height = font_text_size(font, text)
 
         desired_font_height = math.ceil((image_h * text_height_percent) // 100)
         desired_font_size = math.ceil(font_size * desired_text_width / text_width)
