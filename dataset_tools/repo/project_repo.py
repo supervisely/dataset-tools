@@ -419,7 +419,9 @@ class ProjectRepo:
             ),
         }
 
-        self.api.project.update_custom_data(self.project_id, custom_data)
+        self.api.project.update_custom_data(
+            self.project_id, custom_data, silent=True
+        )
         self.project_info = self.api.project.get_info_by_id(self.project_id)
         self.custom_data = self.project_info.custom_data
 

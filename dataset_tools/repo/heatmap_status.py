@@ -186,7 +186,9 @@ class HeatmapStatusReporter:
             project_info = self.api.project.get_info_by_id(self.project_id)
             custom_data = dict(project_info.custom_data or {})
             custom_data[HEATMAP_STATUS_CUSTOM_DATA_KEY] = payload
-            self.api.project.update_custom_data(self.project_id, custom_data)
+            self.api.project.update_custom_data(
+                self.project_id, custom_data, silent=True
+            )
         except Exception as exc:
             self._warn(f"Failed to update heatmap status in project custom data: {exc}")
 
