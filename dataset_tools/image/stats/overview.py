@@ -101,7 +101,13 @@ class OverviewPie(BaseStats):
         }
 
         chart_json["options"]["chart"]["height"] = self.CHART_HEIGHT
-        chart_json["referencesCell"] = self._seize_list_to_fixed_size(self._refs, 1000)
+        # One capped list per slice, as every other stat does. Passing _refs itself made the
+        # helper pop integer indices out of a dict keyed by class name, so any project with
+        # more than 1000 classes raised KeyError here. Copies, because the helper pops in place.
+        chart_json["referencesCell"] = {
+            name: self._seize_list_to_fixed_size(list(image_ids), 1000)
+            for name, image_ids in self._refs.items()
+        }
         return chart_json
         
     def to_numpy_raw(self):
