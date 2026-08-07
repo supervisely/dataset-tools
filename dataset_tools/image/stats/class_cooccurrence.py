@@ -14,6 +14,12 @@ REFERENCES_LIMIT = 500
 OBJECTS_TAGS = ["objectsOnly", "all"]
 MAX_NUMBER_OF_TAGS = 500
 
+# Everything this stat holds is class-by-class, so its cost is quadratic: at 500 classes the
+# constructor takes 56 MB and the chart serializes to 3.5 MB, at 3579 it takes 3.3 GB and 188 MB.
+# A matrix that wide is not readable anyway, so it is skipped rather than shrunk — the same call
+# MAX_NUMBER_OF_TAGS already makes for the tag variants below.
+MAX_NUMBER_OF_CLASSES = 500
+
 
 class ClassCooccurrence(BaseStats):
     """
@@ -42,15 +48,28 @@ class ClassCooccurrence(BaseStats):
         self._references = defaultdict(lambda: defaultdict(list))
 
         self._num_classes = len(self._class_names)
-        self.co_occurrence_matrix = np.zeros(
-            (self._num_classes, self._num_classes), dtype=int
-        )  # TODO maybe rm numpy sewing at all?
 
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
         self._class_to_index = {}
 
         for idx, obj_class in enumerate(self._meta.obj_classes):
             self._class_to_index[obj_class.sly_id] = idx
+
+        # The two quadratic allocations. Built only under the limit, so an oversized project
+        # costs nothing here instead of the several GB it would otherwise reserve up front.
+        if self._num_classes > MAX_NUMBER_OF_CLASSES:
+            sly.logger.warn(
+                f"{self.__class__.__name__}: skipped, the project has {self._num_classes} classes "
+                f"and the limit is {MAX_NUMBER_OF_CLASSES}."
+            )
+            self.co_occurrence_matrix = np.zeros((0, 0), dtype=int)
+            self._images_set = {}
+            self.co_occurrence_dict = {}
+            return
+
+        self.co_occurrence_matrix = np.zeros(
+            (self._num_classes, self._num_classes), dtype=int
+        )  # TODO maybe rm numpy sewing at all?
 
         self._images_set = {class_id: set() for class_id in self._class_ids}
         self.co_occurrence_dict = {
@@ -61,7 +80,7 @@ class ClassCooccurrence(BaseStats):
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
             return
-        if self._num_classes == 0:
+        if self._num_classes == 0 or self._num_classes > MAX_NUMBER_OF_CLASSES:
             return
 
         classes = set()
@@ -77,7 +96,7 @@ class ClassCooccurrence(BaseStats):
                 self.co_occurrence_dict[cls_id_j][cls_id_i].add(image.id)
 
     def to_json2(self):
-        if self._num_classes == 0:
+        if self._num_classes == 0 or self._num_classes > MAX_NUMBER_OF_CLASSES:
             return
 
         options = {
@@ -157,7 +176,7 @@ class ClassCooccurrence(BaseStats):
         self.__init__(self._meta, self._cls_prevs_tags, self.force)
 
     def to_json(self) -> Optional[Dict]:
-        if self._num_classes == 0:
+        if self._num_classes == 0 or self._num_classes > MAX_NUMBER_OF_CLASSES:
             return
         # if self.co_occurrence_matrix is None:
         #     return None
@@ -190,7 +209,7 @@ class ClassCooccurrence(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        if self._num_classes == 0:
+        if self._num_classes == 0 or self._num_classes > MAX_NUMBER_OF_CLASSES:
             return
         return np.array(self.co_occurrence_dict, dtype=object)
         #  if unlabeled
@@ -208,7 +227,7 @@ class ClassCooccurrence(BaseStats):
         # return np.stack([matrix, references], axis=0)
 
     def sew_chunks(self, chunks_dir: str) -> None:
-        if self._num_classes == 0:
+        if self._num_classes == 0 or self._num_classes > MAX_NUMBER_OF_CLASSES:
             return
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
@@ -277,6 +296,17 @@ class ClassToTagCooccurrence(BaseStats):
         self._tag_ids = {
             item.sly_id: item.name for item in self._meta.tag_metas if item.name in self._tag_names
         }
+        # Two classes-by-tags dicts, so the cost is the product: 13 MB at 3579 classes and 10
+        # tags, 843 MB at 3579 and 500. The tag side was already capped; this caps the other one.
+        if self._num_classes > MAX_NUMBER_OF_CLASSES:
+            sly.logger.warn(
+                f"{self.__class__.__name__}: skipped, the project has {self._num_classes} classes "
+                f"and the limit is {MAX_NUMBER_OF_CLASSES}."
+            )
+            self.co_occurrence_dict = {}
+            self.references_dict = {}
+            return
+
         self.co_occurrence_dict = {
             class_id_x: {tag_id_y: set() for tag_id_y in self._tag_ids}
             for class_id_x in self._class_ids
@@ -289,7 +319,7 @@ class ClassToTagCooccurrence(BaseStats):
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
             return
-        if self._num_classes == 0 or self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
+        if self._num_classes == 0 or self._num_classes > MAX_NUMBER_OF_CLASSES or self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
 
         for figure in figures:
@@ -317,7 +347,7 @@ class ClassToTagCooccurrence(BaseStats):
         self.__init__(self._meta, self.force)
 
     def to_json2(self) -> Optional[Dict]:
-        if self._num_classes == 0:
+        if self._num_classes == 0 or self._num_classes > MAX_NUMBER_OF_CLASSES:
             return
         if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
@@ -364,7 +394,7 @@ class ClassToTagCooccurrence(BaseStats):
         return res
 
     def to_numpy_raw(self):
-        if self._num_classes == 0:
+        if self._num_classes == 0 or self._num_classes > MAX_NUMBER_OF_CLASSES:
             return
         if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
@@ -373,7 +403,7 @@ class ClassToTagCooccurrence(BaseStats):
         )
 
     def sew_chunks(self, chunks_dir: str) -> None:
-        if self._num_classes == 0:
+        if self._num_classes == 0 or self._num_classes > MAX_NUMBER_OF_CLASSES:
             return
         if self._num_tags == 0 or self._num_tags > MAX_NUMBER_OF_TAGS:
             return
