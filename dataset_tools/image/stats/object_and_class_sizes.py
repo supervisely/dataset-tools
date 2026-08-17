@@ -1,8 +1,8 @@
 import math
 import os
 import random
-from collections import defaultdict, namedtuple
-from typing import Dict, List, Optional
+from collections import namedtuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import supervisely as sly
@@ -273,9 +273,6 @@ class ObjectSizes(BaseStats):
     def sew_chunks(self, chunks_dir: str) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
-        res = []
-        references = []
-
         def custom_key(path):
             # Split path and extract dataset ID and chunk ID
             parts = os.path.basename(path).split("_")
@@ -284,16 +281,39 @@ class ObjectSizes(BaseStats):
         # Sort paths by dataset ID and then by chunk ID
         sorted_files = sorted(files, key=custom_key)
 
+        # One row per object in the project used to be merged and serialized in full, even though
+        # update_freq -- computed above from the same budget -- says this table is meant to hold
+        # at most MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF rows. Only the single-pass update()
+        # path ever applied it, so the chunked path grew with the object count instead.
+        # Reservoir sampling applies the budget while merging, so memory is bounded by the budget
+        # rather than by the project, and the retained sample stays uniform over all chunks.
+        # Seeded like every other sampling decision in this package, so runs are reproducible.
+        limit = int(MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF)
+        rng = random.Random(42)
+        data = self._stats2["data"]
+        refs = self._stats2["refs"]
+        seen = 0
+
         for file in sorted_files:
             loaded_data = np.load(file, allow_pickle=True).tolist()
 
-            self._stats2["data"].extend(loaded_data["data"])
-            self._stats2["refs"].extend(loaded_data["refs"])
+            for row, ref in zip(loaded_data["data"], loaded_data["refs"]):
+                if len(data) < limit:
+                    data.append(row)
+                    refs.append(ref)
+                else:
+                    # Replace with probability limit/seen, the standard reservoir step.
+                    pos = rng.randint(0, seen)
+                    if pos < limit:
+                        data[pos] = row
+                        refs[pos] = ref
+                seen += 1
 
-        for idx, obj in enumerate(self._stats2["data"], 1):
+            del loaded_data
+
+        for idx, obj in enumerate(data, 1):
             obj[0] = idx
 
-        # return np.array(res, dtype=object)
         return None
 
 
@@ -328,11 +348,43 @@ class ClassSizes(BaseStats):
         self._class_titles = [obj_class.name for obj_class in project_meta.obj_classes]
 
         self._data = []
+        self._acc = {}
 
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
 
     def clean(self):
         self.__init__(self._meta, self.force)
+
+    _METRICS = ("height_px", "height_pc", "width_px", "width_pc", "area_pc")
+
+    def _fold_annotation(self, ann) -> None:
+        """Accumulate one annotation into the per-class running totals."""
+        image_height, image_width = ann.img_size
+
+        for label in ann.labels:
+            acc = self._acc.get(label.obj_class_name)
+            if acc is None:
+                acc = self._acc[label.obj_class_name] = {
+                    "count": 0,
+                    **{metric: {"sum": 0.0, "min": None, "max": None} for metric in self._METRICS},
+                }
+
+            acc["count"] += 1
+            obj_sizes = calculate_obj_sizes(label, image_height, image_width)
+
+            for metric in self._METRICS:
+                value = obj_sizes[metric]
+                bucket = acc[metric]
+                bucket["sum"] += value
+                if bucket["min"] is None or value < bucket["min"]:
+                    bucket["min"] = value
+                if bucket["max"] is None or value > bucket["max"]:
+                    bucket["max"] = value
+
+    def _drain_data(self) -> None:
+        """Fold whatever update() collected, so to_json() can read the accumulators alone."""
+        while self._data:
+            self._fold_annotation(self._data.pop())
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
@@ -380,72 +432,42 @@ class ClassSizes(BaseStats):
 
         stats = []
 
-        class_heights_px = defaultdict(list)
-        class_heights_pc = defaultdict(list)
-        class_widths_px = defaultdict(list)
-        class_widths_pc = defaultdict(list)
-        class_areas_pc = defaultdict(list)
-        class_object_counts = defaultdict(int)
+        self._drain_data()
 
-        for ann in self._data:
-            image_height, image_width = ann.img_size
-            for label in ann.labels:
-                # if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
-                # if label.geometry_type not in [
-                #     sly.Bitmap.name(),
-                #     sly.Rectangle.name(),
-                #     sly.Polygon.name(),
-                #     sly.GraphNodes.name(),
-                #     sly.Point.name(),
-                #     sly.Polyline.name()
-                # ]:
-                #     continue
-
-                # class_object_counts[label.obj_class.name] += 1
-                class_object_counts[label.obj_class_name] += 1
-
-                obj_sizes = calculate_obj_sizes(label, image_height, image_width)
-
-                class_heights_px[label.obj_class_name].append(obj_sizes["height_px"])
-                class_heights_pc[label.obj_class_name].append(obj_sizes["height_pc"])
-                class_widths_px[label.obj_class_name].append(obj_sizes["width_px"])
-                class_widths_pc[label.obj_class_name].append(obj_sizes["width_pc"])
-                class_areas_pc[label.obj_class_name].append(obj_sizes["area_pc"])
+        def agg(class_title: str, metric: str) -> Tuple[float, float, float]:
+            """(avg, min, max) for one metric, matching the empty-class defaults of 0."""
+            acc = self._acc.get(class_title)
+            if acc is None or acc["count"] == 0:
+                return 0, 0, 0
+            bucket = acc[metric]
+            return bucket["sum"] / acc["count"], bucket["min"], bucket["max"]
 
         for class_title in self._class_titles:
-            object_count = class_object_counts.get(class_title, 0)
+            acc = self._acc.get(class_title)
+            object_count = 0 if acc is None else acc["count"]
 
-            cls_area = class_areas_pc[class_title]
-            avg_area_pc = 0 if len(cls_area) == 0 else sum(cls_area) / len(cls_area)
-
-            cls_hts_px = class_heights_px[class_title]
-            avg_height_px = 0 if len(cls_hts_px) == 0 else sum(cls_hts_px) / len(cls_hts_px)
-
-            cls_hts_pc = class_heights_pc[class_title]
-            avg_height_pc = 0 if len(cls_hts_pc) == 0 else sum(cls_hts_pc) / len(cls_hts_pc)
-
-            cls_wdt_px = class_widths_px[class_title]
-            avg_width_px = 0 if len(cls_wdt_px) == 0 else sum(cls_wdt_px) / len(cls_wdt_px)
-
-            cls_wdt_pc = class_widths_pc[class_title]
-            avg_width_pc = 0 if len(cls_wdt_pc) == 0 else sum(cls_wdt_pc) / len(cls_wdt_pc)
+            avg_area_pc, min_area_pc, max_area_pc = agg(class_title, "area_pc")
+            avg_height_px, min_height_px, max_height_px = agg(class_title, "height_px")
+            avg_height_pc, min_height_pc, max_height_pc = agg(class_title, "height_pc")
+            avg_width_px, min_width_px, max_width_px = agg(class_title, "width_px")
+            avg_width_pc, min_width_pc, max_width_pc = agg(class_title, "width_pc")
 
             class_data = {
                 "class_name": class_title,
                 "object_count": object_count,
                 "avg_area_pc": round(avg_area_pc, 2),
-                "max_area_pc": max(cls_area, default=0),
-                "min_area_pc": min(cls_area, default=0),
-                "min_height_px": min(cls_hts_px, default=0),
-                "min_height_pc": min(cls_hts_pc, default=0),
-                "max_height_px": max(cls_hts_px, default=0),
-                "max_height_pc": max(cls_hts_pc, default=0),
+                "max_area_pc": max_area_pc,
+                "min_area_pc": min_area_pc,
+                "min_height_px": min_height_px,
+                "min_height_pc": min_height_pc,
+                "max_height_px": max_height_px,
+                "max_height_pc": max_height_pc,
                 "avg_height_px": round(avg_height_px, 2),
                 "avg_height_pc": round(avg_height_pc, 2),
-                "min_width_px": min(class_widths_px[class_title], default=0),
-                "min_width_pc": min(class_widths_pc[class_title], default=0),
-                "max_width_px": max(class_widths_px[class_title], default=0),
-                "max_width_pc": max(class_widths_pc[class_title], default=0),
+                "min_width_px": min_width_px,
+                "min_width_pc": min_width_pc,
+                "max_width_px": max_width_px,
+                "max_width_pc": max_width_pc,
                 "avg_width_px": round(avg_width_px, 2),
                 "avg_width_pc": round(avg_width_pc, 2),
             }
@@ -539,15 +561,20 @@ class ClassSizes(BaseStats):
     def sew_chunks(self, chunks_dir: str) -> np.ndarray:
         files = sly.fs.list_files(chunks_dir, valid_extensions=[".npy"])
 
+        # Folded per chunk instead of collected: every figure in the project used to be held as
+        # a LiteLabel until to_json() ran, and this chart only reports count/min/max/mean per
+        # class -- all of which accumulate exactly. Memory is now O(classes), not O(objects),
+        # and the numbers are unchanged.
         for file in files:
             loaded_data = np.load(file, allow_pickle=True)
 
             for image in loaded_data.tolist():
                 labels, img_size = image
-                lite_ann = LiteAnnotation(labels, img_size)
-                self._data.append(lite_ann)
+                self._fold_annotation(LiteAnnotation(labels, img_size))
 
-        return np.array(self._data, dtype=object)
+            del loaded_data
+
+        return None
 
 
 class ClassesTreemap(BaseStats):
@@ -561,11 +588,38 @@ class ClassesTreemap(BaseStats):
         self._class_colors = [rgb_to_hex(rgb) for rgb in self._class_rgbs]
 
         self._data = []
+        self._acc = {}
 
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes.items()}
 
     def clean(self):
         self.__init__(self._meta, self.force)
+
+    _AREA_GEOMETRIES = (
+        sly.Bitmap.geometry_name(),
+        sly.Rectangle.geometry_name(),
+        sly.Polygon.geometry_name(),
+    )
+
+    def _fold_annotation(self, ann) -> None:
+        """Accumulate one annotation into the per-class area totals."""
+        image_height, image_width = ann.img_size
+
+        for label in ann.labels:
+            if label.geometry_type not in self._AREA_GEOMETRIES:
+                continue
+
+            acc = self._acc.get(label.obj_class_name)
+            if acc is None:
+                acc = self._acc[label.obj_class_name] = {"count": 0, "area_sum": 0.0}
+
+            acc["count"] += 1
+            acc["area_sum"] += calculate_obj_sizes(label, image_height, image_width)["area_pc"]
+
+    def _drain_data(self) -> None:
+        """Fold whatever update() collected, so to_json() can read the accumulators alone."""
+        while self._data:
+            self._fold_annotation(self._data.pop())
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
@@ -603,7 +657,9 @@ class ClassesTreemap(BaseStats):
         self._data.append(lite_ann)
 
     def to_json(self) -> Dict:
-        if not self._data:
+        self._drain_data()
+
+        if not self._acc:
             sly.logger.warning(
                 "ClassesTreemap: No stats were added in update() method, the result will be None."
             )
@@ -617,39 +673,14 @@ class ClassesTreemap(BaseStats):
         if self._number_of_classes < 2:
             return
 
-        class_areas_pc = defaultdict(list)
-        class_object_counts = defaultdict(int)
-
-        for ann in self._data:
-            image_height, image_width = ann.img_size
-            for label in ann.labels:
-                # if type(label.geometry) not in [sly.Bitmap, sly.Rectangle, sly.Polygon]:
-                if label.geometry_type not in [
-                    sly.Bitmap.geometry_name(),
-                    sly.Rectangle.geometry_name(),
-                    sly.Polygon.geometry_name(),
-                ]:
-                    continue
-
-                class_object_counts[label.obj_class_name] += 1
-
-                obj_sizes = calculate_obj_sizes(label, image_height, image_width)
-
-                class_areas_pc[label.obj_class_name].append(obj_sizes["area_pc"])
-
         for class_title in self._class_titles:
-            object_count = class_object_counts[class_title]
+            acc = self._acc.get(class_title)
 
-            if object_count < 1:
+            if acc is None or acc["count"] < 1:
                 continue
 
             names.append(class_title)
-            values.append(
-                round(
-                    sum(class_areas_pc[class_title]) / len(class_areas_pc[class_title]),
-                    2,
-                )
-            )
+            values.append(round(acc["area_sum"] / acc["count"], 2))
 
         tc = TreemapChart(
             title="Average area of class objects on image",
@@ -686,15 +717,18 @@ class ClassesTreemap(BaseStats):
 
         # TODO handle when class has 0 images
 
+        # Folded per chunk rather than collected -- see ClassSizes.sew_chunks. This chart only
+        # reports one average per class, so nothing needs the per-object rows to survive.
         for file in files:
             loaded_data = np.load(file, allow_pickle=True)
 
             for image in loaded_data.tolist():
                 labels, img_size = image
-                lite_ann = LiteAnnotation(labels, img_size)
-                self._data.append(lite_ann)
+                self._fold_annotation(LiteAnnotation(labels, img_size))
 
-        return np.array(self._data, dtype=object)
+            del loaded_data
+
+        return None
 
 
 def rgb_to_hex(rgb: List[int]) -> str:
