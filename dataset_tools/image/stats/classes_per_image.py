@@ -111,6 +111,11 @@ class ClassesPerImage(BaseStats):
         self._class_ids = {item.sly_id: item.name for item in self._meta.obj_classes}
         self._data_dict = {}
 
+        # Reservoir state for sew_chunks; seeded so a rerun retains the same sample.
+        self._sew_rng = random.Random(42)
+        self._sew_keys = []
+        self._rows_seen = 0
+
     def clean(self):
         self.__init__(
             self._meta,
@@ -384,7 +389,42 @@ class ClassesPerImage(BaseStats):
                 save_data = np.array(loaded_data, dtype=object)
                 np.save(file, save_data)
 
-                self._data_dict.update(loaded_data)
+                self._merge_rows(loaded_data)
+
+            del loaded_data
+
+    def _merge_rows(self, loaded_data: dict) -> None:
+        """Merge one chunk's rows, holding at most the row budget update_freq is derived from.
+
+        This table carries a nested per-class entry for every image, so merging the whole project
+        costs images x classes nested lists -- the single largest structure in the sew phase after
+        co-occurrence. update_freq (see __init__) already states the intended budget, but only the
+        single-pass update() path applies it, so the chunked path kept everything. Reservoir
+        sampling applies the same budget here, uniformly across chunks and seeded for
+        reproducibility.
+        """
+        limit = self._row_budget()
+        keys = self._sew_keys
+
+        for image_id, row in loaded_data.items():
+            if len(self._data_dict) < limit:
+                self._data_dict[image_id] = row
+                keys.append(image_id)
+            else:
+                # Replace with probability limit/seen, the standard reservoir step. The parallel
+                # key list keeps the eviction O(1); rebuilding it from the dict each time would
+                # make the merge quadratic.
+                pos = self._sew_rng.randint(0, self._rows_seen)
+                if pos < limit:
+                    del self._data_dict[keys[pos]]
+                    self._data_dict[image_id] = row
+                    keys[pos] = image_id
+            self._rows_seen += 1
+
+    def _row_budget(self) -> int:
+        """Images this table may hold, from the same budget update_freq is computed from."""
+        classes = len(self.project_stats["images"]["objectClasses"]) + 5
+        return max(int(MAX_SIZE_OBJECT_SIZES_BYTES * SHRINKAGE_COEF / classes), 1)
 
     def _count_unlabeled_area(self, canvas, bounding_boxes):
         for bbox in bounding_boxes:

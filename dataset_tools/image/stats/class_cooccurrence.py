@@ -1,6 +1,7 @@
 import json
 import os
 from collections import defaultdict
+from itertools import islice
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -76,6 +77,13 @@ class ClassCooccurrence(BaseStats):
             cls_id_x: {cls_id_y: set() for cls_id_y in self._class_ids}
             for cls_id_x in self._class_ids
         }
+        # Cell counts are kept apart from the id sets so that sew_chunks can cap the sets at
+        # REFERENCES_LIMIT without the displayed co-occurrence numbers shrinking with them:
+        # to_json2 used to read both off the same set. Populated by sew_chunks only, so the
+        # single-pass update()/update2() paths keep deriving counts from the sets themselves.
+        self._cell_counts = {
+            cls_id_x: {cls_id_y: 0 for cls_id_y in self._class_ids} for cls_id_x in self._class_ids
+        }
 
     def update2(self, image: ImageInfo, figures: List[FigureInfo]):
         if len(figures) == 0:
@@ -106,11 +114,19 @@ class ClassCooccurrence(BaseStats):
         colomns_options = [None] * (len(self._class_names) + 1)
         colomns_options[0] = {"type": "class"}  # not used in Web
 
+        # After sew_chunks the id sets are capped, so their length is no longer the cell value.
+        counted = any(count for row in self._cell_counts.values() for count in row.values())
+
+        def cell_count(row_key, col_key, image_ids) -> int:
+            return self._cell_counts[row_key][col_key] if counted else len(image_ids)
+
         max_lengths = {key: 0 for key in self.co_occurrence_dict}
 
         for outer_key, inner_dict in self.co_occurrence_dict.items():
             for inner_key, value_set in inner_dict.items():
-                max_lengths[inner_key] = max(max_lengths[inner_key], len(value_set))
+                max_lengths[inner_key] = max(
+                    max_lengths[inner_key], cell_count(outer_key, inner_key, value_set)
+                )
 
         for idx, val in enumerate(max_lengths.values(), start=1):
             colomns_options[idx] = {"maxValue": val}
@@ -125,8 +141,9 @@ class ClassCooccurrence(BaseStats):
             for col_key, image_ids in subdict.items():
                 row_idx = index[row_key]
                 col_idx = index[col_key]
-                nested_list[row_idx][col_idx] = len(image_ids)
-                nested_list[col_idx][row_idx] = len(image_ids)
+                count = cell_count(row_key, col_key, image_ids)
+                nested_list[row_idx][col_idx] = count
+                nested_list[col_idx][row_idx] = count
                 refs_image_ids[row_idx][col_idx] = list(image_ids)
                 refs_image_ids[col_idx][row_idx] = list(image_ids)
 
@@ -254,14 +271,25 @@ class ClassCooccurrence(BaseStats):
                 save_data = np.array(loaded_data, dtype=object)
                 np.save(file, save_data)
 
+                # Merged cells are bounded at REFERENCES_LIMIT, the same cap update() and
+                # to_json() already apply per cell. Without it the merge is the whole project:
+                # every image id lands in a cell for each pair of classes it carries, so the
+                # structure grows with images x classes^2 and dwarfs every other stat.
+                # Counts are accumulated separately and stay exact -- chunks partition the
+                # images, so per-chunk set sizes sum to the true per-cell total.
                 for cls_id_i in true_classes:
+                    loaded_row = loaded_data.get(cls_id_i) or {}
                     for cls_id_j in true_classes:
-                        self.co_occurrence_dict[cls_id_i][cls_id_j].update(
-                            loaded_data[cls_id_i].get(cls_id_j, set())
-                        )
-                        self.co_occurrence_dict[cls_id_j][cls_id_i].update(
-                            loaded_data[cls_id_j].get(cls_id_i, set())
-                        )
+                        chunk_ids = loaded_row.get(cls_id_j)
+                        if not chunk_ids:
+                            continue
+
+                        self._cell_counts[cls_id_i][cls_id_j] += len(chunk_ids)
+
+                        cell = self.co_occurrence_dict[cls_id_i][cls_id_j]
+                        room = REFERENCES_LIMIT - len(cell)
+                        if room > 0:
+                            cell.update(islice(chunk_ids, room))
 
 
 class ClassToTagCooccurrence(BaseStats):
